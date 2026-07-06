@@ -1,23 +1,35 @@
 import React from "react";
-import { ShieldCheck, Star, Clock } from "lucide-react";
+import { ShieldCheck, Star, MapPin, Handshake } from "lucide-react";
 
 export function TrustStrip() {
+  const features = [
+    { icon: <Handshake className="w-5 h-5 text-accent-gold" />, label: "Human Concierge" },
+    { icon: <ShieldCheck className="w-5 h-5 text-accent-gold" />, label: "Verified Venues" },
+    { icon: <Star className="w-5 h-5 text-accent-gold" />, label: "Transparent Quotes" },
+    { icon: <MapPin className="w-5 h-5 text-accent-gold" />, label: "Hyderabad Experts" },
+  ];
+
   return (
-    <div className="w-full bg-neutral-charcoal py-4 md:hidden">
-      <div className="flex justify-center items-center gap-4 sm:gap-6 px-4">
-        <div className="flex items-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-accent-gold" />
-          <span className="text-[10px] font-bold text-white tracking-widest uppercase">Verified Concierge</span>
+    <div className="w-full bg-neutral-charcoal py-6 border-y border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Desktop: single row */}
+        <div className="hidden md:flex justify-between items-center">
+          {features.map((feature, idx) => (
+            <div key={idx} className="flex items-center gap-3">
+              {feature.icon}
+              <span className="text-sm font-medium text-white tracking-wide">{feature.label}</span>
+            </div>
+          ))}
         </div>
-        <div className="w-1 h-1 rounded-full bg-neutral-muted/50" />
-        <div className="flex items-center gap-1.5">
-          <Star className="w-4 h-4 text-accent-gold" />
-          <span className="text-[10px] font-bold text-white tracking-widest uppercase">Luxury Venues</span>
-        </div>
-        <div className="w-1 h-1 rounded-full bg-neutral-muted/50" />
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-4 h-4 text-accent-gold" />
-          <span className="text-[10px] font-bold text-white tracking-widest uppercase">24/7 Support</span>
+        
+        {/* Mobile: 2x2 grid */}
+        <div className="grid grid-cols-2 gap-4 md:hidden">
+          {features.map((feature, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              {feature.icon}
+              <span className="text-xs font-medium text-white tracking-wide">{feature.label}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

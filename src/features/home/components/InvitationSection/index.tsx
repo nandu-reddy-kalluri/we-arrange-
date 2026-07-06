@@ -3,7 +3,7 @@ import { InvitationEditor } from "./InvitationEditor";
 
 export default function InvitationSection() {
   return (
-    <section className="py-20 lg:py-24 bg-neutral-cream relative border-t border-b border-neutral-border">
+    <section className="py-12 md:py-16 lg:py-20 bg-neutral-cream relative border-t border-b border-neutral-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 flex flex-col items-center gap-3">
           <span className="font-sans text-[10px] font-black uppercase text-accent-gold tracking-[0.25em]">

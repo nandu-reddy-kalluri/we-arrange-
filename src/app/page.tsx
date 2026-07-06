@@ -1,8 +1,6 @@
 import React from "react";
 import HeroSection from "@/features/home/components/HeroSection";
-import RequirementsPreview from "@/features/home/components/RequirementsPreview";
-import WhyChooseUs from "@/features/home/components/WhyChooseUs";
-import HowItWorks from "@/features/home/components/HowItWorks";
+import { ConciergeJourney } from "@/features/home/components/ConciergeJourney";
 import VenueSection from "@/features/home/components/VenueSection";
 import VendorSection from "@/features/home/components/VendorSection";
 import InspirationSection from "@/features/home/components/InspirationSection";
@@ -11,7 +9,7 @@ import { TrustStrip } from "@/features/home/components/TrustStrip";
 import { ClientScrollRail } from "@/components/layout/ClientScrollRail";
 import { FloatingConciergeButton } from "@/components/layout/FloatingConciergeButton";
 import DigitalSuiteSection from "@/features/home/components/DigitalSuiteSection";
-import CelebrateSection from "@/features/home/components/CelebrateSection";
+import { CelebrateSection } from "@/features/home/components/CelebrateSection";
 
 export const metadata = {
   title: "YouMarriageWeArrange | Hyderabad's Premium Wedding Concierge",
@@ -22,24 +20,7 @@ export const metadata = {
   }
 };
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-  const params = await searchParams;
-  const location = (params.location as string) || "";
-  const guests = (params.guests as string) || "";
-  const budget = (params.budget as string) || "";
-
-  let baseVenues = 18;
-  let baseVendors = 42;
-  if (guests === "Under 200") { baseVenues = 8; baseVendors = 16; }
-  else if (guests === "200-500") { baseVenues = 12; baseVendors = 28; }
-  
-  if (location) { baseVenues = Math.max(2, Math.floor(baseVenues * 0.4)); }
-  if (budget) { baseVenues = Math.max(1, Math.floor(baseVenues * 0.6)); }
-
+export default function HomePage() {
   return (
     <main className="overflow-hidden relative bg-neutral-cream">
       <ClientScrollRail />
@@ -51,27 +32,17 @@ export default async function HomePage({
       <TrustStrip />
       <MobileQuickSearchChips />
       
-      <RequirementsPreview 
-        location={location}
-        guests={guests}
-        budget={budget}
-        venuesCount={baseVenues}
-        vendorsCount={baseVendors}
-      />
-      
-      <div id="meet-concierge">
-        <WhyChooseUs />
-      </div>
-      
-      <div id="how-it-works">
-        <HowItWorks />
+      <div id="concierge-journey">
+        <ConciergeJourney />
       </div>
       
       <div id="featured-venues">
         <VenueSection />
       </div>
       
-      <VendorSection />
+      <div id="featured-vendors">
+        <VendorSection />
+      </div>
       <InspirationSection />
       <DigitalSuiteSection />
       <CelebrateSection />

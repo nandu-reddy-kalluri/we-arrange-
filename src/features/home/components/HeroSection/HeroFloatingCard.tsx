@@ -261,25 +261,6 @@ export function HeroFloatingCard() {
                   </span>
                 </div>
 
-                {/* 2D: Progress bar — 1px track at very bottom of card */}
-                <div
-                  className="relative mt-3 w-full overflow-hidden"
-                  style={{
-                    height: "1.5px",
-                    background: "rgba(200,161,101,0.15)",
-                    borderRadius: "1px",
-                  }}
-                >
-                  <div
-                    ref={progressRef}
-                    style={{
-                      height: "100%",
-                      width: "0%",
-                      background: "linear-gradient(90deg, #6F1D2C, #C8A165)",
-                      borderRadius: "1px",
-                    }}
-                  />
-                </div>
               </motion.div>
             )}
           </AnimatePresence>

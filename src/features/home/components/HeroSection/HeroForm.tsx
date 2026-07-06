@@ -148,8 +148,6 @@ function PrimaryButton({
       suppressHydrationWarning
       onClick={onClick}
       id={id}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       className="group relative w-full sm:w-auto px-8 min-h-[48px] rounded-xl text-[11px] font-black uppercase tracking-widest text-white overflow-hidden"
       style={{
         background: "linear-gradient(135deg, #7A2033 0%, #6F1D2C 50%, #5C1724 100%)",
@@ -159,6 +157,7 @@ function PrimaryButton({
         transition: "transform 80ms ease-out, box-shadow 80ms ease-out",
       }}
       // 4E: Lift on hover, press on active
+      // 4E: Lift on hover, press on active
       onMouseDown={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "scale(0.97) translateY(1px)";
         (e.currentTarget as HTMLElement).style.boxShadow =
@@ -167,14 +166,26 @@ function PrimaryButton({
       onMouseUp={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
         (e.currentTarget as HTMLElement).style.boxShadow =
-          "0 12px 40px -6px rgba(111,29,44,0.75), 0 1px 0 rgba(255,255,255,0.15) inset";
+          "0 12px 40px -4px rgba(200,161,101,0.30), 0 1px 0 rgba(255,255,255,0.15) inset";
       }}
       onFocus={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
         (e.currentTarget as HTMLElement).style.boxShadow =
-          "0 12px 40px -6px rgba(111,29,44,0.75), 0 1px 0 rgba(255,255,255,0.15) inset";
+          "0 12px 40px -4px rgba(200,161,101,0.30), 0 1px 0 rgba(255,255,255,0.15) inset";
       }}
       onBlur={(e) => {
+        (e.currentTarget as HTMLElement).style.transform = "";
+        (e.currentTarget as HTMLElement).style.boxShadow =
+          "0 8px 32px -6px rgba(111,29,44,0.60), 0 1px 0 rgba(255,255,255,0.10) inset";
+      }}
+      onMouseEnter={(e) => {
+        handleMouseEnter();
+        (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+        (e.currentTarget as HTMLElement).style.boxShadow =
+          "0 12px 40px -4px rgba(200,161,101,0.30), 0 1px 0 rgba(255,255,255,0.15) inset";
+      }}
+      onMouseLeave={(e) => {
+        handleMouseLeave();
         (e.currentTarget as HTMLElement).style.transform = "";
         (e.currentTarget as HTMLElement).style.boxShadow =
           "0 8px 32px -6px rgba(111,29,44,0.60), 0 1px 0 rgba(255,255,255,0.10) inset";
@@ -283,7 +294,7 @@ export function HeroForm() {
     setVendorsCount(bD);
   }, [location, guests, budget, router, searchParams]);
 
-  const handleStartPlanning  = () => document.getElementById("meet-concierge")?.scrollIntoView({ behavior: "smooth" });
+  const handleStartPlanning  = () => document.getElementById("concierge-journey")?.scrollIntoView({ behavior: "smooth" });
   const handleExploreVenues  = () => document.getElementById("featured-venues")?.scrollIntoView({ behavior: "smooth" });
 
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);

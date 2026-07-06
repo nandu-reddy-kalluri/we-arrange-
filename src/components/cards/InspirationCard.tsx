@@ -35,12 +35,12 @@ export default function InspirationCard({
       />
 
       {/* Subtle black gradient overlay at bottom for better text readability */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent md:from-black/80 md:via-black/25 md:opacity-90 z-[1] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent md:from-black/90 md:via-black/35 md:opacity-95 z-[1] pointer-events-none" />
 
       {/* Content overlay: Title and Favourite Icon positioned together on mobile */}
       <div className="absolute bottom-0 left-0 right-0 p-4 md:px-4 md:bottom-4 flex items-center justify-between z-10">
         <Link href={`/inspiration/${category.slug}`} className="block flex-grow">
-          <span className="font-serif text-base md:text-base font-bold text-white tracking-wide hover:underline cursor-pointer text-left md:text-center block md:inline-block w-full">
+          <span className="font-serif text-base md:text-base font-bold text-white tracking-wide hover:underline cursor-pointer text-left md:text-center block md:inline-block w-full drop-shadow-md">
             {category.title}
           </span>
         </Link>

@@ -45,10 +45,10 @@ export default function HeroSection() {
           </div>
 
           {/* ── 3A: Headline — two lines staggered wipe-up reveal ── */}
-          <h1 className={`${typography.heroTitle} text-white overflow-hidden`}>
+          <h1 className="font-serif text-white overflow-hidden leading-[1.05]">
             {/* Line 1 — wipe up at 1.0s */}
             <motion.span
-              className="block overflow-hidden"
+              className="block overflow-hidden text-[34px] md:text-[56px] tracking-[-0.03em]"
               initial={{ clipPath: "inset(0 0 100% 0)", opacity: 0, y: 40 }}
               animate={{ clipPath: "inset(0 0 0% 0)",   opacity: 1, y: 0  }}
               transition={{ duration: 0.9, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
@@ -58,7 +58,7 @@ export default function HeroSection() {
 
             {/* Line 2 — wipe up at 1.25s (250ms stagger) */}
             <motion.span
-              className="block overflow-hidden italic font-normal"
+              className="block overflow-hidden italic text-[28px] md:text-[36px] tracking-[-0.03em]"
               initial={{ clipPath: "inset(0 0 100% 0)", opacity: 0, y: 40 }}
               animate={{ clipPath: "inset(0 0 0% 0)",   opacity: 1, y: 0  }}
               transition={{ duration: 0.9, delay: 1.25, ease: [0.16, 1, 0.3, 1] }}

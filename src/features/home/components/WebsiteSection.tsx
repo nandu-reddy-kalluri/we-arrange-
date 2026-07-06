@@ -17,7 +17,7 @@ export default function WebsiteSection() {
   const mobileY = useTransform(scrollYProgress, [0, 1], [30, -30]);
 
   return (
-    <section ref={containerRef} className="py-20 lg:py-24 bg-white relative overflow-hidden">
+    <section ref={containerRef} className="py-12 md:py-16 lg:py-20 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">

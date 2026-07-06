@@ -7,7 +7,7 @@ import { typography, spacing, colors, layout } from "@/styles";
 
 export default function VendorSection() {
   return (
-    <section className={`hidden md:block ${spacing.sectionSmall} ${colors.bgSecondary} relative border-t border-b ${colors.border}`}>
+    <section className={`hidden md:block ${spacing.section} ${colors.bgSecondary} relative border-t border-b ${colors.border}`}>
       <div className={`${layout.maxWidth} ${spacing.container}`}>
         <div className={`flex flex-col sm:flex-row items-center sm:items-end justify-between mb-12 pb-5 border-b ${colors.borderLight} gap-4`}>
           <div className="text-center sm:text-left">

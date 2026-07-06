@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "@/styles/globals.css";
 import Navbar from "@/components/layout/Navbar/index";
-import Footer from "@/components/layout/Footer";
+import { Footer } from "@/components/layout/Footer";
+import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -44,11 +45,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${jakarta.variable} scroll-smooth`} data-scroll-behavior="smooth">
-      <body className="antialiased bg-[hsl(30,20%,98%)] font-sans text-[hsl(240,10%,15%)] min-h-screen flex flex-col justify-between">
-        <Navbar />
-        <div className="flex-grow">{children}</div>
-        <Footer />
+    <html lang="en" className={`${playfair.variable} ${jakarta.variable}`} data-scroll-behavior="smooth">
+      <body className="antialiased bg-[hsl(30,20%,98%)] font-sans text-[hsl(240,10%,15%)] min-h-screen flex flex-col justify-between relative">
+        <div className="luxury-texture-overlay" />
+        <SmoothScrollProvider>
+          <Navbar />
+          <div className="flex-grow relative z-10">{children}</div>
+          <Footer />
+        </SmoothScrollProvider>
       </body>
     </html>
   );

@@ -80,8 +80,8 @@ export function VendorScroller({ categories }: { categories: VendorCategory[] })
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-0.5 items-center">
-                <span className="font-serif text-sm lg:text-base font-bold text-neutral-charcoal group-hover:text-primary transition-colors duration-300">
+              <div className="flex flex-col gap-1 items-center">
+                <span className="font-serif text-base md:text-lg font-medium text-neutral-charcoal group-hover:text-primary transition-colors duration-300">
                   {category.name}
                 </span>
                 <span className="text-[9px] font-black text-neutral-muted uppercase tracking-wider">

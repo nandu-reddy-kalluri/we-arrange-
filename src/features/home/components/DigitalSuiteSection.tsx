@@ -46,7 +46,7 @@ const cardVariants = {
 
 export default function DigitalSuiteSection() {
   return (
-    <section className={`${spacing.section} ${colors.bgPrimary} relative overflow-hidden border-t border-b ${colors.border}`}>
+    <section className={`${spacing.section} ${colors.bgSecondary} relative overflow-hidden border-t border-b ${colors.border}`}>
       <div className={`${layout.maxWidth} ${spacing.container}`}>
         
         {/* Header Section */}
@@ -64,7 +64,7 @@ export default function DigitalSuiteSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className={`w-full ${colors.bgSecondary} ${radii.card} overflow-hidden border ${colors.borderLight} transition-colors duration-300 ${shadows.cardPremium} flex flex-col md:flex-row relative group`}
+          className={`w-full bg-[#FAF7F2] ${radii.card} overflow-hidden border border-[#E8D8BC] transition-colors duration-300 shadow-[0_12px_40px_rgba(0,0,0,0.06)] flex flex-col md:flex-row relative group`}
         >
           {/* Left: Illustration Area (Soft Gradient) */}
           <div className="w-full md:w-[45%] relative aspect-video md:aspect-auto bg-gradient-to-br from-[#FAF8F5] via-[#F4EFE6] to-[#EBE3D5] flex items-center justify-center p-8 overflow-hidden">
@@ -103,7 +103,7 @@ export default function DigitalSuiteSection() {
 
             <Link
               href="/digital-suite"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary-dark transition-colors shadow-md w-full sm:w-fit"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#C8A165] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:-translate-y-1 hover:bg-[#B68F55] shadow-lg transition-all w-full sm:w-fit"
             >
               Explore Digital Suite <span>→</span>
             </Link>

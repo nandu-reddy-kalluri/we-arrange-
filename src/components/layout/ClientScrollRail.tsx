@@ -17,7 +17,7 @@ export function ClientScrollRail() {
       { rootMargin: "-30% 0px -70% 0px" } // Triggers when element crosses top third
     );
 
-    const sections = ["hero", "meet-concierge", "how-it-works", "featured-venues"];
+    const sections = ["hero", "concierge-journey", "featured-venues", "featured-vendors"];
     sections.forEach((id) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
@@ -28,9 +28,9 @@ export function ClientScrollRail() {
 
   const getActiveIndex = () => {
     if (activeSection === "hero") return 0;
-    if (activeSection === "meet-concierge") return 1;
-    if (activeSection === "how-it-works") return 2;
-    if (activeSection === "featured-venues") return 3;
+    if (activeSection === "concierge-journey") return 1;
+    if (activeSection === "featured-venues") return 2;
+    if (activeSection === "featured-vendors") return 3;
     return 0;
   };
 
@@ -52,22 +52,22 @@ export function ClientScrollRail() {
           Dream
         </button>
         <button 
-          onClick={() => document.getElementById("meet-concierge")?.scrollIntoView({ behavior: "smooth" })} 
+          onClick={() => document.getElementById("concierge-journey")?.scrollIntoView({ behavior: "smooth" })} 
           className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors ${getActiveIndex() === 1 ? "text-primary" : "text-neutral-muted hover:text-neutral-charcoal"}`}
         >
-          Plan
-        </button>
-        <button 
-          onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })} 
-          className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors ${getActiveIndex() === 2 ? "text-primary" : "text-neutral-muted hover:text-neutral-charcoal"}`}
-        >
-          Compare
+          Journey
         </button>
         <button 
           onClick={() => document.getElementById("featured-venues")?.scrollIntoView({ behavior: "smooth" })} 
+          className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors ${getActiveIndex() === 2 ? "text-primary" : "text-neutral-muted hover:text-neutral-charcoal"}`}
+        >
+          Venues
+        </button>
+        <button 
+          onClick={() => document.getElementById("featured-vendors")?.scrollIntoView({ behavior: "smooth" })} 
           className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors ${getActiveIndex() === 3 ? "text-primary" : "text-neutral-muted hover:text-neutral-charcoal"}`}
         >
-          Choose
+          Vendors
         </button>
       </div>
     </div>

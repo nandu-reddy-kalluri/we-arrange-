@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export function FloatingConciergeButton() {
   const handleOpenConcierge = () => {
-    document.getElementById("meet-concierge")?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById("concierge-journey")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
