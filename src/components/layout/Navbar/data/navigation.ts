@@ -50,7 +50,6 @@ export const NAVIGATION_DATA: Record<string, NavigationCardData> = {
 // Main top-level navigation links
 export const NAV_LINKS = [
   { name: "Venues", id: "venues", href: "/venues" },
-  { name: "Vendors", id: "vendors", href: "/vendors" },
-  { name: "Services", id: "services", href: "/services" },
+  { name: "Collections", id: "collections", href: "/collections" },
   { name: "Inspiration", id: "inspiration", href: "/inspiration" },
 ];

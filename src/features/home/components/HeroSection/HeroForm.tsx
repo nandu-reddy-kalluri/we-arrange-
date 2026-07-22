@@ -3,110 +3,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { MapPin, Users, IndianRupee } from "lucide-react";
+import { MapPin, Users, IndianRupee, Sparkles } from "lucide-react";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Counter: animated number roll-up
 ───────────────────────────────────────────────────────────────────────────── */
-function Counter({ value }: { value: number }) {
-  const [displayValue, setDisplayValue] = useState(0);
+// Counter removed (no fake stats)
 
-  useEffect(() => {
-    const end = value;
-    if (displayValue === end) return;
-    const duration = 1200;
-    const startTime = performance.now();
-    const startVal = displayValue;
-
-    function animate(now: number) {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(Math.floor(startVal + ease * (end - startVal)));
-      if (progress < 1) requestAnimationFrame(animate);
-      else setDisplayValue(end);
-    }
-    requestAnimationFrame(animate);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
-
-  return <span>{displayValue}</span>;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   4A+4B: Luxury Input Field wrapper
-   - Focus glow (box-shadow expansion behind the field)
-   - Icon colour transitions from burgundy → champagne on focus
-───────────────────────────────────────────────────────────────────────────── */
-function InputField({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) {
-  const [focused, setFocused] = useState(false);
-
-  return (
-    <div
-      className="flex items-center gap-3 px-4 py-3 min-h-[54px]"
-      style={{
-        background: "rgba(255,252,248,0.90)",
-        borderRadius: "12px",
-        border: `1px solid ${focused ? "rgba(200,161,101,0.45)" : "rgba(200,161,101,0.20)"}`,
-        // 4A: Focus glow expands behind the input
-        boxShadow: focused
-          ? "0 0 0 3px rgba(200,161,101,0.12), 0 4px 16px -4px rgba(200,161,101,0.22)"
-          : "none",
-        transition: "box-shadow 200ms ease-out, border-color 200ms ease-out",
-      }}
-      onFocusCapture={() => setFocused(true)}
-      onBlurCapture={() => setFocused(false)}
-    >
-      {/* 4B: Icon warms to champagne on focus */}
-      <span
-        style={{
-          color: focused ? "#C8A165" : "#6F1D2C",
-          transition: "color 200ms ease-out",
-          flexShrink: 0,
-          display: "flex",
-        }}
-      >
-        {icon}
-      </span>
-      <div className="flex-grow text-left">
-        <span className="text-[9px] font-black text-neutral-muted uppercase tracking-[0.18em] block">
-          {label}
-        </span>
-        {children}
-      </div>
-    </div>
-  );
-}
+// InputField replaced by CustomSelect
 
 /* ─────────────────────────────────────────────────────────────────────────────
    4C: Double-ring sonar pulse
 ───────────────────────────────────────────────────────────────────────────── */
-function SonarDot() {
-  return (
-    <span className="relative inline-flex w-2 h-2 shrink-0">
-      {/* Static core */}
-      <span className="absolute inset-0 rounded-full bg-emerald-400" />
-      {/* Ring 1 */}
-      <span
-        className="absolute inset-0 rounded-full bg-emerald-400/40 animate-ping"
-        style={{ animationDuration: "1s" }}
-      />
-      {/* Ring 2 — offset phase */}
-      <span
-        className="absolute inset-0 rounded-full bg-emerald-400/25 animate-ping"
-        style={{ animationDuration: "1.5s", animationDelay: "0.75s" }}
-      />
-    </span>
-  );
-}
+// SonarDot removed
 
 /* ─────────────────────────────────────────────────────────────────────────────
    4D+4E: Luxury Burgundy Primary Button — liquid shimmer + press state
@@ -275,23 +185,12 @@ export function HeroForm() {
   const [guests,   setGuests]   = useState(searchParams.get("guests")   || "");
   const [budget,   setBudget]   = useState(searchParams.get("budget")   || "");
 
-  const [venuesCount,  setVenuesCount]  = useState(18);
-  const [vendorsCount, setVendorsCount] = useState(42);
-
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     if (location) params.set("location", location); else params.delete("location");
     if (guests)   params.set("guests",   guests);   else params.delete("guests");
     if (budget)   params.set("budget",   budget);   else params.delete("budget");
     router.replace(`/?${params.toString()}`, { scroll: false });
-
-    let bV = 18, bD = 42;
-    if (guests === "Under 200") { bV = 8;  bD = 16; }
-    else if (guests === "200-500") { bV = 12; bD = 28; }
-    if (location) bV = Math.max(2, Math.floor(bV * 0.4));
-    if (budget)   bV = Math.max(1, Math.floor(bV * 0.6));
-    setVenuesCount(bV);
-    setVendorsCount(bD);
   }, [location, guests, budget, router, searchParams]);
 
   const handleStartPlanning  = () => document.getElementById("concierge-journey")?.scrollIntoView({ behavior: "smooth" });
@@ -312,7 +211,7 @@ export function HeroForm() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="w-full flex flex-col gap-3 md:gap-4 text-neutral-charcoal relative overflow-hidden"
+        className="w-full flex flex-col gap-3 md:gap-4 text-neutral-charcoal relative"
         style={{
           background: "rgba(255, 252, 248, 0.10)",
           backdropFilter: "blur(24px) saturate(160%)",
@@ -334,82 +233,80 @@ export function HeroForm() {
         />
 
         {/* Input grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10">
-          <InputField icon={<MapPin className="w-4 h-4" />} label="Location">
-            <select
-              suppressHydrationWarning
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="bg-transparent text-sm font-bold text-neutral-charcoal outline-none w-full mt-0.5 cursor-pointer appearance-none min-h-[32px]"
-            >
-              <option value="">All Hyderabad Areas</option>
-              <option value="Banjara Hills">Banjara Hills</option>
-              <option value="Jubilee Hills">Jubilee Hills</option>
-              <option value="Gachibowli">Gachibowli</option>
-            </select>
-          </InputField>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-20">
+          <CustomSelect
+            icon={<MapPin className="w-4 h-4" />}
+            label="Location"
+            value={location}
+            onChange={setLocation}
+            placeholder="All Hyderabad Areas"
+            options={[
+              { value: "", label: "All Hyderabad Areas" },
+              { value: "Banjara Hills", label: "Banjara Hills" },
+              { value: "Jubilee Hills", label: "Jubilee Hills" },
+              { value: "Gachibowli", label: "Gachibowli" },
+            ]}
+          />
 
-          <InputField icon={<Users className="w-4 h-4" />} label="Guests Size">
-            <select
-              suppressHydrationWarning
-              value={guests}
-              onChange={(e) => setGuests(e.target.value)}
-              className="bg-transparent text-sm font-bold text-neutral-charcoal outline-none w-full mt-0.5 cursor-pointer appearance-none min-h-[32px]"
-            >
-              <option value="">Select size</option>
-              <option value="Under 200">Under 200</option>
-              <option value="200-500">200 - 500</option>
-              <option value="500-1000">500 - 1000</option>
-            </select>
-          </InputField>
+          <CustomSelect
+            icon={<Users className="w-4 h-4" />}
+            label="Guests Size"
+            value={guests}
+            onChange={setGuests}
+            placeholder="Select size"
+            options={[
+              { value: "", label: "Select size" },
+              { value: "Under 200", label: "Under 200" },
+              { value: "200-500", label: "200 - 500" },
+              { value: "500-1000", label: "500 - 1000" },
+            ]}
+          />
 
-          <InputField icon={<IndianRupee className="w-4 h-4" />} label="Budget Limit">
-            <select
-              suppressHydrationWarning
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              className="bg-transparent text-sm font-bold text-neutral-charcoal outline-none w-full mt-0.5 cursor-pointer appearance-none min-h-[32px]"
-            >
-              <option value="">Select range</option>
-              <option value="10-25">₹10L - ₹25 Lakhs</option>
-              <option value="25-50">₹25L - ₹50 Lakhs</option>
-              <option value="50-100">₹50L - ₹1 Crore</option>
-            </select>
-          </InputField>
+          <CustomSelect
+            icon={<IndianRupee className="w-4 h-4" />}
+            label="Budget Limit"
+            value={budget}
+            onChange={setBudget}
+            placeholder="Select range"
+            options={[
+              { value: "", label: "Select range" },
+              { value: "10-25", label: "₹10L - ₹25 Lakhs" },
+              { value: "25-50", label: "₹25L - ₹50 Lakhs" },
+              { value: "50-100", label: "₹50L - ₹1 Crore" },
+            ]}
+          />
         </div>
 
         {/* Status row - Desktop only */}
         <div
-          className="hidden md:flex relative z-10 flex-wrap items-center justify-between gap-3 pt-3 text-xs font-bold px-1"
+          className="hidden md:flex relative z-10 flex-wrap items-center justify-between gap-3 pt-4 pb-1 text-xs font-bold px-2"
           style={{ borderTop: "1px solid rgba(255,255,255,0.12)" }}
         >
-          <div className="flex flex-wrap items-center gap-4">
-            <span className="flex items-center gap-2 text-white/80">
-              <SonarDot />
-              ✓ <Counter value={venuesCount} /> Curated Recommendations
-            </span>
-            <span className="flex flex-wrap items-center gap-2 text-[#C8A165]">
-              <SonarDot />
-              ✓ <Counter value={vendorsCount} /> Concierge Sourced Matches
-              <span className="ml-1 inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-400 tracking-wider">
-                Concierge Online
-              </span>
-            </span>
+          <div className="flex flex-wrap items-center gap-6">
+            <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="flex items-center gap-1.5 text-white/90">
+              <span className="text-[#C8A165]">✓</span> Preferences understood
+            </motion.span>
+            <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="flex items-center gap-1.5 text-white/90">
+              <span className="text-[#C8A165]">✓</span> Smart filtering
+            </motion.span>
+            <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-1.5 text-[#C8A165]">
+              <Sparkles className="w-3.5 h-3.5" /> Personalized results
+            </motion.span>
           </div>
-          <div className="text-[9px] text-white/40 uppercase tracking-wider">
-            Concierge actively matching requirements
+          <div className="text-[9px] text-white/50 uppercase tracking-widest font-black">
+            Smart Wedding Discovery
           </div>
         </div>
 
         {/* Buttons */}
         <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-1">
-          <PrimaryButton onClick={handleStartPlanning} id="hero-cta-specialist">
-            <span className="md:hidden">Search</span>
-            <span className="hidden md:inline">Talk To A Specialist</span>
+          <PrimaryButton onClick={handleExploreVenues} id="hero-cta-discovery">
+            <span className="md:hidden">Find Matches</span>
+            <span className="hidden md:inline">Find My Matches</span>
           </PrimaryButton>
           <div className="hidden md:block">
             <SecondaryButton onClick={handleExploreVenues} id="hero-cta-venues">
-              View Curated Collection
+              Explore Collections
             </SecondaryButton>
           </div>
         </div>

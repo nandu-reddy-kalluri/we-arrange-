@@ -3,7 +3,7 @@ import HeroSection from "@/features/home/components/HeroSection";
 import { ConciergeJourney } from "@/features/home/components/ConciergeJourney";
 import VenueSection from "@/features/home/components/VenueSection";
 import VendorSection from "@/features/home/components/VendorSection";
-import InspirationSection from "@/features/home/components/InspirationSection";
+
 import { MobileQuickSearchChips } from "@/features/home/components/MobileQuickSearchChips";
 import { TrustStrip } from "@/features/home/components/TrustStrip";
 import { ClientScrollRail } from "@/components/layout/ClientScrollRail";
@@ -43,7 +43,7 @@ export default function HomePage() {
       <div id="featured-vendors">
         <VendorSection />
       </div>
-      <InspirationSection />
+
       <DigitalSuiteSection />
       <CelebrateSection />
       

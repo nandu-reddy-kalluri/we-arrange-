@@ -47,7 +47,7 @@ export function ConciergeJourney() {
       {/* SECTION HEADER */}
       <div className="relative z-10 w-full text-center px-4 mb-4 lg:mb-8">
         <span className="font-sans text-[10px] sm:text-xs font-black uppercase text-[#C8A165] tracking-[0.25em] block mb-3">
-          SMART WEDDING EXPERIENCE
+          LUXURY WEDDING EXPERIENCE
         </span>
         <h2 className="text-3xl md:text-4xl lg:text-[44px] font-serif tracking-tight text-neutral-charcoal leading-[1.1] mb-3">
           From Vision to Celebration
@@ -132,7 +132,7 @@ export function ConciergeJourney() {
             </svg>
           </div>
 
-          {/* CENTER ORB: YW Arrange Engine */}
+          {/* CENTER ORB: We Arrange Platform */}
           <motion.div 
             style={{ x: orbX, y: orbY }}
             animate={{ scale: [1, 1.05, 1], boxShadow: ["0 20px 50px rgba(28,0,6,0.3)", "0 20px 70px rgba(200,161,101,0.2)", "0 20px 50px rgba(28,0,6,0.3)"] }}
@@ -143,8 +143,8 @@ export function ConciergeJourney() {
             <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_top,rgba(200,161,101,0.25),transparent_70%)]" />
             <div className="absolute top-2 w-[80%] h-[30%] bg-white/5 rounded-full blur-[2px] opacity-50" />
             
-            <span className="font-serif text-3xl md:text-5xl font-bold text-white leading-none mb-1 drop-shadow-md">YW</span>
-            <span className="text-[8px] md:text-[9px] uppercase tracking-[0.25em] font-bold text-[#C8A165]">Arrange Engine</span>
+            <span className="font-serif text-3xl md:text-4xl font-bold text-white leading-none mb-1 drop-shadow-md text-center">We<br/>Arrange</span>
+            <span className="text-[8px] md:text-[9px] uppercase tracking-[0.25em] font-bold text-[#C8A165]">Platform</span>
           </motion.div>
 
           {/* CIRCULAR JOURNEY CARDS */}

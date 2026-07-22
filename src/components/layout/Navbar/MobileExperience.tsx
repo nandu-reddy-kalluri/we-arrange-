@@ -3,9 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, X } from "lucide-react";
-import { photography } from "@/lib/design/photography";
-import Image from "next/image";
+import { ChevronRight, ChevronDown, X, Heart, User } from "lucide-react";
+import { NAVIGATION_HIERARCHY } from "./data/navigationData";
 
 interface MobileExperienceProps {
   isOpen: boolean;
@@ -14,13 +13,6 @@ interface MobileExperienceProps {
 
 export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-
-  const sections = [
-    { id: "venues", title: "Venues", subtitle: "Royal Palaces & Hotels", img: photography.palaces[0] },
-    { id: "vendors", title: "Vendors", subtitle: "Curated Professionals", img: photography.decor[0] },
-    { id: "services", title: "Services", subtitle: "Concierge Planning", img: photography.decor[1] },
-    { id: "inspiration", title: "Inspiration", subtitle: "Sabyasachi Dreams", img: photography.editorial[0] },
-  ];
 
   // Lock body scroll when open
   React.useEffect(() => {
@@ -40,53 +32,118 @@ export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="fixed inset-0 z-50 bg-[#FBF9F6] overflow-y-auto flex flex-col"
+          className="fixed inset-0 z-[110] bg-white overflow-y-auto flex flex-col"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-[#C5A880]/10 bg-[#FBF9F6] sticky top-0 z-10">
-            <span className="font-serif text-2xl font-bold text-[#2D2D2D]">Explore</span>
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-neutral-100 bg-white sticky top-0 z-10">
+            <Link href="/" onClick={onClose} className="flex flex-col text-left">
+              <span className="font-serif text-[18px] font-bold leading-none tracking-tight text-[#C5A880]">
+                YouMarriage
+              </span>
+              <span className="font-sans text-[10px] uppercase tracking-widest text-[#8B263E] font-bold leading-none mt-0.5">
+                WeArrange
+              </span>
+            </Link>
             <button 
               onClick={onClose}
-              className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-[#C5A880]/20 text-[#2D2D2D]"
+              className="p-2 -mr-2 rounded-full text-neutral-400 hover:text-neutral-900 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
-          {/* Large Touchable Cards */}
-          <div className="p-6 flex flex-col gap-4 pb-24">
-            {sections.map((section) => (
-              <motion.div 
-                key={section.id}
-                onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#C5A880]/10"
-              >
-                <div className="relative h-40 w-full">
-                  <img src={section.img} alt={section.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/30" />
-                  <div className="absolute bottom-4 left-4">
-                    <h3 className="font-serif text-2xl font-bold text-white">{section.title}</h3>
-                    <p className="text-xs font-semibold text-white/80 uppercase tracking-widest">{section.subtitle}</p>
-                  </div>
-                </div>
+          {/* Clean List Menu */}
+          <div className="p-4 sm:p-6 flex flex-col gap-1 pb-32">
+            {NAVIGATION_HIERARCHY.map((navItem) => (
+              <div key={navItem.id} className="border-b border-neutral-100 last:border-0">
+                <button
+                  onClick={() => setExpandedSection(expandedSection === navItem.id ? null : navItem.id)}
+                  className="w-full flex items-center justify-between py-5 text-left"
+                >
+                  <span className="font-serif text-2xl font-bold text-neutral-900">{navItem.label}</span>
+                  <ChevronDown className={`w-5 h-5 text-neutral-400 transition-transform duration-300 ${expandedSection === navItem.id ? "rotate-180 text-[#8B263E]" : ""}`} />
+                </button>
                 
                 <AnimatePresence>
-                  {expandedSection === section.id && (
+                  {expandedSection === navItem.id && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="px-4 py-6 bg-white flex flex-col gap-4"
+                      className="overflow-hidden"
                     >
-                      <Link href={`/${section.id}`} onClick={onClose} className="flex items-center justify-between p-4 rounded-xl bg-[#F5F2EB] text-[#2D2D2D]">
-                        <span className="font-bold text-sm">Explore {section.title}</span>
-                        <ChevronRight className="w-4 h-4 text-[#C5A880]" />
-                      </Link>
+                      <div className="pb-6 flex flex-col gap-6">
+                        {navItem.type === "mega-menu" && navItem.sections ? (
+                          navItem.sections.map((section) => (
+                            <div key={section.title} className="flex flex-col gap-3">
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-[#C5A880]">
+                                {section.title}
+                              </span>
+                              <div className="flex flex-col gap-3 pl-2">
+                                {section.items.map((subItem) => (
+                                  <Link
+                                    key={subItem.label}
+                                    href={subItem.href}
+                                    onClick={onClose}
+                                    className="text-sm font-medium text-neutral-600 hover:text-[#8B263E]"
+                                  >
+                                    {subItem.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          ))
+                        ) : navItem.type === "dropdown" && navItem.items ? (
+                          <div className="flex flex-col gap-3 pl-2">
+                            {navItem.items.map((subItem) => (
+                              <Link
+                                key={subItem.label}
+                                href={subItem.href}
+                                onClick={onClose}
+                                className="text-sm font-medium text-neutral-600 hover:text-[#8B263E]"
+                              >
+                                {subItem.label}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </div>
             ))}
+
+            {/* Bottom Utilities */}
+            <div className="mt-8 pt-6 border-t border-neutral-100 flex flex-col gap-2">
+              <Link
+                href="/saved"
+                onClick={onClose}
+                className="flex items-center gap-3 py-4 text-neutral-700 font-semibold"
+              >
+                <div className="w-10 h-10 rounded-full bg-neutral-50 flex items-center justify-center">
+                  <Heart className="w-5 h-5" />
+                </div>
+                Saved
+              </Link>
+              <Link
+                href="/login"
+                onClick={onClose}
+                className="flex items-center gap-3 py-4 text-neutral-700 font-semibold"
+              >
+                <div className="w-10 h-10 rounded-full bg-neutral-50 flex items-center justify-center">
+                  <User className="w-5 h-5" />
+                </div>
+                Login
+              </Link>
+              <Link
+                href="/register"
+                onClick={onClose}
+                className="w-full mt-4 py-4 rounded-full text-center text-sm font-bold text-white bg-[#8B263E]"
+              >
+                Create Account
+              </Link>
+            </div>
           </div>
         </motion.div>
       )}

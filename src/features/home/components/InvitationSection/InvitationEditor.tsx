@@ -132,6 +132,7 @@ export function InvitationEditor() {
                 src="/images/editorial/insp_photography.png"
                 alt="Couple Preview"
                 fill
+                unoptimized
                 sizes="80px"
                 className="object-cover"
               />

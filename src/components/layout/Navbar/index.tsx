@@ -7,6 +7,8 @@ import { DesktopNavigation } from "./DesktopNavigation";
 import { MobileExperience } from "./MobileExperience";
 import { useHoverIntent } from "./hooks/useHoverIntent";
 import { useMegaMenu } from "./hooks/useMegaMenu";
+import { PremiumSearchAction } from "./PremiumSearchAction";
+import { SavedAction } from "./SavedAction";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -44,7 +46,7 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           
-          {/* Brand Logo */}
+          {/* Left Zone: Brand Logo Anchor */}
           <Link href="/" className="flex items-center gap-2 group shrink-0" onMouseEnter={closeMenu}>
             <div className="relative flex items-center justify-center">
               <svg viewBox="0 0 24 24" className="w-8 h-8 text-[#C5A880] fill-current">
@@ -63,35 +65,45 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Preview System */}
-          <DesktopNavigation />
+          {/* Center Zone: Discovery (Desktop) */}
+          <div className="flex-1 flex justify-center">
+            <DesktopNavigation />
+          </div>
 
-          {/* Right Actions */}
-          <div className="hidden lg:flex items-center gap-6 shrink-0" onMouseEnter={closeMenu}>
+          {/* Right Zone: Utility Actions (Desktop) */}
+          <div className="hidden lg:flex items-center justify-end gap-3 xl:gap-5 shrink-0" onMouseEnter={closeMenu}>
+            <PremiumSearchAction onMenuClose={closeMenu} />
+            <SavedAction />
+            
+            <div className="w-[1px] h-4 bg-neutral-200 mx-1" />
+            
             <Link
               href="/login"
-              className="flex items-center gap-2 text-xs xl:text-sm font-bold text-[#2D2D2D] hover:text-[#8B263E] transition-colors duration-200"
+              className="flex items-center gap-2 text-xs xl:text-sm font-semibold text-[#2D2D2D] hover:text-[#8B263E] transition-colors duration-200"
             >
               <User className="w-4 h-4 text-[#6D6D6D]" />
-              <span>Login</span>
+              <span className="hidden xl:inline">Login</span>
             </Link>
 
             <Link
               href="/register"
-              className="px-5 py-2.5 rounded-full text-xs xl:text-sm font-bold text-white bg-[#8B263E] hover:bg-[#6e1c2f] transition-all duration-200 shadow-sm"
+              className="px-4 py-2 rounded-full text-xs xl:text-sm font-bold text-white bg-[#8B263E] hover:bg-[#6e1c2f] transition-all duration-200 shadow-sm"
             >
               Register
             </Link>
           </div>
 
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsMobileOpen(true)}
-            suppressHydrationWarning={true}
-            className="lg:hidden p-2 rounded-md text-[#2D2D2D] hover:text-[#8B263E]"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+          {/* Mobile Right Zone: Quick Utility & Menu */}
+          <div className="flex lg:hidden items-center gap-4">
+            <PremiumSearchAction onMenuClose={closeMenu} />
+            <button
+              onClick={() => setIsMobileOpen(true)}
+              suppressHydrationWarning={true}
+              className="p-2 -mr-2 rounded-md text-[#2D2D2D] hover:text-[#8B263E]"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </nav>
 

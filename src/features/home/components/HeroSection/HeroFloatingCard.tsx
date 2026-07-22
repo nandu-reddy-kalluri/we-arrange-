@@ -193,6 +193,7 @@ export function HeroFloatingCard() {
                     src={activeVenue.image}
                     alt={activeVenue.name}
                     fill
+                    unoptimized
                     priority={venueIdx === 0}
                     sizes="(max-width: 1024px) 100vw, 400px"
                     className="object-cover"

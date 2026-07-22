@@ -15,6 +15,7 @@ export function VenuePreview() {
           src={photography.assignments.navVenue}
           alt="Royal Palace"
           fill
+          unoptimized
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
         />
         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 shadow-sm">

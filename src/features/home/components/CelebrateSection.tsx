@@ -4,6 +4,14 @@ import React, { useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
+const dustParticles = [
+  { left: 60.7, top: 84.4, duration: 9.2, delay: 1.5 },
+  { left: 70.2, top: 55.8, duration: 11.1, delay: 3.2 },
+  { left: 64.9, top: 35.5, duration: 8.5, delay: 0.8 },
+  { left: 61.8, top: 17.0, duration: 12.3, delay: 2.1 },
+  { left: 58.3, top: 10.3, duration: 10.4, delay: 0.4 },
+];
+
 export function CelebrateSection() {
   const containerRef = useRef<HTMLElement>(null);
   const x = useMotionValue(0);
@@ -23,7 +31,7 @@ export function CelebrateSection() {
     <section 
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full pt-20 lg:pt-32 overflow-hidden bg-[#FAF7F2] perspective-[1500px]"
+      className="relative w-full pt-12 lg:pt-16 overflow-hidden bg-[#FAF7F2] perspective-[1500px]"
     >
       {/* 1. Deep Atmospheric Canvas */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -41,18 +49,18 @@ export function CelebrateSection() {
         />
 
         {/* Tiny Golden Particles (Idle Dust) */}
-        {[...Array(5)].map((_, i) => (
+        {dustParticles.map((particle, i) => (
           <motion.div
             key={`ambient-dust-${i}`}
             className="absolute w-1 h-1 bg-gradient-to-tr from-[#C89B3C] to-[#E8C875] rounded-full blur-[1px]"
-            style={{ left: `${10 + Math.random() * 80}%`, top: `${10 + Math.random() * 80}%` }}
+            style={{ left: `${particle.left}%`, top: `${particle.top}%` }}
             animate={{ y: [0, -100, 0], opacity: [0, 0.3, 0] }}
-            transition={{ duration: 8 + Math.random() * 5, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 4 }}
+            transition={{ duration: particle.duration, repeat: Infinity, ease: "easeInOut", delay: particle.delay }}
           />
         ))}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col lg:flex-row items-center gap-16 lg:gap-8 pb-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full flex flex-col lg:flex-row items-center gap-12 lg:gap-8 pb-20 lg:pb-28">
         
         {/* LEFT 40%: Copy, CTA, & Active Journey */}
         <div className="w-full lg:w-[40%] flex flex-col items-start justify-center z-20">
@@ -128,7 +136,7 @@ export function CelebrateSection() {
         </div>
 
         {/* RIGHT 60%: Memory Capsule & Experience Flow */}
-        <div className="w-full lg:w-[60%] h-[450px] lg:h-[550px] relative flex items-center justify-center transform-style-preserve-3d mt-12 lg:mt-0 perspective-[1500px]">
+        <div className="w-full lg:w-[60%] h-[400px] lg:h-[480px] relative flex items-center justify-center transform-style-preserve-3d mt-12 lg:mt-0 perspective-[1500px]">
           
           {/* Animated SVG Curved Path (Apple AirPods Style) */}
           <div className="absolute inset-0 pointer-events-none z-0">

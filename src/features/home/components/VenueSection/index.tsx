@@ -7,9 +7,9 @@ import { typography, spacing, colors, layout } from "@/styles";
 
 export default function VenueSection() {
   return (
-    <section className={`${spacing.section} ${colors.bgPrimary} relative`}>
+    <section className={`py-10 lg:py-14 ${colors.bgPrimary} relative`}>
       <div className={`${layout.maxWidth} ${spacing.container}`}>
-        <div className={`flex flex-col sm:flex-row items-center sm:items-end justify-between mb-12 pb-5 border-b ${colors.border} gap-4`}>
+        <div className={`flex flex-col sm:flex-row items-center sm:items-end justify-between mb-6 pb-4 border-b ${colors.border} gap-3`}>
           <div className="text-center sm:text-left">
             <span className="font-sans text-[10px] font-black uppercase text-accent-gold tracking-[0.25em] block mb-2">
               CHOOSE • Curated Recommendations

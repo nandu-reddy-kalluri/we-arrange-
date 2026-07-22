@@ -5,20 +5,33 @@ import VenueCard from "@/components/cards/VenueCard";
 import { Venue } from "@/mock-data/venues";
 import { motion } from "framer-motion";
 import { useAnalytics } from "@/lib/analytics/hooks";
+import Image from "next/image";
+import { Star, ChevronRight } from "lucide-react";
 
 export function VenueCarousel({ venues }: { venues: Venue[] }) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const { trackVenueClick } = useAnalytics();
 
   return (
-    <div 
+    <motion.div 
       ref={carouselRef}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      variants={{
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.1 } }
+      }}
       className="flex overflow-x-auto gap-6 snap-x snap-mandatory pb-6 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible scrollbar-none touch-pan-x" 
       style={{ scrollbarWidth: "none" }}
     >
       {venues.slice(0, 3).map((venue) => (
         <motion.div 
           key={venue.id}
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }
+          }}
           whileHover={{ y: -5 }}
           onClick={() => trackVenueClick(venue.id)}
           className="w-[85vw] shrink-0 sm:w-[45vw] md:w-auto md:min-w-0 snap-center md:snap-start"
@@ -27,15 +40,67 @@ export function VenueCarousel({ venues }: { venues: Venue[] }) {
         </motion.div>
       ))}
       <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 20 },
+          visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } }
+        }}
         whileHover={{ y: -5 }}
-        className="w-[85vw] shrink-0 sm:w-[45vw] md:w-[320px] snap-center md:snap-start flex flex-col items-center justify-center bg-white rounded-3xl border border-neutral-border shadow-sm cursor-pointer hover:shadow-premium transition-all min-h-[340px] md:min-h-[420px]"
+        className="group relative w-[85vw] shrink-0 sm:w-[45vw] md:w-[320px] snap-center md:snap-start flex flex-col items-center justify-center rounded-[20px] border border-[#E8C97A]/40 shadow-sm cursor-pointer hover:shadow-[0_20px_40px_rgba(200,161,101,0.15)] transition-all duration-500 h-full min-h-[280px] py-10 overflow-hidden"
       >
-        <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center mb-4">
-          <span className="text-primary text-2xl font-serif">→</span>
+        {/* Luxury Background System */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#FDFBF7] to-[#F3EAE0] z-0" />
+        <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-[0.03] mix-blend-overlay z-0" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(200,155,60,0.04)_1px,transparent_1px)] bg-[size:12px_12px] opacity-60 mix-blend-multiply z-0" />
+        
+        {/* Shimmering Golden Accents */}
+        <motion.div 
+          animate={{ opacity: [0.2, 0.5, 0.2], scale: [1, 1.1, 1] }} 
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} 
+          className="absolute -top-16 -right-16 w-48 h-48 bg-[#C8A165]/20 blur-[50px] rounded-full z-0 pointer-events-none" 
+        />
+        <motion.div 
+          animate={{ opacity: [0.1, 0.3, 0.1], scale: [1, 1.2, 1] }} 
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }} 
+          className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#E8C97A]/30 blur-[40px] rounded-full z-0 pointer-events-none" 
+        />
+
+        {/* Stacked Avatars / Preview Thumbnails */}
+        <div className="relative z-10 flex items-center justify-center mb-5 h-10 drop-shadow-sm group-hover:-translate-y-1 transition-transform duration-500">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="w-10 h-10 rounded-full border-2 border-white overflow-hidden shadow-sm relative -ml-3 first:ml-0"
+              style={{ zIndex: 10 - i }}
+            >
+              <Image src={`/images/editorial/venue_${i}.png`} alt="Venue Preview" fill unoptimized className="object-cover" />
+            </div>
+          ))}
+          <div className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-[#C8A165] to-[#8B6B35] text-white flex items-center justify-center text-[10px] font-black tracking-tighter shadow-sm relative -ml-3 z-0">
+            200+
+          </div>
         </div>
-        <h3 className="font-serif text-lg font-bold text-neutral-charcoal">View All Venues</h3>
-        <p className="text-[13px] text-neutral-muted mt-2 font-medium">Explore 200+ curated locations</p>
+        
+        {/* Typography Hierarchy */}
+        <div className="relative z-10 flex flex-col items-center text-center px-6">
+          <span className="text-[8px] md:text-[9px] uppercase tracking-[0.25em] font-black text-[#8B6B35] mb-2 flex items-center gap-1.5">
+            <Star className="w-2.5 h-2.5 fill-[#8B6B35]" />
+            Curated Collection
+          </span>
+          
+          <h3 className="font-serif text-[20px] md:text-[22px] font-bold text-neutral-900 leading-tight mb-2 group-hover:text-[#6F1D2C] transition-colors duration-300">
+            Luxury Wedding Spaces
+          </h3>
+          
+          <p className="text-[11px] font-semibold text-neutral-500 mb-6 group-hover:text-neutral-700 transition-colors duration-300">
+            Explore Hyderabad's finest venues
+          </p>
+
+          {/* Glowing Premium Arrow Button */}
+          <div className="w-12 h-12 rounded-full bg-white/80 backdrop-blur-sm border border-white/40 shadow-[0_4px_15px_rgba(200,161,101,0.15)] flex items-center justify-center group-hover:bg-[#C8A165] group-hover:shadow-[0_8px_25px_rgba(200,161,101,0.35)] group-hover:border-[#C8A165] transition-all duration-500 group-hover:scale-110">
+            <ChevronRight className="w-5 h-5 text-[#C8A165] group-hover:text-white transition-colors duration-500 group-hover:translate-x-0.5" />
+          </div>
+        </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

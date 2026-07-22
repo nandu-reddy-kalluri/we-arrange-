@@ -13,4 +13,10 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 
-export default eslintConfig;
+// To avoid the known 'circular structure to JSON' ESLint 9 bug in Next.js 15
+export default [
+  ...eslintConfig,
+  {
+    ignores: [".next/**"]
+  }
+];

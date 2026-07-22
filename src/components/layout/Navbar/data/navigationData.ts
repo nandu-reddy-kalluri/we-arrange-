@@ -1,0 +1,125 @@
+export type SubMenuItem = {
+  label: string;
+  href: string;
+};
+
+export type MenuSection = {
+  title: string;
+  items: SubMenuItem[];
+};
+
+export type NavItem = {
+  id: string;
+  label: string;
+  href: string;
+  type: "mega-menu" | "dropdown" | "link";
+  sections?: MenuSection[];
+  items?: SubMenuItem[];
+};
+
+export const NAVIGATION_HIERARCHY: NavItem[] = [
+  {
+    id: "venues",
+    label: "Venues",
+    href: "/venues",
+    type: "mega-menu",
+    sections: [
+      {
+        title: "Browse",
+        items: [
+          { label: "All Venues", href: "/venues" },
+          { label: "Luxury Venues", href: "/venues/luxury" },
+          { label: "Destination Venues", href: "/venues/destination" },
+          { label: "Hotels", href: "/venues/hotels" },
+          { label: "Resorts", href: "/venues/resorts" },
+          { label: "Farmhouses", href: "/venues/farmhouses" },
+          { label: "Banquet Halls", href: "/venues/banquet-halls" },
+        ],
+      },
+      {
+        title: "Curated",
+        items: [
+          { label: "Royal Weddings", href: "/venues/collections/royal" },
+          { label: "Garden Romance", href: "/venues/collections/garden" },
+          { label: "Beach Weddings", href: "/venues/collections/beach" },
+          { label: "Modern Luxury", href: "/venues/collections/modern" },
+          { label: "Heritage Venues", href: "/venues/collections/heritage" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "vendors",
+    label: "Vendors",
+    href: "/vendors",
+    type: "mega-menu",
+    sections: [
+      {
+        title: "Photography & Media",
+        items: [
+          { label: "Photography", href: "/vendors/photography" },
+          { label: "Videography", href: "/vendors/videography" },
+        ],
+      },
+      {
+        title: "Design & Decor",
+        items: [
+          { label: "Decoration", href: "/vendors/decoration" },
+          { label: "Wedding Planner", href: "/vendors/planners" },
+        ],
+      },
+      {
+        title: "Beauty & Style",
+        items: [
+          { label: "Makeup", href: "/vendors/makeup" },
+          { label: "Mehendi", href: "/vendors/mehendi" },
+          { label: "Bridal Wear", href: "/vendors/bridal-wear" },
+          { label: "Groom Wear", href: "/vendors/groom-wear" },
+          { label: "Jewellery", href: "/vendors/jewellery" },
+        ],
+      },
+      {
+        title: "Experience",
+        items: [
+          { label: "Catering", href: "/vendors/catering" },
+          { label: "Music & DJ", href: "/vendors/music" },
+          { label: "Entertainment", href: "/vendors/entertainment" },
+          { label: "Invitations", href: "/vendors/invitations" },
+          { label: "Transportation", href: "/vendors/transportation" },
+          { label: "Return Gifts", href: "/vendors/gifts" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "inspiration",
+    label: "Inspiration",
+    href: "/inspiration",
+    type: "dropdown",
+    items: [
+      { label: "Real Weddings", href: "/inspiration/real-weddings" },
+      { label: "Ideas", href: "/inspiration/ideas" },
+      { label: "Decor Inspiration", href: "/inspiration/decor" },
+      { label: "Photography", href: "/inspiration/photography" },
+      { label: "Bridal Fashion", href: "/inspiration/bridal-fashion" },
+      { label: "Groom Fashion", href: "/inspiration/groom-fashion" },
+      { label: "Wedding Trends", href: "/inspiration/trends" },
+      { label: "Editor's Picks", href: "/inspiration/editors-picks" },
+    ],
+  },
+  {
+    id: "planning",
+    label: "Planning",
+    href: "/planning",
+    type: "dropdown",
+    items: [
+      { label: "Checklist", href: "/planning/checklist" },
+      { label: "Budget Planner", href: "/planning/budget" },
+      { label: "Guest List", href: "/planning/guests" },
+      { label: "Timeline", href: "/planning/timeline" },
+      { label: "Digital Invitations", href: "/planning/invitations" },
+      { label: "Vendor Shortlist", href: "/planning/shortlist" },
+      { label: "Saved Inspirations", href: "/planning/saved-inspirations" },
+    ],
+  },
+];

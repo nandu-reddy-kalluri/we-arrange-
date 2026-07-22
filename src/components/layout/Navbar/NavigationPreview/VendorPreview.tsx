@@ -19,7 +19,7 @@ export function VendorPreview() {
       <motion.div variants={previewImageFade} className="flex justify-center -space-x-4 py-2">
         {MOCK_VENDORS.map((src, i) => (
           <div key={i} className={`relative w-20 h-20 rounded-full border-4 border-[#FBF9F6] shadow-sm overflow-hidden z-[${3-i}]`}>
-            <Image src={src} alt="Vendor" fill className="object-cover" />
+            <Image src={src} alt="Vendor" fill unoptimized className="object-cover" />
           </div>
         ))}
       </motion.div>

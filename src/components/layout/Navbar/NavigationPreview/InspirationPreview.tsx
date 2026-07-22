@@ -18,6 +18,7 @@ export function InspirationPreview() {
             src={photography.assignments.navInspirationFront}
             alt="Editorial Wedding"
             fill
+            unoptimized
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           />
         </div>
@@ -26,6 +27,7 @@ export function InspirationPreview() {
             src={photography.assignments.navInspirationBack}
             alt="Bridal Details"
             fill
+            unoptimized
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           />
         </div>

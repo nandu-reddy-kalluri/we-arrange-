@@ -17,6 +17,7 @@ export function HeroVideo({ isReducedMotion }: BackgroundLayerProps) {
           src={VIDEO_CONFIG.poster}
           alt="Luxury Wedding Venue — Chandeliers and Candle Lit Aisle"
           fill
+          unoptimized
           priority
           className="object-cover object-center"
           sizes="100vw"
