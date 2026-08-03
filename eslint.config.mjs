@@ -2,7 +2,7 @@ import nextPlugin from "@next/eslint-plugin-next";
 
 export default [
   {
-    ignores: [".next/**", "node_modules/**", "out/**", "build/**"]
+    ignores: [".next/**", "node_modules/**", "out/**", "build/**"],
   },
   {
     plugins: {
@@ -12,5 +12,5 @@ export default [
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs["core-web-vitals"].rules,
     },
-  }
+  },
 ];

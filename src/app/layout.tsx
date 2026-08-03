@@ -20,6 +20,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.youmarriagewearrange.com"),
   title: "YouMarriageWeArrange — Premium Wedding Concierge | Hyderabad",
   description: "Hyderabad's premier wedding concierge service. Submit your requirements and our specialists personally collect, negotiate, and compare quotes from elite venues and vendors — so you don't have to.",
   keywords: [
