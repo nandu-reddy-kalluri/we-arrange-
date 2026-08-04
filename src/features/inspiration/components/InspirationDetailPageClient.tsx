@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,7 +5,7 @@ import { ChevronRight, ChevronLeft, Sparkles, Palette, Scissors, IndianRupee, Ta
 import { InspirationDetailItem } from "@/types/inspiration-types";
 import { InspirationSubcategoryCard } from "./InspirationSubcategoryCard";
 import { layout } from "@/styles";
-import { FooterWaveTransition } from "@/components/layout/FooterWaveTransition";
+
 
 interface InspirationDetailPageClientProps {
   item: InspirationDetailItem;
@@ -259,7 +257,7 @@ export function InspirationDetailPageClient({ item, relatedItems }: InspirationD
         </div>
       )}
 
-      <FooterWaveTransition />
+
     </div>
   );
 }

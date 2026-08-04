@@ -8,7 +8,7 @@ import { RealWeddingDetail } from "@/mock-data/real-weddings";
 import { RealWeddingCard } from "./RealWeddingCard";
 import { layout, typography, spacing } from "@/styles";
 import { motion, AnimatePresence, useInView, animate } from "framer-motion";
-import { FooterWaveTransition } from "@/components/layout/FooterWaveTransition";
+
 
 interface RealWeddingsClientProps {
   weddings: RealWeddingDetail[];
@@ -364,7 +364,7 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
         </div>
       </motion.section>
 
-      <FooterWaveTransition />
+
     </div>
   );
 }

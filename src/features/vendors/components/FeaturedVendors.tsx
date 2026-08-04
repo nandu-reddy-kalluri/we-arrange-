@@ -245,7 +245,7 @@ export function FeaturedVendors({
 
   // Compile active chips to display clearable tags
   const activeChips = React.useMemo(() => {
-    const chips: { label: string; key: keyof FilterState; resetValue: any }[] = [];
+    const chips: { label: string; key: keyof FilterState; resetValue: FilterState[keyof FilterState] }[] = [];
     if (filters.category) {
       const catName = vendorCategories.find(c => c.slug === filters.category)?.name || filters.category;
       chips.push({ label: catName, key: "category", resetValue: "" });
@@ -260,7 +260,7 @@ export function FeaturedVendors({
       chips.push({ label: `${filters.rating}★ & Above`, key: "rating", resetValue: "" });
     }
     if (filters.minPrice !== 0.5 || filters.maxPrice !== 10) {
-      chips.push({ label: `₹${filters.minPrice}L–₹${filters.maxPrice}L`, key: "minPrice", resetValue: null });
+      chips.push({ label: `₹${filters.minPrice}L–₹${filters.maxPrice}L`, key: "minPrice", resetValue: 0.5 });
     }
     if (filters.experience) {
       chips.push({ label: `${filters.experience}+ Yrs Exp`, key: "experience", resetValue: "" });
@@ -277,7 +277,7 @@ export function FeaturedVendors({
     return chips;
   }, [filters]);
 
-  const handleRemoveChip = (key: keyof FilterState, resetValue: any) => {
+  const handleRemoveChip = (key: keyof FilterState, resetValue: FilterState[keyof FilterState]) => {
     if (key === "minPrice") {
       setFilters((prev) => ({ ...prev, minPrice: 0.5, maxPrice: 10 }));
     } else {

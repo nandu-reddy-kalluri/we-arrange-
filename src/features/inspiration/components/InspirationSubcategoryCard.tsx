@@ -1,11 +1,8 @@
-"use client";
-
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Sparkles, Tag } from "lucide-react";
 import { InspirationDetailItem } from "@/types/inspiration-types";
-import { motion } from "framer-motion";
 
 interface InspirationSubcategoryCardProps {
   item: InspirationDetailItem;
@@ -13,16 +10,12 @@ interface InspirationSubcategoryCardProps {
 }
 
 export function InspirationSubcategoryCard({ item, index = 0 }: InspirationSubcategoryCardProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const href = `/inspiration/${item.categorySlug}/${item.slug}`;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: Math.min(index * 0.08, 0.4) }}
-      className="h-full"
+    <div
+      className="h-full animate-fade-in-up fill-mode-both"
+      style={{ animationDelay: `${Math.min(index * 0.08, 0.4)}s` }}
     >
       <Link
         href={href}
@@ -30,19 +23,12 @@ export function InspirationSubcategoryCard({ item, index = 0 }: InspirationSubca
       >
         {/* Image Container 16:10 */}
         <div className="relative w-full aspect-[16/10] overflow-hidden bg-neutral-100">
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-neutral-200 animate-pulse" />
-          )}
           <Image
             src={item.heroImage}
             alt={item.title}
             fill
-            unoptimized
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 20vw"
-            onLoad={() => setImageLoaded(true)}
-            className={`object-cover transition-all duration-500 ease-out group-hover:scale-[1.05] ${
-              imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.05]"
             loading="lazy"
           />
           
@@ -114,6 +100,6 @@ export function InspirationSubcategoryCard({ item, index = 0 }: InspirationSubca
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }

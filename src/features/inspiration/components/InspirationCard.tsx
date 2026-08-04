@@ -1,11 +1,8 @@
-"use client";
-
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { InspirationItem } from "@/mock-data/inspiration";
-import { motion } from "framer-motion";
 
 interface InspirationCardProps {
   item: InspirationItem;
@@ -26,7 +23,6 @@ export function InspirationCard({ item }: InspirationCardProps) {
           src={item.imageUrl}
           alt={item.title}
           fill
-          unoptimized
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />

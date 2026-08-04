@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import { colors, radius, shadows, spacing, breakpoints } from "./src/design-system/theme";
+import { colors, radius, shadows, spacing, breakpoints, typography } from "./src/design-system/theme";
 
 const config: Config = {
   content: [
@@ -13,63 +13,30 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        // Map YMWA color design tokens
-        primary: {
-          DEFAULT: colors.primary.DEFAULT,
-          light: colors.primary.light,
-          dark: colors.primary.dark,
-        },
-        accent: {
-          gold: colors.accent.gold,
-          goldDark: colors.accent.goldDark,
-          goldLight: colors.accent.goldLight,
-        },
+        primary: colors.primary,
+        accent: colors.accent,
+        surface: colors.surface,
+        text: colors.text,
+        border: colors.border,
+        status: colors.status,
+        // Backward compatibility for existing components
         neutral: {
-          cream: colors.neutral.cream,
-          charcoal: colors.neutral.charcoal,
-          muted: colors.neutral.muted,
-          border: colors.neutral.border,
+          cream: colors.surface.canvas,
+          charcoal: colors.text.main,
+          muted: colors.text.muted,
+          border: colors.border.subtle,
         },
       },
-      borderRadius: {
-        // Map YMWA border radius design tokens
-        sm: radius.sm,
-        md: radius.md,
-        lg: radius.lg,
-        xl: radius.xl,
-        xxl: radius.xxl,
-      },
-      boxShadow: {
-        // Map YMWA shadow design tokens
-        sm: shadows.sm,
-        md: shadows.md,
-        lg: shadows.lg,
-        glass: shadows.glass,
-        premium: shadows.premium,
-      },
-      spacing: {
-        // Map YMWA spacing design tokens
-        xs: spacing.xs,
-        sm: spacing.sm,
-        md: spacing.md,
-        lg: spacing.lg,
-        xl: spacing.xl,
-        xxl: spacing.xxl,
-        section: spacing.section,
-      },
-      screens: {
-        // Map YMWA responsive screens/breakpoints
-        sm: breakpoints.sm,
-        md: breakpoints.md,
-        lg: breakpoints.lg,
-        xl: breakpoints.xl,
-        xxl: breakpoints.xxl,
-      },
+      borderRadius: radius,
+      boxShadow: shadows,
+      spacing: spacing,
+      screens: breakpoints,
       fontFamily: {
-        // Map YMWA font families
         serif: ["var(--font-serif)", "Playfair Display", "Georgia", "serif"],
         sans: ["var(--font-sans)", "Plus Jakarta Sans", "Inter", "system-ui", "sans-serif"],
       },
+      fontSize: typography.sizes,
+      fontWeight: typography.weights,
     },
   },
   plugins: [],

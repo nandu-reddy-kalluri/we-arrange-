@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { InspirationHero } from "./InspirationHero";
 import { InspirationCard } from "./InspirationCard";
 import { 
@@ -14,23 +14,23 @@ import {
   weddingTrends,
   editorsPicks
 } from "@/mock-data/inspiration";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion";
 import { Sparkles, Trash2 } from "lucide-react";
 import { typography, spacing, layout } from "@/styles";
 
-import { FooterWaveTransition } from "@/components/layout/FooterWaveTransition";
+
 
 const CATEGORIES = [
-  { id: "all", label: "All Inspirations" },
-  { id: "themes", label: "Wedding Themes" },
-  { id: "real-weddings", label: "Real Weddings" },
-  { id: "ideas", label: "Ideas" },
-  { id: "decor", label: "Decor Inspiration" },
-  { id: "photography", label: "Photography" },
-  { id: "bridal-fashion", label: "Bridal Fashion" },
-  { id: "groom-fashion", label: "Groom Fashion" },
-  { id: "wedding-trends", label: "Wedding Trends" },
-  { id: "editors-picks", label: "Editor's Picks" },
+  { id: "all", label: "All Inspirations", subtitle: "The Complete Collection", count: "842 Curated Concepts", bg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80" },
+  { id: "themes", label: "Wedding Themes", subtitle: "Define Your Aesthetic", count: "124 Curated Themes", bg: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80" },
+  { id: "real-weddings", label: "Real Weddings", subtitle: "Authentic Celebrations", count: "312 Love Stories", bg: "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&q=80" },
+  { id: "ideas", label: "Ideas", subtitle: "Creative Concepts", count: "156 Expert Tips", bg: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&q=80" },
+  { id: "decor", label: "Decor Inspiration", subtitle: "Visual Styling Details", count: "214 Design Ideas", bg: "https://images.unsplash.com/photo-1519225495810-7517c2965a7d?auto=format&fit=crop&q=80" },
+  { id: "photography", label: "Photography", subtitle: "Capture The Moment", count: "189 Visual Memories", bg: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&q=80" },
+  { id: "bridal-fashion", label: "Bridal Fashion", subtitle: "Elegant Attire", count: "205 Bridal Looks", bg: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&q=80" },
+  { id: "groom-fashion", label: "Groom Fashion", subtitle: "Dapper Menswear", count: "112 Groom Styles", bg: "https://images.unsplash.com/photo-1610652492500-ded49ceeb378?auto=format&fit=crop&q=80" },
+  { id: "wedding-trends", label: "Wedding Trends", subtitle: "What's Popular Now", count: "48 Modern Trends", bg: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80" },
+  { id: "editors-picks", label: "Editor's Picks", subtitle: "Curated Selections", count: "24 Top Choices", bg: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80" },
 ];
 
 const SECTION_DATA = [
@@ -48,27 +48,42 @@ const SECTION_DATA = [
 export function InspirationClientPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  
+  // Physics & Interaction state for the Editorial Object
+  const constraintsRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
 
   const lowercaseQuery = searchQuery.toLowerCase().trim();
 
-  // Filter sections based on search query and active category
-  const filteredSections = SECTION_DATA.map(section => ({
-    ...section,
-    filteredData: section.data.filter(
-      (item) =>
-        item.title.toLowerCase().includes(lowercaseQuery) ||
-        item.description.toLowerCase().includes(lowercaseQuery)
-    )
-  })).filter(section => {
-    // If a specific category is selected, only show that section
-    if (activeCategory !== "all" && section.id !== activeCategory) {
-      return false;
-    }
-    // Only show sections that have results
-    return section.filteredData.length > 0;
-  });
+  // Phase 3 React Optimization: Memoize heavy filtering to prevent re-renders on layout interactions
+  const filteredSections = useMemo(() => {
+    return SECTION_DATA.map(section => ({
+      ...section,
+      filteredData: section.data.filter(
+        (item) =>
+          item.title.toLowerCase().includes(lowercaseQuery) ||
+          item.description.toLowerCase().includes(lowercaseQuery)
+      )
+    })).filter(section => {
+      // If a specific category is selected, only show that section
+      if (activeCategory !== "all" && section.id !== activeCategory) {
+        return false;
+      }
+      // Only show sections that have results
+      return section.filteredData.length > 0;
+    });
+  }, [lowercaseQuery, activeCategory]);
 
-  const totalResults = filteredSections.reduce((acc, curr) => acc + curr.filteredData.length, 0);
+  const totalResults = useMemo(() => {
+    return filteredSections.reduce((acc, curr) => acc + curr.filteredData.length, 0);
+  }, [filteredSections]);
 
   return (
     <div className="min-h-screen bg-[#FBF9F6] pb-0 relative overflow-hidden">
@@ -82,22 +97,128 @@ export function InspirationClientPage() {
       </div>
 
       {/* Category Navigation */}
-      <div className="relative z-10 border-b border-[#E8D8BC]/30 bg-[#FBF9F6]/80 backdrop-blur-md sticky top-[72px] md:top-[88px] pt-4 pb-0 mb-8">
-        <div className={`${layout.maxWidth} px-4 sm:px-6`}>
-          <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`snap-start whitespace-nowrap px-5 py-2.5 rounded-full text-[13px] font-bold transition-all duration-300 ${
-                  activeCategory === cat.id
-                    ? "bg-[#C8A165] text-white shadow-md shadow-[#C8A165]/20"
-                    : "bg-white text-neutral-600 hover:bg-[#FAF7F2] hover:text-neutral-900 border border-[#E8D8BC]/50"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+      <div className="relative z-10 border-b border-[#E8D8BC]/30 sticky top-[72px] md:top-[88px] pt-8 pb-0 mb-8">
+        
+        {/* Semi-transparent overlay to ensure text readability */}
+        <div className="absolute inset-0 z-0 bg-[#FBF9F6]/85 backdrop-blur-md" />
+
+        <div className={`${layout.maxWidth} px-0 relative z-10`}>
+          
+          <div className="text-center mb-6">
+            <span className="text-[10px] font-black uppercase text-[#C8A165] tracking-[0.25em]">
+              Browse Collections
+            </span>
+          </div>
+
+          <div className="relative pb-6 overflow-hidden" ref={constraintsRef}>
+            {/* Left Edge Fade */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#FBF9F6] to-transparent z-20 pointer-events-none" />
+            
+            <motion.div 
+              drag="x" 
+              dragConstraints={constraintsRef}
+              dragElastic={0.1}
+              dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+              className="flex items-center justify-start gap-2 sm:gap-4 px-6 sm:px-12 w-max cursor-grab active:cursor-grabbing relative z-10"
+            >
+              {CATEGORIES.map((cat) => {
+                const isActive = activeCategory === cat.id;
+                
+                return (
+                  <motion.button
+                    layout
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    onMouseMove={isActive ? handleMouseMove : undefined}
+                    whileHover={isActive ? undefined : { scale: 1.02 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={
+                      isActive 
+                        ? { type: "spring", stiffness: 650, damping: 45, mass: 0.5 } 
+                        : { type: "spring", stiffness: 650, damping: 45, mass: 0.5 }
+                    }
+                    className={`relative group flex items-center justify-center whitespace-nowrap outline-none transition-colors duration-300 ${
+                      isActive 
+                        ? "h-[60px] px-6 sm:px-8" 
+                        : "h-12 px-4 text-neutral-400 hover:text-neutral-800"
+                    }`}
+                  >
+                    {/* Active Capsule Background (The Shared Object) */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeCategoryCapsule"
+                        className="absolute inset-0 z-0 overflow-hidden bg-neutral-900 shadow-[0_12px_24px_rgba(0,0,0,0.15)]"
+                        style={{ borderRadius: 9999 }}
+                        transition={{ type: "spring", stiffness: 650, damping: 45, mass: 0.5 }}
+                      >
+                        {/* Living Imagery: Cinematic Pan & Depth */}
+                        <motion.div
+                          key={`bg-${cat.id}`}
+                          className="absolute inset-0 bg-cover bg-center"
+                          initial={{ opacity: 0, scale: 1.15 }}
+                          animate={{ opacity: 0.6, scale: 1, x: [-5, 0] }}
+                          transition={{ 
+                            opacity: { duration: 0.8, ease: "easeOut" },
+                            scale: { duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" },
+                            x: { duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }
+                          }}
+                          style={{ backgroundImage: `url(${cat.bg})` }}
+                        />
+                        
+                        {/* Responsive Material Light (Pillar 4) */}
+                        <motion.div
+                          className="absolute inset-0 z-10 pointer-events-none mix-blend-overlay opacity-50"
+                          style={{
+                            background: useMotionTemplate`
+                              radial-gradient(
+                                120px circle at ${mouseX}px ${mouseY}px,
+                                rgba(255, 255, 255, 0.4),
+                                transparent 80%
+                              )
+                            `,
+                          }}
+                        />
+                      </motion.div>
+                    )}
+
+                    {/* Hover Indicator for Inactive Items */}
+                    {!isActive && (
+                      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#C8A165] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    )}
+
+                    {/* Editorial Text Container */}
+                    <div className="relative z-10 flex flex-col items-center justify-center pointer-events-none pt-0.5">
+                      <motion.span 
+                        layout="position"
+                        className={`text-[11px] uppercase tracking-[0.15em] transition-colors duration-300 ${
+                          isActive ? "text-white font-bold" : "font-medium"
+                        }`}
+                      >
+                        {cat.label}
+                      </motion.span>
+                      
+                      {/* Editorial Storytelling Subtitle */}
+                      <AnimatePresence>
+                        {isActive && cat.subtitle && (
+                          <motion.span
+                            initial={{ opacity: 0, height: 0, y: 5 }}
+                            animate={{ opacity: 0.9, height: 'auto', y: 0 }}
+                            exit={{ opacity: 0, height: 0, y: 5 }}
+                            transition={{ duration: 0.3, delay: 0.1 }}
+                            className="text-[9px] font-medium text-[#E8D8BC] uppercase tracking-widest mt-0.5 block"
+                          >
+                            {cat.subtitle}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+
+            {/* Right Edge Fade */}
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#FBF9F6] to-transparent z-20 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -197,7 +318,7 @@ export function InspirationClientPage() {
         </AnimatePresence>
       </div>
 
-      <FooterWaveTransition />
+
     </div>
   );
 }

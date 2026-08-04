@@ -67,15 +67,15 @@ export function InspirationHero({ searchQuery, setSearchQuery }: InspirationHero
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="relative flex items-center bg-white/90 backdrop-blur-md rounded-full px-5 py-2 border border-[#E8D8BC]/50 shadow-[0_8px_30px_rgba(200,161,101,0.06)] focus-within:shadow-[0_12px_40px_rgba(200,161,101,0.12)] focus-within:border-[#C8A165] transition-all duration-300">
+        <div className="relative flex items-center bg-white backdrop-blur-md rounded-full px-6 py-3 border border-gray-200 shadow-[0_12px_30px_rgba(0,0,0,0.04)] focus-within:shadow-[0_12px_40px_rgba(200,161,101,0.15)] focus-within:border-[#C8A165] focus-within:-translate-y-1 transition-all duration-500">
           <Search className="w-5 h-5 text-neutral-400 shrink-0" />
           <input
             id="inspiration-search-input"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search Inspiration..."
-            className="w-full pl-3 pr-2 py-3 bg-transparent text-sm text-neutral-800 placeholder-neutral-400 outline-none font-medium"
+            placeholder="Search Ideas..."
+            className="w-full pl-3 pr-2 py-3 bg-transparent text-[15px] text-neutral-800 placeholder-neutral-400 outline-none font-medium"
           />
           {searchQuery && (
             <button

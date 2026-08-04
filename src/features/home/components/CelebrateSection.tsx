@@ -202,24 +202,7 @@ export function CelebrateSection() {
         </div>
       </div>
 
-      {/* SVG Horizon Wave Transition (Ivory Melting into Burgundy) */}
-      <div className="absolute bottom-[-1px] left-0 w-full overflow-hidden leading-none z-0">
-        
-        {/* Soft Golden Horizon Glow */}
-        <div className="absolute bottom-[20%] left-0 w-full h-[150px] bg-gradient-to-t from-[#C89B3C]/30 to-transparent blur-3xl mix-blend-overlay pointer-events-none" />
-        
-        <svg 
-          viewBox="0 0 1200 120" 
-          preserveAspectRatio="none" 
-          className="relative block w-full h-[100px] md:h-[160px]"
-          style={{ filter: "drop-shadow(0px -15px 25px rgba(200,155,60,0.15))" }}
-        >
-          <path 
-            d="M0,0 C300,120 900,-60 1200,60 L1200,120 L0,120 Z" 
-            fill="#120004"
-          />
-        </svg>
-      </div>
+
 
     </section>
   );

@@ -306,3 +306,88 @@ If the answer is **No**, improve the implementation before finishing.
 # Golden Rule
 
 > **Think like Ponytail. Build only what is necessary. Reuse everything possible. Remove everything unnecessary. Deliver clean, maintainable, production-ready code that enhances the We Arrange platform without increasing complexity.**
+
+---
+
+# We Arrange Implementation Mode
+
+You are now in Implementation Mode.
+
+The planning phase is complete.
+
+Do not create new philosophy documents, manifestos, roadmaps, or standards unless explicitly requested.
+
+The following documents are the permanent source of truth:
+
+- PRODUCT_DNA.md
+- DESIGN_AUDIT.md
+- UX_AUDIT.md
+- DESIGN_SYSTEM.md
+- MOTION_SYSTEM.md
+- COMPONENT_LIBRARY.md
+- ENGINEERING_STANDARDS.md
+- DESIGN_REVIEW_CHECKLIST.md
+- IMPLEMENTATION_ROADMAP.md
+
+Every implementation must reference these documents.
+
+---
+
+## Implementation Rules
+
+Before modifying any code:
+
+1. Understand the purpose of the existing feature.
+2. Review the relevant Product DNA principles.
+3. Reuse existing components whenever possible.
+4. Follow the Design System tokens.
+5. Follow the Motion System.
+6. Follow the Engineering Standards.
+7. Pass the Design Review Checklist.
+
+Never redesign simply because something can look different.
+
+Only implement changes that objectively improve:
+- usability
+- accessibility
+- consistency
+- maintainability
+- performance
+- trust
+- emotional quality
+
+---
+
+## Working Method
+
+For every task:
+1. Analyze the existing implementation.
+2. Explain the current issues.
+3. Explain why the proposed solution is better.
+4. Implement the smallest possible change.
+5. Verify:
+   - TypeScript
+   - ESLint
+   - Build
+   - Accessibility
+   - Responsiveness
+   - Visual consistency
+6. Summarize the changes.
+
+Work incrementally.
+Never refactor unrelated code.
+Never introduce unnecessary abstractions.
+Never duplicate components.
+Never hardcode design values.
+Always preserve existing functionality unless explicitly instructed otherwise.
+
+---
+
+## Final Principle
+
+Documentation is complete.
+The priority is now:
+Build → Measure → Refine → Ship.
+
+Do not create additional documentation unless it solves a real engineering or product problem.
+The objective is to build the best wedding platform—not the largest collection of design documents.

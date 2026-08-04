@@ -1,7 +1,11 @@
 import React from "react";
 import { Metadata } from "next";
-import { InspirationClientPage } from "@/features/inspiration/components/InspirationClientPage";
+import dynamic from "next/dynamic";
 
+const InspirationClientPage = dynamic(
+  () => import("@/features/inspiration/components/InspirationClientPage").then((mod) => mod.InspirationClientPage),
+  { ssr: true }
+);
 export const metadata: Metadata = {
   title: "Wedding Themes & Decor Inspiration | YouMarriageWeArrange",
   description: "Explore our curated collection of luxury wedding themes and premium decor inspirations in Hyderabad. Discover palace, garden, and beach wedding ideas, mandap designs, floral layouts, and more.",

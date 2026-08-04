@@ -9,7 +9,7 @@ import { InspirationSubcategoryCard } from "./InspirationSubcategoryCard";
 import { InspirationSkeletonLoader } from "./InspirationSkeletonLoader";
 import { layout, typography } from "@/styles";
 import { motion, AnimatePresence, useInView, animate } from "framer-motion";
-import { FooterWaveTransition } from "@/components/layout/FooterWaveTransition";
+
 
 interface InspirationCategoryPageClientProps {
   config: InspirationSubsectionConfig;
@@ -399,7 +399,7 @@ export function InspirationCategoryPageClient({ config, items }: InspirationCate
         </div>
       </motion.section>
 
-      <FooterWaveTransition />
+
     </div>
   );
 }

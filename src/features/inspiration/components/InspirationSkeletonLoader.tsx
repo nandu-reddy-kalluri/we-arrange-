@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 export function InspirationSkeletonLoader({ count = 8 }: { count?: number }) {

@@ -20,10 +20,10 @@ export default function VenueCard({ venue }: { venue: Venue }) {
   return (
     <Link 
       href={`/venues/${venue.slug}`}
-      className="group flex flex-col bg-transparent cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#C8A165] rounded-xl"
+      className="group flex flex-col bg-white border border-gray-100 shadow-[0_8px_32px_0_rgba(25,45,50,0.02)] hover:shadow-[0_20px_40px_rgba(200,161,101,0.15)] hover:-translate-y-1 transition-all duration-300 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#C8A165] rounded-2xl overflow-hidden"
     >
       {/* Image (16:9) */}
-      <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-3">
+      <div className="relative w-full aspect-video bg-gray-100 overflow-hidden">
         <Image
           src={venue.imageUrl}
           alt={venue.name}
@@ -58,7 +58,7 @@ export default function VenueCard({ venue }: { venue: Venue }) {
       </div>
 
       {/* Info Section */}
-      <div className="flex flex-col gap-2.5 px-1 mt-1">
+      <div className="flex flex-col gap-2.5 p-5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-serif text-[17px] font-bold text-neutral-900 leading-snug line-clamp-1 group-hover:text-[#6F1D2C] transition-colors">
             {venue.name}

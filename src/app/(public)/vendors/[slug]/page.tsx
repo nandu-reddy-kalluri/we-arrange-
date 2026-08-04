@@ -5,10 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
   Heart, MapPin, CheckCircle, ChevronLeft, ChevronRight, Share2, 
-  MessageCircle, Phone, Calendar, Star, ShieldCheck, ArrowLeft
+  MessageCircle, Phone, Calendar, Star, ShieldCheck, ArrowLeft,
+  ArrowDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { mockVendors, vendorCategories } from "@/mock-data/vendors";
+import { WeddingCuratorCard } from "@/features/vendors/components/WeddingCuratorCard";
+import { VendorTrustHighlights } from "@/features/vendors/components/VendorTrustHighlights";
+import { PlanningJourney } from "@/features/vendors/components/PlanningJourney";
 
 // Standard Indian Currency Formatter helper
 const formatPrice = (lakhs: number) => {
@@ -123,16 +127,6 @@ export default function VendorDetailsPage() {
   const portfolio = getPortfolioImages(vendor.category);
   const imagesGrid = [vendor.imageUrl, ...portfolio.slice(0, 4)];
 
-  // Availability calendar date calculations for August 2026
-  const calendarDays = Array.from({ length: 31 }, (_, i) => {
-    const day = i + 1;
-    // Weekends in Aug 2026: 1, 2, 8, 9, 15, 16, 22, 23, 29, 30
-    const isWeekend = [1, 2, 8, 9, 15, 16, 22, 23, 29, 30].includes(day);
-    return {
-      day,
-      status: isWeekend ? "booked" : "available",
-    };
-  });
 
   const categoryName = vendorCategories.find(c => c.slug === vendor.category)?.name || vendor.category;
 
@@ -537,98 +531,63 @@ export default function VendorDetailsPage() {
 
           {/* Right Column: Sticky Booking Card & Availability */}
           <div id="contact" className="lg:col-span-1 scroll-mt-24">
-            <div className="lg:sticky lg:top-24 bg-white border border-[#C5A880]/20 rounded-[22px] p-6 shadow-[0_12px_40px_rgba(197,168,128,0.06)] flex flex-col gap-6">
+            <div className="lg:sticky lg:top-24 bg-white border border-[#C5A880]/20 rounded-[22px] p-6 shadow-[0_12px_40px_rgba(197,168,128,0.06)] flex flex-col">
               
               {/* Cost starting details */}
-              <div>
+              <div className="mb-6">
                 <span className="text-[8px] font-black uppercase text-neutral-muted block tracking-widest">
-                  Starts From
+                  Starting From
                 </span>
                 <span className="text-2xl font-black text-[#8B263E]">
                   {formatPrice(vendor.priceStart)}
                 </span>
               </div>
 
-              {/* Primary / Secondary Booking CTA Actions */}
-              <div className="flex flex-col gap-3.5">
+              {/* Primary Booking CTA Action */}
+              <div className="flex flex-col gap-3 mb-2">
                 <button
-                  onClick={() => alert(`Initiated booking flow for ${vendor.name}.`)}
-                  className="w-full py-3 rounded-full text-xs font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:shadow-[0_4px_14px_rgba(139,38,62,0.25)] transition-all cursor-pointer shadow-md text-center"
+                  onClick={() => alert(`Initiated wedding journey for ${vendor.name}.`)}
+                  className="w-full py-3.5 rounded-full text-[11px] font-black uppercase tracking-wider text-white bg-[#8B263E] hover:bg-[#6e1c2f] transition-all cursor-pointer shadow-md text-center"
                 >
-                  Book Consultation
+                  Begin Your Wedding Journey
                 </button>
                 
-                {/* Secondary action buttons formatted as row */}
                 <div className="flex gap-2.5">
-                  <a
-                    href={`https://wa.me/919999999999?text=Hi%20${encodeURIComponent(vendor.name)}!%20I%20found%20your%20profile%20on%20YMWA%20Wedding%20Marketplace%20and%20wanted%20to%20check%20availability.`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-grow h-11 rounded-xl border border-green-200 bg-green-50 hover:bg-green-100 flex items-center justify-center gap-1.5 text-green-700 text-xs font-bold cursor-pointer"
-                  >
-                    <MessageCircle className="w-4 h-4 fill-green-600 text-green-600" />
-                    WhatsApp
-                  </a>
-
-                  <a
-                    href="tel:+919999999999"
-                    className="w-11 h-11 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-neutral-charcoal hover:border-gray-300 transition-colors cursor-pointer"
-                    title="Direct Call"
-                  >
-                    <Phone className="w-4 h-4" />
-                  </a>
-
                   <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
-                    className="w-11 h-11 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-500 hover:text-[#8B263E] hover:border-[#8B263E]/40 transition-colors cursor-pointer"
-                    title="Save Vendor"
+                    className="flex-1 py-2.5 rounded-full border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-1.5 text-neutral-charcoal text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
-                    <Heart className={`w-4 h-4 ${isWishlisted ? "text-[#8B263E] fill-[#8B263E]" : ""}`} />
+                    <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "text-[#8B263E] fill-[#8B263E]" : ""}`} />
+                    {isWishlisted ? "Saved" : "Save"}
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="flex-1 py-2.5 rounded-full border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-1.5 text-neutral-charcoal text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Share
                   </button>
                 </div>
               </div>
 
-              {/* Availability Calendar widget */}
-              <div className="border-t border-gray-100 pt-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-4 h-4 text-[#C5A880]" />
-                  <span className="text-xs font-bold text-neutral-charcoal">August 2026 Availability</span>
-                </div>
+              <WeddingCuratorCard />
+              <VendorTrustHighlights />
+              <PlanningJourney />
 
-                <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-neutral-muted mb-1.5 uppercase">
-                  <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
-                </div>
-
-                <div className="grid grid-cols-7 gap-1">
-                  <span className="h-6"></span>
-                  <span className="h-6"></span>
-                  <span className="h-6"></span>
-                  <span className="h-6"></span>
-                  <span className="h-6"></span>
-                  <span className="h-6"></span>
-
-                  {calendarDays.map((item) => (
-                    <button
-                      key={item.day}
-                      disabled
-                      title={`August ${item.day}: ${item.status}`}
-                      className={`h-6 text-[10px] font-bold rounded-lg flex items-center justify-center transition-colors select-none ${
-                        item.status === "booked"
-                          ? "bg-red-50/50 text-red-400 border border-red-100 cursor-not-allowed"
-                          : "bg-green-50/50 text-green-700 border border-green-100 cursor-default"
-                      }`}
-                    >
-                      {item.day}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex gap-4 mt-3 text-[9px] font-bold justify-center">
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-50 border border-green-200 block" /> Available</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-red-50 border border-red-200 block" /> Booked</span>
-                </div>
+              <div className="border-t border-gray-150 pt-6 mt-6 flex flex-col items-center">
+                 <span className="text-[9px] font-black uppercase text-neutral-muted block tracking-widest mb-3">
+                   Need Help?
+                 </span>
+                 <button
+                    onClick={() => alert(`Connecting with curator for ${vendor.name}.`)}
+                    className="text-xs font-bold text-[#8B263E] hover:text-[#6e1c2f] transition-colors uppercase tracking-wider cursor-pointer"
+                 >
+                   Talk to Your Curator
+                 </button>
+                 <span className="text-[10px] font-bold text-[#C5A880] italic mt-1 font-serif">
+                   Let's Plan Together
+                 </span>
               </div>
-
             </div>
           </div>
 
@@ -702,10 +661,10 @@ export default function VendorDetailsPage() {
           <span className="text-sm font-black text-[#8B263E]">{formatPrice(vendor.priceStart)}</span>
         </div>
         <button
-          onClick={() => alert(`Consultation inquiry initiated for ${vendor.name}.`)}
+          onClick={() => alert(`Initiated wedding journey for ${vendor.name}.`)}
           className="px-5 py-2.5 rounded-full bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-[10px] font-black uppercase tracking-wider shadow-md cursor-pointer"
         >
-          Book Consultation
+          Begin Your Journey
         </button>
       </div>
 

@@ -7,7 +7,7 @@ import { realWeddings } from "@/mock-data/inspiration";
 import { InspirationCard } from "@/features/inspiration/components/InspirationCard";
 import { MapPin, Calendar, Camera, Palette, Scissors, Users, Utensils, IndianRupee, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { typography, spacing, layout } from "@/styles";
-import { FooterWaveTransition } from "@/components/layout/FooterWaveTransition";
+
 
 export default async function RealWeddingDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -249,7 +249,7 @@ export default async function RealWeddingDetailPage({ params }: { params: Promis
         </div>
       )}
 
-      <FooterWaveTransition />
+
     </div>
   );
 }
