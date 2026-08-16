@@ -37,11 +37,11 @@ export function ClientScrollRail() {
   const topPosition = 5 + (getActiveIndex() * 48);
 
   return (
-    <div className="hidden xl:flex fixed left-8 top-1/2 -translate-y-1/2 flex-col gap-6 z-40 items-start select-none">
+    <div className="hidden xl:flex fixed left-8 top-1/2 -translate-y-1/2 flex-col gap-6 z-40 items-start select-none opacity-30 hover:opacity-100 transition-opacity duration-500">
       <div className="relative pl-6 flex flex-col gap-8">
-        <div className="absolute left-[3px] top-1 bottom-1 w-[1px] bg-neutral-border" />
+        <div className="absolute left-[3px] top-1 bottom-1 w-[1px] bg-neutral-border/50" />
         <div 
-          className="absolute left-0 w-2.5 h-2.5 rounded-full bg-primary transition-all duration-500 ease-out" 
+          className="absolute left-0 w-2 h-2 rounded-full bg-primary transition-all duration-500 ease-out" 
           style={{ top: `${topPosition}px` }} 
         />
 

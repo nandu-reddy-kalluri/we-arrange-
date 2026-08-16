@@ -29,7 +29,7 @@ export function CategoryGrid({ onSelectCategory, selectedCategory }: CategoryGri
   };
 
   return (
-    <section className="py-16 bg-[#FAF9F6] border-b border-neutral-border">
+    <section className="pt-10 pb-16 bg-[#FAF9F6] border-b border-neutral-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Title */}

@@ -28,7 +28,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       className={`
         relative rounded-3xl backdrop-blur-xl
         bg-white/80 dark:bg-[#1A1819]/80
-        p-8 sm:p-10 md:p-12
+        p-5 sm:p-8 md:p-12
         transition-all duration-500
         ${
           glow

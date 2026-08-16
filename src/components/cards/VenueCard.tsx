@@ -58,7 +58,7 @@ export default function VenueCard({ venue }: { venue: Venue }) {
       </div>
 
       {/* Info Section */}
-      <div className="flex flex-col gap-2.5 p-5">
+      <div className="flex flex-col gap-2 md:gap-2.5 p-3.5 md:p-5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-serif text-[17px] font-bold text-neutral-900 leading-snug line-clamp-1 group-hover:text-[#6F1D2C] transition-colors">
             {venue.name}

@@ -13,7 +13,7 @@ export function HeroGradient({ isReducedMotion }: BackgroundLayerProps) {
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.55) 42%, rgba(0,0,0,0.20) 75%, rgba(0,0,0,0.08) 100%)",
+            "linear-gradient(110deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 40%, transparent 60%)",
         }}
       />
 
@@ -68,10 +68,10 @@ export function HeroGradient({ isReducedMotion }: BackgroundLayerProps) {
 
       {/* ── Bottom fade into next section ──────────────────────────────────── */}
       <div
-        className="absolute inset-x-0 bottom-0 h-52 pointer-events-none z-10"
+        className="absolute inset-x-0 bottom-0 h-32 pointer-events-none z-10"
         style={{
           background:
-            "linear-gradient(to top, #FDFBF7 0%, rgba(253,251,247,0.7) 40%, transparent 100%)",
+            "linear-gradient(to top, #FDFBF7 0%, rgba(253,251,247,0.4) 40%, transparent 100%)",
         }}
       />
 

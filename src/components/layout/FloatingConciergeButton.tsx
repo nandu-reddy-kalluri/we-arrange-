@@ -16,7 +16,7 @@ export function FloatingConciergeButton() {
       whileTap={{ scale: 0.9 }}
       transition={{ delay: 1, type: "spring", stiffness: 200, damping: 20 }}
       onClick={handleOpenConcierge}
-      className="md:hidden fixed bottom-6 right-6 z-50 w-12 h-12 bg-neutral-charcoal rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-accent-gold/20"
+      className="md:hidden fixed bottom-[env(safe-area-inset-bottom,16px)] right-4 z-50 w-11 h-11 bg-neutral-charcoal rounded-full flex items-center justify-center shadow-[0_4px_16px_rgb(0,0,0,0.15)] border border-accent-gold/20 mb-4"
       aria-label="Contact Concierge"
     >
       <MessageCircle className="w-5 h-5 text-accent-gold" />

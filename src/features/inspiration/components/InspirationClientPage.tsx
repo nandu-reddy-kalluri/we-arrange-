@@ -3,7 +3,9 @@
 import React, { useState, useRef, useMemo } from "react";
 import { InspirationHero } from "./InspirationHero";
 import { InspirationCard } from "./InspirationCard";
+import { InspirationDetailModal } from "./InspirationDetailModal";
 import { 
+  InspirationItem,
   weddingThemes, 
   decorInspirations,
   realWeddings,
@@ -48,6 +50,7 @@ const SECTION_DATA = [
 export function InspirationClientPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedItem, setSelectedItem] = useState<InspirationItem | null>(null);
   
   // Physics & Interaction state for the Editorial Object
   const constraintsRef = useRef<HTMLDivElement>(null);
@@ -97,7 +100,7 @@ export function InspirationClientPage() {
       </div>
 
       {/* Category Navigation */}
-      <div className="relative z-10 border-b border-[#E8D8BC]/30 sticky top-[72px] md:top-[88px] pt-8 pb-0 mb-8">
+      <div className="relative z-10 border-b border-[#E8D8BC]/30 sticky top-[56px] md:top-[88px] pt-4 md:pt-8 pb-0 mb-4 md:mb-8">
         
         {/* Semi-transparent overlay to ensure text readability */}
         <div className="absolute inset-0 z-0 bg-[#FBF9F6]/85 backdrop-blur-md" />
@@ -271,7 +274,7 @@ export function InspirationClientPage() {
               </button>
             </motion.div>
           ) : (
-            <div className="flex flex-col gap-16 md:gap-24">
+            <div className="flex flex-col gap-8 md:gap-24">
               {filteredSections.map((section) => (
                 <motion.section
                   key={section.id}
@@ -291,7 +294,7 @@ export function InspirationClientPage() {
 
                   <motion.div
                     layout
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 lg:gap-x-8 gap-y-10"
+                    className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6"
                   >
                     <AnimatePresence>
                       {section.filteredData.map((item, index) => (
@@ -306,7 +309,7 @@ export function InspirationClientPage() {
                           }}
                           exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                         >
-                          <InspirationCard item={item} />
+                          <InspirationCard item={item} onClick={() => setSelectedItem(item)} />
                         </motion.div>
                       ))}
                     </AnimatePresence>
@@ -318,7 +321,10 @@ export function InspirationClientPage() {
         </AnimatePresence>
       </div>
 
-
+      <InspirationDetailModal 
+        item={selectedItem} 
+        onClose={() => setSelectedItem(null)} 
+      />
     </div>
   );
 }

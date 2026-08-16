@@ -10,7 +10,7 @@ export function TrustStrip() {
   ];
 
   return (
-    <div className="w-full bg-neutral-charcoal py-6 border-y border-white/10">
+    <div className="w-full bg-neutral-charcoal py-7 border-y border-white/10 relative z-20 shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.15)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop: single row */}
         <div className="hidden md:flex justify-between items-center">

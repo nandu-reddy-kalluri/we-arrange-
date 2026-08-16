@@ -139,27 +139,27 @@ function SecondaryButton({
       id={id}
       className="group relative w-full sm:w-auto px-8 min-h-[48px] rounded-xl text-[11px] font-black uppercase tracking-widest overflow-hidden"
       style={{
-        background: "rgba(255,255,255,0.06)",
+        background: "rgba(10, 5, 8, 0.45)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(200,161,101,0.45)",
-        color: "#E8C97A",
-        boxShadow: "0 4px 20px -4px rgba(200,161,101,0.15)",
+        border: "1px solid rgba(200,161,101,0.3)",
+        color: "#FDFBF7",
+        boxShadow: "0 4px 20px -4px rgba(0,0,0,0.4)",
         transition: "transform 80ms ease-out, box-shadow 150ms ease-out, background 150ms ease-out",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.background = "rgba(200,161,101,0.12)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 28px -4px rgba(200,161,101,0.25)";
+        (e.currentTarget as HTMLElement).style.background = "rgba(10,5,8,0.65)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px -4px rgba(200,161,101,0.15)";
         (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 20px -4px rgba(200,161,101,0.15)";
+        (e.currentTarget as HTMLElement).style.background = "rgba(10, 5, 8, 0.45)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 20px -4px rgba(0,0,0,0.4)";
         (e.currentTarget as HTMLElement).style.transform = "";
       }}
       onMouseDown={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "scale(0.97) translateY(1px)";
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px -4px rgba(200,161,101,0.12)";
+        (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px -4px rgba(0,0,0,0.3)";
       }}
       onMouseUp={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
@@ -211,16 +211,16 @@ export function HeroForm() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="w-full flex flex-col gap-3 md:gap-4 text-neutral-charcoal relative"
+        className="w-full flex flex-col gap-2 md:gap-3 text-neutral-charcoal relative"
         style={{
-          background: "rgba(255, 252, 248, 0.10)",
-          backdropFilter: "blur(24px) saturate(160%)",
-          WebkitBackdropFilter: "blur(24px) saturate(160%)",
-          border: "1px solid rgba(200, 161, 101, 0.22)",
-          borderRadius: "20px",
-          padding: "16px 16px 18px",
+          background: "rgba(255, 252, 248, 0.08)",
+          backdropFilter: "blur(20px) saturate(140%)",
+          WebkitBackdropFilter: "blur(20px) saturate(140%)",
+          border: "1px solid rgba(200, 161, 101, 0.15)",
+          borderRadius: "16px",
+          padding: "14px 14px 16px",
           boxShadow:
-            "0 32px 80px -16px rgba(10, 4, 8, 0.55), 0 0 0 0.5px rgba(200,161,101,0.12) inset, 0 1px 0 rgba(255,255,255,0.08) inset",
+            "0 24px 60px -16px rgba(10, 4, 8, 0.4), 0 0 0 0.5px rgba(200,161,101,0.08) inset, 0 1px 0 rgba(255,255,255,0.05) inset",
         }}
       >
         {/* Internal glass shimmer */}

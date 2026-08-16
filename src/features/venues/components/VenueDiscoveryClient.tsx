@@ -15,42 +15,42 @@ export function VenueDiscoveryClient() {
       <VenueHeroSearch />
 
       {/* 2. Hero Header & Dual Primary Actions */}
-      <section className="pt-24 pb-12 md:pt-32 md:pb-16 px-4 sm:px-6 max-w-5xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className={`${typography.heroTitle} mb-4 text-neutral-900`}>
-            Discover Your Dream Venue
+      <section className="pt-6 pb-8 md:pt-32 md:pb-16 px-4 sm:px-6 max-w-5xl mx-auto">
+        <div className="text-center mb-10 md:mb-16">
+          <h1 className="font-serif font-light text-3xl sm:text-4xl md:text-5xl leading-tight tracking-tight mb-4 md:mb-5 max-w-2xl mx-auto text-neutral-900">
+            Discover Your <span className="font-semibold text-[#C5A880]">Dream Venue</span>
           </h1>
-          <p className="text-sm md:text-base text-neutral-500 font-medium max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm md:text-base text-neutral-500 font-medium max-w-xl mx-auto leading-relaxed">
             Experience a new standard of luxury wedding planning. Find the perfect venue and get the best quotations seamlessly.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
           {/* Option 1: Explore */}
-          <div className="bg-white rounded-3xl p-8 border border-[#E8D8BC]/60 shadow-sm flex flex-col items-start hover:shadow-md transition-shadow cursor-pointer">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#C8A165] mb-2">Option 1</span>
-            <h3 className="font-serif text-2xl font-bold text-neutral-900 mb-2">Explore Venues</h3>
-            <p className="text-sm text-neutral-500 font-medium mb-8">
+          <div className="bg-white rounded-[24px] p-6 md:p-10 border border-[#C5A880]/20 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.04)] flex flex-col items-center text-center hover:shadow-[0_8px_40px_-12px_rgba(197,168,128,0.15)] transition-all duration-300 cursor-pointer group">
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#8B263E] mb-3">Option 1</span>
+            <h3 className="font-serif text-2xl md:text-3xl font-medium text-neutral-900 mb-3">Explore Venues</h3>
+            <p className="text-[13px] md:text-sm text-neutral-500 font-medium mb-8 leading-relaxed max-w-[280px]">
               Browse our curated collection of luxury spaces and build your wedding shortlist.
             </p>
-            <button className="mt-auto flex items-center gap-2 text-sm font-bold text-neutral-900 group">
+            <button className="mt-auto flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-800 group-hover:text-[#8B263E] transition-colors">
               Start Exploring
-              <svg className="w-4 h-4 text-[#C8A165] group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>
           </div>
 
           {/* Option 2: Direct RFQ */}
-          <div className="bg-gradient-to-br from-[#1A0810] to-[#2D1622] rounded-3xl p-8 border border-[#3D2632] shadow-sm flex flex-col items-start hover:shadow-md transition-shadow cursor-pointer">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#E8D8BC] mb-2">Option 2</span>
-            <h3 className="font-serif text-2xl font-bold text-white mb-2">Get Best Quotations</h3>
-            <p className="text-sm text-neutral-300 font-medium mb-8">
+          <div className="bg-gradient-to-b from-[#FDFBF7] to-[#FAF5F0] rounded-[24px] p-6 md:p-10 border border-[#C5A880]/20 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.04)] flex flex-col items-center text-center hover:shadow-[0_8px_40px_-12px_rgba(197,168,128,0.15)] transition-all duration-300 cursor-pointer group">
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#8B263E] mb-3">Option 2</span>
+            <h3 className="font-serif text-2xl md:text-3xl font-medium text-neutral-900 mb-3">Get Best Quotations</h3>
+            <p className="text-[13px] md:text-sm text-neutral-500 font-medium mb-8 leading-relaxed max-w-[280px]">
               Submit your wedding requirements directly and receive curated quotations from matching venues.
             </p>
-            <button className="mt-auto flex items-center gap-2 text-sm font-bold text-[#E8D8BC] group">
+            <button className="mt-auto flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#C5A880] group-hover:text-[#8B263E] transition-colors">
               Submit Requirement
-              <svg className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </button>

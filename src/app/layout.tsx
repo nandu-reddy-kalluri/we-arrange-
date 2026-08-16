@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "@/styles/globals.css";
-import Navbar from "@/components/layout/Navbar/index";
-import { Footer } from "@/components/layout/Footer/index";
+import { GlobalLayoutWrapper } from "@/components/layout/GlobalLayoutWrapper";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -48,9 +47,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${jakarta.variable}`} style={{ scrollBehavior: 'smooth' }}>
       <body className="antialiased bg-[hsl(30,20%,98%)] font-sans text-[hsl(240,10%,15%)] min-h-screen flex flex-col justify-between relative">
         <div className="luxury-texture-overlay" />
-        <Navbar />
-        <div className="flex-grow relative z-10">{children}</div>
-        <Footer />
+        <GlobalLayoutWrapper>{children}</GlobalLayoutWrapper>
       </body>
     </html>
   );

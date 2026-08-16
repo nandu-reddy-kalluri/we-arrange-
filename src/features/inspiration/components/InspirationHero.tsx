@@ -11,7 +11,7 @@ interface InspirationHeroProps {
 
 export function InspirationHero({ searchQuery, setSearchQuery }: InspirationHeroProps) {
   return (
-    <section className="relative pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center flex flex-col items-center">
+    <section className="relative pt-24 pb-8 md:pt-40 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center flex flex-col items-center">
       {/* Eyebrow Label */}
       <div className="flex items-center gap-3 overflow-hidden justify-center mb-4">
         <motion.span
