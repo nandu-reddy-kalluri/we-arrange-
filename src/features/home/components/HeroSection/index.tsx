@@ -15,13 +15,13 @@ export default function HeroSection() {
   const scrollCueOpacity = useTransform(scrollY, [0, 120], [1, 0]);
 
   return (
-    <section className={`relative ${layout.heroHeight} flex items-center justify-center text-white overflow-hidden pt-24 md:pt-28 pb-12 md:pb-16`}>
+    <section className={`relative ${layout.heroHeight} flex items-center justify-center text-white overflow-hidden pt-20 md:pt-28 pb-8 md:pb-16`}>
       <HeroBackdrop />
 
       <div className={`${layout.maxWidth} ${spacing.container} ${layout.fullWidth} ${zIndex.content} flex flex-col lg:flex-row items-center justify-between ${spacing.gapHero} relative`}>
 
         {/* ── Left Column: Typography + Search Panel ── */}
-        <div className="w-full lg:w-[58%] text-left flex flex-col items-start gap-7">
+        <div className="w-full lg:w-[50%] xl:w-[55%] text-left flex flex-col items-start gap-7">
 
           {/* ── Eyebrow label: line expands → text slides in ── */}
           <div className="flex items-center gap-3 overflow-hidden">
@@ -35,7 +35,7 @@ export default function HeroSection() {
             />
             {/* Eyebrow text slides in from left */}
             <motion.span
-              className="font-sans text-[10px] sm:text-[11px] font-black uppercase text-[#C8A165] tracking-[0.35em]"
+              className="font-sans text-[10px] sm:text-[11px] font-black uppercase text-[#C8A165] tracking-[0.25em]"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
@@ -45,7 +45,7 @@ export default function HeroSection() {
           </div>
 
           {/* ── 3A: Headline — two lines staggered wipe-up reveal ── */}
-          <h1 className="font-serif text-white overflow-hidden leading-[1.05]">
+          <h1 className="font-serif text-white overflow-hidden leading-tight">
             {/* Line 1 — wipe up at 1.0s */}
             <motion.span
               className="block overflow-hidden text-[34px] md:text-[56px] tracking-[-0.03em]"
@@ -58,7 +58,7 @@ export default function HeroSection() {
 
             {/* Line 2 — wipe up at 1.25s (250ms stagger) */}
             <motion.span
-              className="block overflow-hidden italic text-[28px] md:text-[36px] tracking-[-0.03em]"
+              className="block overflow-hidden italic text-[28px] md:text-[36px] tracking-[-0.03em] -mt-1 md:-mt-2"
               initial={{ clipPath: "inset(0 0 100% 0)", opacity: 0, y: 40 }}
               animate={{ clipPath: "inset(0 0 0% 0)",   opacity: 1, y: 0  }}
               transition={{ duration: 0.9, delay: 1.25, ease: [0.16, 1, 0.3, 1] }}
@@ -75,7 +75,7 @@ export default function HeroSection() {
 
           {/* ── 3C: Subheading — fades up at 1.5s ── */}
           <motion.p
-            className={`${typography.heroSubtitle} text-white/75 max-w-md`}
+            className={`${typography.heroSubtitle} text-white/95 font-medium drop-shadow-md max-w-md`}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
@@ -102,33 +102,12 @@ export default function HeroSection() {
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1.4, delay: 1.6, ease: [0.16, 1, 0.3, 1] }}
-          className="hidden lg:flex w-full lg:w-[36%] items-center justify-center relative min-h-[380px] z-10"
+          className="hidden lg:flex w-full lg:w-[42%] xl:w-[38%] items-center justify-center relative min-h-[380px] z-10"
         >
           <HeroFloatingCard />
         </motion.div>
       </div>
 
-      {/* ── 3D: Scroll Cue — appears at 3.5s, fades on scroll ── */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 pointer-events-none z-20"
-        style={{ opacity: scrollCueOpacity }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.6 }}
-        transition={{ duration: 1, delay: 3.5 }}
-      >
-        <motion.div
-          className="w-px bg-gradient-to-b from-[#C8A165]/60 to-transparent"
-          style={{ height: 28 }}
-          animate={{ scaleY: [0.6, 1, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          animate={{ y: [0, 5, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ChevronDown className={`${icons.small} text-[#C8A165]/60`} />
-        </motion.div>
-      </motion.div>
     </section>
   );
 }

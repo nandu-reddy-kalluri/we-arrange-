@@ -46,19 +46,19 @@ export const FloatingBackground: React.FC = () => {
   }, [shouldReduceMotion]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0 bg-[#FAF9F6] dark:bg-[#121112]">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden select-none z-0 bg-[#121112]">
       {/* Dynamic Base Gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,#FAF9F6_0%,#F5EFE6_50%,#ECE4D8_100%)] dark:bg-[radial-gradient(ellipse_at_top_left,#1A1819_0%,#121112_60%,#0A0A0A_100%)] transition-colors duration-700" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,#1C1A1A_0%,#121112_60%,#0A0A0A_100%)] transition-colors duration-700" />
 
-      {/* Animated Mesh Gradient Blobs */}
+      {/* Animated Mesh Gradient Blobs (Subdued cinematic glow) */}
       <motion.div
         animate={
           shouldReduceMotion
             ? {}
             : {
-                x: [0, 40, -20, 0],
-                y: [0, -30, 30, 0],
-                scale: [1, 1.15, 0.95, 1],
+                x: [0, 20, -10, 0],
+                y: [0, -15, 15, 0],
+                scale: [1, 1.05, 0.95, 1],
               }
         }
         transition={{
@@ -71,7 +71,7 @@ export const FloatingBackground: React.FC = () => {
             mousePosition.y * 25
           }px, 0)`,
         }}
-        className="absolute -top-32 -left-20 w-[550px] h-[550px] rounded-full bg-gradient-to-br from-[#8B263E]/20 via-[#C5A880]/15 to-transparent blur-[120px]"
+        className="absolute -top-32 -left-20 w-[550px] h-[550px] rounded-full bg-gradient-to-br from-[#8B263E]/5 via-[#C5A880]/5 to-transparent blur-[120px]"
       />
 
       <motion.div
@@ -79,9 +79,9 @@ export const FloatingBackground: React.FC = () => {
           shouldReduceMotion
             ? {}
             : {
-                x: [0, -50, 30, 0],
-                y: [0, 40, -40, 0],
-                scale: [1, 1.2, 0.9, 1],
+                x: [0, -25, 15, 0],
+                y: [0, 20, -20, 0],
+                scale: [1, 1.1, 0.95, 1],
               }
         }
         transition={{
@@ -94,7 +94,7 @@ export const FloatingBackground: React.FC = () => {
             mousePosition.y * -35
           }px, 0)`,
         }}
-        className="absolute -bottom-40 -right-20 w-[650px] h-[650px] rounded-full bg-gradient-to-tl from-[#C5A880]/25 via-[#8B263E]/15 to-transparent blur-[140px]"
+        className="absolute -bottom-40 -right-20 w-[650px] h-[650px] rounded-full bg-gradient-to-tl from-[#C5A880]/10 via-[#8B263E]/5 to-transparent blur-[140px]"
       />
 
       <motion.div
@@ -102,9 +102,9 @@ export const FloatingBackground: React.FC = () => {
           shouldReduceMotion
             ? {}
             : {
-                x: [0, 30, -30, 0],
-                y: [0, -40, 20, 0],
-                scale: [0.9, 1.1, 0.95, 0.9],
+                x: [0, 15, -15, 0],
+                y: [0, -20, 10, 0],
+                scale: [0.95, 1.05, 0.95, 0.95],
               }
         }
         transition={{
@@ -117,7 +117,7 @@ export const FloatingBackground: React.FC = () => {
             mousePosition.y * 15
           }px, 0)`,
         }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-[#FAF9F6]/40 via-[#F0E7DB]/30 to-transparent blur-[100px] dark:from-[#2D2A2B]/40"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-[#2D2A2B]/10 via-transparent to-transparent blur-[100px]"
       />
 
       {/* Luxury Golden Ambient Particles */}

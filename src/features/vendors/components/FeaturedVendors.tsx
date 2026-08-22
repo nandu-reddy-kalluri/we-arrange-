@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Heart, MapPin, CheckCircle, ChevronLeft, ChevronRight, X, Star, Trophy, Zap, Check, ChevronDown } from "lucide-react";
+import { Heart, MapPin, CheckCircle, ChevronLeft, ChevronRight, X, Star, Trophy, Zap, Check, ChevronDown, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Vendor, vendorCategories } from "@/mock-data/vendors";
 import { FilterState } from "./VendorFilters";
@@ -473,18 +473,35 @@ export function FeaturedVendors({
         <>
           {/* Empty state when no vendors match */}
           {vendors.length === 0 ? (
-            <div className="py-16 text-center bg-white border border-gray-150 rounded-[22px] flex flex-col items-center justify-center gap-3">
-              <span className="text-3xl">📂</span>
-              <h4 className="font-serif text-lg font-bold text-neutral-charcoal">No Vendors Match Your Filters</h4>
-              <p className="text-xs text-neutral-muted max-w-sm leading-relaxed">
-                We couldn&apos;t find any wedding specialists matching your selected price range or segment. Try clearing a few filters to see more profiles.
+            <div className="py-20 px-4 text-center bg-white border border-[#C5A880]/20 rounded-[24px] flex flex-col items-center justify-center gap-4 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-[#C5A880]/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="w-16 h-16 rounded-full bg-[#FAF9F6] border border-[#C5A880]/20 flex items-center justify-center mb-2 z-10 text-[#C5A880]">
+                <Search className="w-6 h-6" />
+              </div>
+              <h4 className="font-serif text-2xl font-bold text-[#2D2D2D] z-10">We couldn&apos;t find the perfect match yet.</h4>
+              <p className="text-sm text-neutral-500 max-w-md leading-relaxed z-10">
+                Try broadening your search, or let our concierge team find the right vendor for you.
               </p>
-              <button
-                onClick={onResetFilters}
-                className="px-5 py-2 rounded-full bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-[10px] font-black uppercase tracking-wider mt-2 transition-all shadow cursor-pointer"
-              >
-                Reset All Filters
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3 mt-4 z-10">
+                <button
+                  onClick={onResetFilters}
+                  className="px-6 py-2.5 rounded-full border border-gray-200 hover:border-[#C5A880] text-neutral-600 hover:text-neutral-900 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Clear Filters
+                </button>
+                <button
+                  onClick={onResetFilters}
+                  className="px-6 py-2.5 rounded-full border border-[#C5A880] text-[#C5A880] hover:bg-[#FAF9F6] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer"
+                >
+                  Browse All Vendors
+                </button>
+                <button
+                  onClick={() => alert("Concierge chat opened")}
+                  className="px-6 py-2.5 rounded-full bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md cursor-pointer"
+                >
+                  Ask Our Concierge
+                </button>
+              </div>
             </div>
           ) : (
             <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" : "flex flex-col gap-4"}>

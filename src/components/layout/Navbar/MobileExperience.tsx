@@ -137,7 +137,7 @@ export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
                 Login
               </Link>
               <Link
-                href="/register"
+                href="/login?mode=signup"
                 onClick={onClose}
                 className="w-full mt-4 py-4 rounded-full text-center text-sm font-bold text-white bg-[#8B263E]"
               >

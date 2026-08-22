@@ -113,18 +113,9 @@ export const NAVIGATION_HIERARCHY: NavItem[] = [
     ],
   },
   {
-    id: "planning",
-    label: "Planning",
-    href: "/planning",
-    type: "dropdown",
-    items: [
-      { label: "Checklist", href: "/planning/checklist" },
-      { label: "Budget Planner", href: "/planning/budget" },
-      { label: "Guest List", href: "/planning/guests" },
-      { label: "Timeline", href: "/planning/timeline" },
-      { label: "Digital Invitations", href: "/planning/invitations" },
-      { label: "Vendor Shortlist", href: "/planning/shortlist" },
-      { label: "Saved Inspirations", href: "/planning/saved-inspirations" },
-    ],
+    id: "wedding-studio",
+    label: "Wedding Studio",
+    href: "/wedding-studio",
+    type: "link",
   },
 ];

@@ -2,11 +2,13 @@
 
 import React, { useState, useRef } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { NAVIGATION_HIERARCHY, NavItem } from "./data/navigationData";
 import { ChevronDown } from "lucide-react";
 
-export function DesktopNavigation() {
+export function DesktopNavigation({ useDarkText = false }: { useDarkText?: boolean }) {
+  const pathname = usePathname();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -25,24 +27,42 @@ export function DesktopNavigation() {
   return (
     <div className="hidden lg:flex items-center gap-6 xl:gap-8 relative" onMouseLeave={handleMouseLeave}>
       {NAVIGATION_HIERARCHY.map((navItem) => {
-        const isActive = activeMenu === navItem.id;
+        const isHoverActive = activeMenu === navItem.id;
+        const isRouteActive = pathname.startsWith(navItem.href) && navItem.href !== '/';
+        const isActiveState = isHoverActive || (isRouteActive && navItem.type === 'link');
+        
+        // Dynamic classes based on state and theme
+        const textClass = useDarkText 
+          ? (isActiveState ? "text-[#8B263E]" : "text-[#2D2D2D] hover:text-[#8B263E]")
+          : (isActiveState ? "text-white" : "text-[#FAF9F6] drop-shadow-md hover:text-white hover:drop-shadow-lg");
+
+        const iconClass = useDarkText 
+          ? (isActiveState ? "text-[#8B263E]" : "text-neutral-400") 
+          : (isActiveState ? "text-white" : "text-white/70");
 
         return (
-          <div key={navItem.id} className="relative" onMouseEnter={() => handleMouseEnter(navItem.id)}>
+          <div key={navItem.id} className="relative group" onMouseEnter={() => handleMouseEnter(navItem.id)}>
             <Link
               href={navItem.href}
-              className={`flex items-center gap-1.5 py-6 text-sm font-semibold transition-colors duration-200 ${
-                isActive ? "text-[#8B263E]" : "text-[#2D2D2D] hover:text-[#8B263E]"
-              }`}
+              className={`flex items-center gap-1.5 py-6 text-sm font-semibold transition-all duration-300 relative ${textClass}`}
             >
               {navItem.label}
               {(navItem.type === "dropdown" || navItem.type === "mega-menu") && (
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isActive ? "rotate-180 text-[#8B263E]" : "text-neutral-400"}`} />
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isHoverActive ? "rotate-180" : ""} ${iconClass}`} />
+              )}
+              {navItem.type === 'link' && isRouteActive && (
+                <motion.span 
+                  layoutId="activeNavIndicator"
+                  className="absolute bottom-4 left-0 right-0 h-[2px] bg-gradient-to-r from-[#8B263E] to-[#C8A165]"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                />
               )}
             </Link>
 
             <AnimatePresence>
-              {isActive && navItem.type === "dropdown" && navItem.items && (
+              {isHoverActive && navItem.type === "dropdown" && navItem.items && (
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -63,7 +83,7 @@ export function DesktopNavigation() {
                 </motion.div>
               )}
 
-              {isActive && navItem.type === "mega-menu" && navItem.sections && (
+              {isHoverActive && navItem.type === "mega-menu" && navItem.sections && (
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
