@@ -21,7 +21,9 @@ export default function HeroSection() {
       <div className={`${layout.maxWidth} ${spacing.container} ${layout.fullWidth} ${zIndex.content} flex flex-col lg:flex-row items-center justify-between ${spacing.gapHero} relative`}>
 
         {/* ── Left Column: Typography + Search Panel ── */}
-        <div className="w-full lg:w-[50%] xl:w-[55%] text-left flex flex-col items-start gap-7">
+        <div className="w-full lg:w-[52%] xl:w-[55%] text-left flex flex-col items-start gap-7 relative z-20">
+          {/* Subtle dark backdrop protection gradient for hero text */}
+          <div className="absolute -inset-6 bg-gradient-to-r from-black/60 via-black/35 to-transparent rounded-3xl blur-xl pointer-events-none -z-10" />
 
           {/* ── Eyebrow label: line expands → text slides in ── */}
           <div className="flex items-center gap-3 overflow-hidden">

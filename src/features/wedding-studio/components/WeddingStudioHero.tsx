@@ -9,10 +9,10 @@ import { typography } from "@/styles/typography";
 export function WeddingStudioHero() {
   return (
     <section className="relative pt-24 pb-12 md:pt-32 md:pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
         
-        {/* Left Content Column */}
-        <div className="flex flex-col items-center lg:items-start text-center lg:text-left z-10">
+        {/* Left Content Column (7 cols) */}
+        <div className="w-full lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left z-10">
           
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -31,10 +31,9 @@ export function WeddingStudioHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="font-serif text-[clamp(42px,6vw,72px)] text-neutral-900 leading-[1.05] tracking-tight font-medium mb-6"
+            className="font-serif text-[clamp(38px,5.5vw,68px)] text-neutral-900 leading-[1.08] tracking-tight font-medium mb-6"
           >
-            Create.<br />
-            Personalize.<br />
+            Create. Personalize.<br />
             <span className="text-[#8B263E]">Celebrate Beautifully.</span>
           </motion.h1>
 
@@ -42,9 +41,9 @@ export function WeddingStudioHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="text-base md:text-lg text-neutral-600 font-medium max-w-md mx-auto lg:mx-0 leading-relaxed mb-10"
+            className="text-base md:text-lg text-neutral-600 font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed mb-10"
           >
-            Design stunning eInvites and beautiful wedding websites that tell your unique love story.
+            Design stunning eInvites and beautiful wedding websites that tell your unique love story with seamless RSVP management.
           </motion.p>
 
           <motion.div 
@@ -76,21 +75,19 @@ export function WeddingStudioHero() {
             transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="text-[13px] font-medium text-neutral-500 flex items-center gap-2"
           >
-            <span className="text-[#C5A880]">✦</span> Designed for modern weddings
+            <span className="text-[#C5A880]">✦</span> Designed for modern Indian weddings
           </motion.div>
 
         </div>
 
-        {/* Right Mockup Showcase Column */}
-        <div className="relative z-10 perspective-1000">
+        {/* Right Mockup Showcase Column (5 cols) */}
+        <div className="w-full lg:col-span-5 relative z-10 perspective-1000">
           <motion.div
             initial={{ opacity: 0, scale: 0.9, x: 20 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full aspect-[4/3] max-w-[600px] mx-auto group"
+            className="relative w-full aspect-[4/3] max-w-[540px] mx-auto group"
           >
-            {/* Removed excessive decorative blur backdrop per prompt */}
-
             
             {/* The Laptop Mockup */}
             <motion.div 
@@ -100,7 +97,7 @@ export function WeddingStudioHero() {
                 y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
                 type: "spring", stiffness: 300, damping: 20 
               }}
-              className="absolute right-0 top-10 w-[85%] rounded-lg bg-neutral-900 p-1.5 sm:p-2 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] border border-neutral-800"
+              className="absolute right-0 top-6 w-[88%] rounded-lg bg-neutral-900 p-1.5 sm:p-2 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] border border-neutral-800"
             >
               <div className="relative bg-white rounded-sm sm:rounded overflow-hidden aspect-[16/10] flex flex-col">
                 {/* Browser bar */}
@@ -157,7 +154,7 @@ export function WeddingStudioHero() {
                 y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 },
                 type: "spring", stiffness: 300, damping: 20 
               }}
-              className="absolute left-[5%] bottom-[5%] w-[32%] rounded-[20px] sm:rounded-[32px] bg-neutral-900 p-1.5 sm:p-2 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] border border-neutral-700 z-20"
+              className="absolute left-[2%] bottom-[2%] w-[34%] rounded-[20px] sm:rounded-[32px] bg-neutral-900 p-1.5 sm:p-2 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] border border-neutral-700 z-20"
             >
               <div className="relative bg-[#FAF7F2] rounded-[16px] sm:rounded-[24px] overflow-hidden aspect-[9/19.5] flex flex-col shadow-inner">
                 {/* iPhone Notch */}
@@ -184,12 +181,12 @@ export function WeddingStudioHero() {
 
           </motion.div>
           
-          {/* Real Product UI Badges */}
+          {/* Real Product UI Badges - hidden on mobile to prevent blocking CTAs */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.5 }}
-            className="absolute top-1/4 -right-4 sm:-right-8 bg-white py-1.5 px-3 rounded-md shadow-lg border border-neutral-100 flex items-center gap-1.5 z-30"
+            className="hidden sm:flex absolute top-1/4 -right-4 sm:-right-6 bg-white py-1.5 px-3 rounded-md shadow-lg border border-neutral-100 items-center gap-1.5 z-30"
           >
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-700">Live Preview</span>
@@ -199,7 +196,7 @@ export function WeddingStudioHero() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, duration: 0.5 }}
-            className="absolute bottom-1/4 -left-2 sm:-left-6 bg-white py-1.5 px-3 rounded-full shadow-lg border border-neutral-100 flex items-center gap-1.5 z-30"
+            className="hidden sm:flex absolute bottom-1/4 -left-2 sm:-left-4 bg-white py-1.5 px-3 rounded-full shadow-lg border border-neutral-100 items-center gap-1.5 z-30"
           >
             <span className="text-[10px] font-bold text-neutral-800">127</span>
             <span className="text-[9px] font-semibold text-neutral-500">RSVPs</span>

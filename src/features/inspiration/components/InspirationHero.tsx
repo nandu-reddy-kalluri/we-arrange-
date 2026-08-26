@@ -87,7 +87,7 @@ export function InspirationHero({ searchQuery, setSearchQuery }: InspirationHero
           )}
           <button
             id="inspiration-search-button"
-            className="bg-gradient-to-tr from-[#C89B3C] to-[#E8C875] text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-full shrink-0 shadow-md hover:shadow-lg transition-all duration-300"
+            className="bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-xs font-bold uppercase tracking-widest px-6 py-2.5 rounded-full shrink-0 shadow-md hover:shadow-lg transition-all duration-300 active:scale-95"
           >
             Search
           </button>

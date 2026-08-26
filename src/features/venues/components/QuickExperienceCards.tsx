@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Compass, BookHeart, Calculator, Sparkles } from "lucide-react";
 
@@ -10,6 +11,7 @@ const EXPERIENCES = [
     title: "Explore Venues",
     description: "Discover curated luxury spaces",
     icon: Compass,
+    href: "#venue-grid",
     gradient: "from-[#FDFBF7] to-[#F4EFE6]",
     borderColor: "border-[#E8D8BC]/60",
     iconColor: "text-[#C8A165]"
@@ -19,15 +21,17 @@ const EXPERIENCES = [
     title: "Wedding Shortlist",
     description: "Save & compare favorites",
     icon: BookHeart,
+    href: "/saved",
     gradient: "from-[#FDFBF7] to-[#FCEFEF]",
     borderColor: "border-[#EACCD2]/60",
-    iconColor: "text-[#6F1D2C]"
+    iconColor: "text-[#8B263E]"
   },
   {
     id: "quotations",
     title: "Get Best Quotations",
     description: "Submit your requirement",
     icon: Sparkles,
+    href: "/quotes",
     gradient: "from-[#FDFBF7] to-[#F3F0F6]",
     borderColor: "border-[#D6CDE3]/60",
     iconColor: "text-[#4A3B69]"
@@ -35,8 +39,9 @@ const EXPERIENCES = [
   {
     id: "budget",
     title: "Budget Planner",
-    description: "Track your dream celebration",
+    description: "Track your celebration budget",
     icon: Calculator,
+    href: "/planning",
     gradient: "from-[#FDFBF7] to-[#E9F3ED]",
     borderColor: "border-[#C5E1D1]/60",
     iconColor: "text-[#2D6A4F]"
@@ -44,47 +49,64 @@ const EXPERIENCES = [
 ];
 
 export function QuickExperienceCards() {
+  const handleCardClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const el = document.querySelector(href);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 max-w-7xl mx-auto px-4 sm:px-6 w-full">
       {EXPERIENCES.map((exp, idx) => {
         const Icon = exp.icon;
         
         return (
-          <motion.div
+          <Link
             key={exp.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            whileHover={{ y: -5, scale: 1.02 }}
-            className={`relative group cursor-pointer overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br ${exp.gradient} border ${exp.borderColor} p-4 md:p-6 lg:p-8 flex flex-col justify-between md:min-h-[220px] shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500`}
+            href={exp.href}
+            onClick={(e) => handleCardClick(e, exp.href)}
+            className="block outline-none"
           >
-            {/* Soft Grain Overlay */}
-            <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-[0.03] mix-blend-overlay z-0" />
-            
-            {/* Glow Effect */}
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/60 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+              whileHover={{ y: -4, scale: 1.015 }}
+              whileTap={{ scale: 0.98 }}
+              className={`relative group cursor-pointer overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br ${exp.gradient} border ${exp.borderColor} p-4 md:p-6 lg:p-8 flex flex-col justify-between h-full min-h-[160px] md:min-h-[220px] shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500`}
+            >
+              {/* Soft Grain Overlay */}
+              <div className="absolute inset-0 bg-[url('/images/noise.png')] opacity-[0.03] mix-blend-overlay z-0" />
+              
+              {/* Glow Effect */}
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/60 blur-3xl rounded-full group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
 
-            <div className="relative z-10">
-              <div className="w-9 h-9 md:w-12 md:h-12 bg-white rounded-xl md:rounded-2xl shadow-sm flex items-center justify-center mb-3 md:mb-6 group-hover:scale-110 transition-transform duration-500 border border-white/50">
-                <Icon className={`w-4 h-4 md:w-5 md:h-5 ${exp.iconColor}`} />
+              <div className="relative z-10">
+                <div className="w-9 h-9 md:w-12 md:h-12 bg-white rounded-xl md:rounded-2xl shadow-sm flex items-center justify-center mb-3 md:mb-6 group-hover:scale-110 transition-transform duration-500 border border-white/50">
+                  <Icon className={`w-4 h-4 md:w-5 md:h-5 ${exp.iconColor}`} />
+                </div>
+                
+                <h3 className="font-serif text-sm md:text-[22px] font-bold text-neutral-900 leading-tight mb-0.5 md:mb-2 group-hover:text-black transition-colors">
+                  {exp.title}
+                </h3>
+                <p className="text-[10px] md:text-xs font-semibold text-neutral-500 hidden md:block">
+                  {exp.description}
+                </p>
               </div>
               
-              <h3 className="font-serif text-sm md:text-[22px] font-bold text-neutral-900 leading-tight mb-0.5 md:mb-2 group-hover:text-black transition-colors">
-                {exp.title}
-              </h3>
-              <p className="text-[10px] md:text-xs font-semibold text-neutral-500 hidden md:block">
-                {exp.description}
-              </p>
-            </div>
-            
-            <div className="relative z-10 mt-3 md:mt-6 flex justify-end">
-              <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transform md:translate-x-2 md:group-hover:translate-x-0 transition-all duration-300 shadow-sm border border-neutral-100">
-                <svg className={`w-3 h-3 md:w-3.5 md:h-3.5 ${exp.iconColor}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
+              <div className="relative z-10 mt-3 md:mt-6 flex justify-end">
+                <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transform md:translate-x-2 md:group-hover:translate-x-0 transition-all duration-300 shadow-sm border border-neutral-100">
+                  <svg className={`w-3 h-3 md:w-3.5 md:h-3.5 ${exp.iconColor}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </Link>
         );
       })}
     </div>

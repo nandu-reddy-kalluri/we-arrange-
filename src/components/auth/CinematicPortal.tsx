@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { Sparkles, Building2, Camera, Palette, Mail, ArrowRight, CheckCircle2 } from "lucide-react";
 
 type CinematicPortalProps = {
   mode: "new-user" | "returning-user";
@@ -11,18 +12,60 @@ type CinematicPortalProps = {
   onShuttersClosed: () => void;
 };
 
-// Refined easing curve for premium motion
-const easeInOut = [0.4, 0, 0.2, 1];
-const easeOut = [0, 0, 0.2, 1];
-const easeCinematic = [0.22, 1, 0.36, 1];
+// Custom luxury spring and easing
+const easeGate = [0.19, 1, 0.22, 1];
+const easeCinematic = [0.16, 1, 0.3, 1];
 
-export default function CinematicPortal({ mode, userName, onComplete, onShuttersClosed }: CinematicPortalProps) {
+const PLATFORM_PILLARS = [
+  {
+    id: "venues",
+    title: "Curated Venues",
+    count: "200+ Spaces",
+    tags: "Palaces · Resorts · Lawns",
+    icon: Building2,
+    image: "/images/editorial/venue_1.png",
+    accent: "#C8A165",
+  },
+  {
+    id: "vendors",
+    title: "Verified Vendors",
+    count: "500+ Curators",
+    tags: "Photo · Decor · Makeup",
+    icon: Camera,
+    image: "/images/editorial/vendor_photography.png",
+    accent: "#8B263E",
+  },
+  {
+    id: "inspiration",
+    title: "Inspiration & Themes",
+    count: "1000+ Concepts",
+    tags: "Themes · Real Stories",
+    icon: Palette,
+    image: "/images/editorial/insp_bridal.png",
+    accent: "#C8A165",
+  },
+  {
+    id: "studio",
+    title: "Wedding Studio",
+    count: "Digital Suite",
+    tags: "eInvites · RSVP · Web",
+    icon: Mail,
+    image: "/images/editorial/vendor_catering.png",
+    accent: "#8B263E",
+  },
+];
+
+export default function CinematicPortal({
+  mode,
+  userName,
+  onComplete,
+  onShuttersClosed,
+}: CinematicPortalProps) {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [shuttersClosed, setShuttersClosed] = useState(false);
+  const [phase, setPhase] = useState<"sealed" | "swinging" | "revealed" | "warp">("sealed");
 
-  const onCompleteRef = React.useRef(onComplete);
-  const onShuttersClosedRef = React.useRef(onShuttersClosed);
+  const onCompleteRef = useRef(onComplete);
+  const onShuttersClosedRef = useRef(onShuttersClosed);
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -32,250 +75,300 @@ export default function CinematicPortal({ mode, userName, onComplete, onShutters
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
-    setIsMobile(window.innerWidth < 768);
 
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-
-    // Call onShuttersClosed around 500ms when the screen is fully black
+    // Call onShuttersClosed early to unmount underlying auth forms
     const shutterTimer = setTimeout(() => {
-      setShuttersClosed(true);
       if (onShuttersClosedRef.current) onShuttersClosedRef.current();
-    }, prefersReducedMotion ? 0 : 500);
+    }, prefersReducedMotion ? 0 : 250);
 
-    // Total duration logic
-    const duration = mode === "new-user" ? 3500 : 2300;
-    
-    const timer = setTimeout(() => {
+    // Phase 1: Gates swing open in 3D (350ms)
+    const swingTimer = setTimeout(() => {
+      setPhase("swinging");
+    }, prefersReducedMotion ? 0 : 350);
+
+    // Phase 2: Showcase cards float in (650ms)
+    const revealTimer = setTimeout(() => {
+      setPhase("revealed");
+    }, prefersReducedMotion ? 0 : 650);
+
+    // Phase 3: Cinematic camera glide forward (2100ms)
+    const warpTimer = setTimeout(() => {
+      setPhase("warp");
+    }, prefersReducedMotion ? 600 : 2100);
+
+    // Phase 4: Complete navigation (2500ms)
+    const completeTimer = setTimeout(() => {
       if (onCompleteRef.current) onCompleteRef.current();
-    }, prefersReducedMotion ? 1000 : duration);
+    }, prefersReducedMotion ? 800 : 2500);
 
     return () => {
       clearTimeout(shutterTimer);
-      clearTimeout(timer);
-      window.removeEventListener("resize", handleResize);
+      clearTimeout(swingTimer);
+      clearTimeout(revealTimer);
+      clearTimeout(warpTimer);
+      clearTimeout(completeTimer);
     };
-  }, [mode, prefersReducedMotion]);
+  }, [prefersReducedMotion]);
 
   if (prefersReducedMotion) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#0A0D0C] flex flex-col items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-[#FDFBF7] font-serif text-2xl flex flex-col items-center gap-4"
-        >
-          <span className="text-[12px] tracking-[0.3em] text-[#C6934A] uppercase font-semibold">YouMarriage</span>
-          <span>{mode === "new-user" ? "YOUR WEDDING. YOUR WAY." : "WELCOME BACK"}</span>
-        </motion.div>
+      <div className="fixed inset-0 z-[100] bg-[#0A0204] flex flex-col items-center justify-center text-center p-6">
+        <span className="text-[11px] tracking-[0.3em] text-[#C8A165] uppercase font-bold mb-2">
+          {mode === "new-user" ? "✦ WELCOME TO WE ARRANGE ✦" : "✦ WELCOME BACK ✦"}
+        </span>
+        <h2 className="text-white font-serif text-2xl mb-2">
+          {mode === "new-user"
+            ? "Your Wedding Story Begins Here"
+            : `Welcome Back${userName ? `, ${userName}` : ""}`}
+        </h2>
       </div>
     );
   }
 
-  const panels = Array.from({ length: isMobile ? 3 : 5 });
+  const displayName = userName
+    ? userName.trim().split(" ")[0].charAt(0).toUpperCase() + userName.trim().split(" ")[0].slice(1)
+    : "";
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-none">
+    <div className="fixed inset-0 z-[100] overflow-hidden pointer-events-auto flex items-center justify-center bg-[#060102]">
       
-      {/* ── PHASE 1: CINEMATIC SHUTTERS (0.0s - 0.5s) ── */}
-      <div className="absolute inset-0 flex w-full h-full">
-        {panels.map((_, i) => (
+      {/* ── BACKGROUND SANCTUARY (Revealed Behind the 3D Doors) ── */}
+      <motion.div
+        className="absolute inset-0 z-0 flex flex-col items-center justify-center"
+        initial={{ scale: 0.92, opacity: 0 }}
+        animate={{
+          scale: phase === "warp" ? 1.18 : phase === "revealed" || phase === "swinging" ? 1 : 0.94,
+          opacity: phase === "warp" ? [1, 0] : phase === "revealed" || phase === "swinging" ? 1 : 0.2,
+        }}
+        transition={{ duration: 0.7, ease: easeCinematic }}
+      >
+        {/* Volumetric Radial Aura & Sunburst Rays */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-50"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%, rgba(232,200,117,0.3) 0%, rgba(139,38,62,0.22) 40%, rgba(6,1,2,0.95) 75%)",
+          }}
+        />
+
+        {/* Ambient Floating Light Sparks */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(14)].map((_, i) => (
+            <motion.div
+              key={`spark-${i}`}
+              className="absolute rounded-full bg-[#E8C875]"
+              style={{
+                width: `${(i % 3) + 2}px`,
+                height: `${(i % 3) + 2}px`,
+                left: `${10 + ((i * 17) % 80)}%`,
+                top: `${25 + ((i * 29) % 55)}%`,
+                boxShadow: "0 0 12px 2px rgba(232,200,117,0.7)",
+              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{
+                opacity: [0, 0.9, 0],
+                y: [-10, -60],
+              }}
+              transition={{
+                duration: 1.4 + (i % 3) * 0.3,
+                delay: 0.2 + (i * 0.07),
+                repeat: Infinity,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Main Platform Showcase Deck */}
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 w-full flex flex-col items-center text-center">
+          
+          {/* Header Banner */}
           <motion.div
-            key={`shutter-${i}`}
-            className="h-full bg-[#0A0D0C] relative border-r border-[#C6934A]/5" // very subtle seam
-            style={{ width: `${100 / panels.length}%` }}
-            initial={{ y: "-100%" }}
-            animate={{ y: "0%" }}
-            transition={{
-              duration: 0.4,
-              delay: i * 0.04,
-              ease: easeInOut,
+            initial={{ opacity: 0, y: -24 }}
+            animate={{
+              opacity: phase === "revealed" || phase === "warp" ? 1 : 0,
+              y: phase === "revealed" || phase === "warp" ? 0 : -24,
             }}
-          />
-        ))}
+            transition={{ duration: 0.55, delay: 0.1, ease: easeCinematic }}
+            className="mb-6 md:mb-8"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.08] border border-[#C8A165]/40 backdrop-blur-md mb-3 shadow-lg">
+              <Sparkles className="w-3.5 h-3.5 text-[#E8C875] animate-spin" style={{ animationDuration: "5s" }} />
+              <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.25em] text-[#E8C875]">
+                {mode === "new-user" ? "Welcome To We Arrange" : "Welcome Back"}
+              </span>
+            </div>
+
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-white font-medium tracking-tight leading-tight mb-2">
+              {mode === "new-user" ? (
+                <>Your Wedding Journey <span className="bg-gradient-to-r from-[#E8C875] via-[#FFF3D6] to-[#C8A165] bg-clip-text text-transparent">Begins Here</span></>
+              ) : (
+                <>{displayName ? `Hello, ${displayName}` : "Welcome Back"} · <span className="bg-gradient-to-r from-[#E8C875] via-[#FFF3D6] to-[#C8A165] bg-clip-text text-transparent">Workspace Ready</span></>
+              )}
+            </h1>
+
+            <p className="text-xs sm:text-sm text-neutral-300 max-w-lg mx-auto font-light">
+              Hyderabad&apos;s premier venues, verified vendors, curated aesthetics, and RSVP suite.
+            </p>
+          </motion.div>
+
+          {/* 4 Interactive Feature Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5 w-full max-w-4xl mb-6 md:mb-8">
+            {PLATFORM_PILLARS.map((pillar, idx) => {
+              const Icon = pillar.icon;
+              return (
+                <motion.div
+                  key={pillar.id}
+                  initial={{ opacity: 0, y: 35, scale: 0.88 }}
+                  animate={{
+                    opacity: phase === "revealed" || phase === "warp" ? 1 : 0,
+                    y: phase === "revealed" || phase === "warp" ? 0 : 35,
+                    scale: phase === "revealed" || phase === "warp" ? 1 : 0.88,
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    delay: 0.15 + idx * 0.08,
+                    ease: easeCinematic,
+                  }}
+                  className="group relative bg-gradient-to-b from-[#1E0A12]/90 to-[#120409]/90 backdrop-blur-xl rounded-2xl p-3 sm:p-4 border border-[#C8A165]/35 shadow-[0_12px_35px_rgba(0,0,0,0.6)] flex flex-col text-left overflow-hidden hover:border-[#E8C875] transition-all duration-300"
+                >
+                  {/* Photo Preview Container */}
+                  <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden mb-3 bg-neutral-950 border border-white/10 shadow-inner">
+                    <Image
+                      src={pillar.image}
+                      alt={pillar.title}
+                      fill
+                      sizes="(max-width: 768px) 160px, 220px"
+                      className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    
+                    {/* Floating Pillar Icon */}
+                    <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-[#8B263E] border border-[#E8C875]/60 flex items-center justify-center shadow-md">
+                      <Icon className="w-3.5 h-3.5 text-[#E8C875]" />
+                    </div>
+
+                    {/* Metric Count Badge */}
+                    <div className="absolute bottom-1.5 right-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-[9px] font-black uppercase tracking-wider text-[#E8C875]">
+                      {pillar.count}
+                    </div>
+                  </div>
+
+                  {/* Title & Tags */}
+                  <h3 className="font-serif text-sm sm:text-base font-bold text-white mb-0.5 leading-snug group-hover:text-[#E8C875] transition-colors">
+                    {pillar.title}
+                  </h3>
+                  <p className="text-[10px] text-neutral-400 font-semibold leading-tight truncate">
+                    {pillar.tags}
+                  </p>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Bottom Readiness Indicator */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{
+              opacity: phase === "revealed" || phase === "warp" ? 1 : 0,
+              y: phase === "revealed" || phase === "warp" ? 0 : 10,
+            }}
+            transition={{ duration: 0.45, delay: 0.5 }}
+            className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#8B263E]/40 border border-[#E8C875]/30 text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-bold text-[#E8C875]"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#E8C875]" />
+            <span>Concierge Suite Unlocked · Entering Platform</span>
+            <ArrowRight className="w-3.5 h-3.5 animate-pulse ml-1" />
+          </motion.div>
+
+        </div>
+      </motion.div>
+
+      {/* ── 3D PERSPECTIVE ROYAL GATES / DOORS (Swing Outwards) ── */}
+      <div 
+        className="absolute inset-0 z-30 pointer-events-none flex"
+        style={{ perspective: "1400px" }}
+      >
+        
+        {/* LEFT 3D GATE */}
+        <motion.div
+          className="w-1/2 h-full bg-gradient-to-r from-[#0C0205] via-[#140509] to-[#1F0810] border-r-2 border-[#E8C875] flex items-center justify-end overflow-hidden shadow-[20px_0_50px_rgba(0,0,0,0.9)] origin-left"
+          initial={{ rotateY: 0, opacity: 1 }}
+          animate={{
+            rotateY: phase === "sealed" ? 0 : -95,
+            opacity: phase === "sealed" ? 1 : phase === "swinging" ? 0.95 : 0,
+          }}
+          transition={{
+            duration: 1.1,
+            ease: easeGate,
+          }}
+        >
+          {/* Left Door Monogram & Ornate Gold Filigree Frame */}
+          <div className="relative pr-8 flex flex-col items-center">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-[#E8C875]/60 bg-[#16050B] flex items-center justify-center shadow-[0_0_30px_rgba(200,161,101,0.3)]">
+              <span className="font-serif text-4xl md:text-5xl font-black bg-gradient-to-tr from-[#E8C875] via-[#FFF5DE] to-[#C8A165] bg-clip-text text-transparent">
+                Y
+              </span>
+            </div>
+            <span className="text-[9px] uppercase tracking-[0.3em] text-[#C8A165] font-bold mt-3">
+              YOU MARRIAGE
+            </span>
+          </div>
+
+          <div className="absolute inset-y-0 right-4 w-px bg-gradient-to-b from-transparent via-[#E8C875]/40 to-transparent" />
+        </motion.div>
+
+        {/* RIGHT 3D GATE */}
+        <motion.div
+          className="w-1/2 h-full bg-gradient-to-l from-[#0C0205] via-[#140509] to-[#1F0810] border-l-2 border-[#E8C875] flex items-center justify-start overflow-hidden shadow-[-20px_0_50px_rgba(0,0,0,0.9)] origin-right"
+          initial={{ rotateY: 0, opacity: 1 }}
+          animate={{
+            rotateY: phase === "sealed" ? 0 : 95,
+            opacity: phase === "sealed" ? 1 : phase === "swinging" ? 0.95 : 0,
+          }}
+          transition={{
+            duration: 1.1,
+            ease: easeGate,
+          }}
+        >
+          {/* Right Door Monogram & Ornate Gold Filigree Frame */}
+          <div className="relative pl-8 flex flex-col items-center">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-[#E8C875]/60 bg-[#16050B] flex items-center justify-center shadow-[0_0_30px_rgba(200,161,101,0.3)]">
+              <span className="font-serif text-4xl md:text-5xl font-black bg-gradient-to-tr from-[#E8C875] via-[#FFF5DE] to-[#C8A165] bg-clip-text text-transparent">
+                W
+              </span>
+            </div>
+            <span className="text-[9px] uppercase tracking-[0.3em] text-[#C8A165] font-bold mt-3">
+              WE ARRANGE
+            </span>
+          </div>
+
+          <div className="absolute inset-y-0 left-4 w-px bg-gradient-to-b from-transparent via-[#E8C875]/40 to-transparent" />
+        </motion.div>
+
       </div>
 
-      {/* The rest of the portal only plays inside the black background after shutters close to avoid layering issues */}
-      <AnimatePresence>
-        {shuttersClosed && (
-          <motion.div 
-            className="absolute inset-0 flex items-center justify-center overflow-hidden"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-          >
-            {/* ── PHASE 4 & 11: PORTAL DOORS (Emerald Background) ── */}
-            {/* Left Door */}
-            <motion.div
-              className="absolute left-0 top-0 bottom-0 bg-[#0C1210] origin-right flex justify-end overflow-hidden"
-              initial={{ width: "50%" }}
-              animate={
-                mode === "new-user"
-                  ? { width: ["0%", "50%", "50%", "0%"] }
-                  : { width: ["0%", "50%", "50%", "0%"] }
-              }
-              transition={
-                mode === "new-user"
-                  ? { times: [0, 0.14, 0.85, 1], duration: 3.5 - 0.5, ease: easeInOut }
-                  : { times: [0, 0.22, 0.72, 1], duration: 1.8, ease: easeInOut }
-              }
-              style={{ borderRight: "1px solid rgba(198, 147, 74, 0.1)" }}
-            >
-              {/* Image Fragments (Left side of portal) */}
-              {mode === "new-user" && (
-                <motion.div
-                  className="absolute right-[20%] md:right-[50%] top-[25%] w-24 h-36 md:w-48 md:h-64 z-10"
-                  initial={{ opacity: 0, y: -30 }}
-                  animate={{ opacity: [0, 1, 1, 0], y: [-30, 0, 0, 0] }}
-                  transition={{ times: [0, 0.2, 0.8, 1], duration: 1.15, delay: 1.3 - 0.5, ease: easeOut }}
-                >
-                  <Image src="/images/editorial/venue_1.png" alt="Venue" fill className="object-cover opacity-80 mix-blend-luminosity" sizes="200px" />
-                </motion.div>
-              )}
-            </motion.div>
+      {/* ── CENTER GOLDEN BEAM LASER SEAM ── */}
+      <motion.div
+        className="absolute inset-y-0 left-1/2 -translate-x-1/2 z-40 w-[3px] bg-gradient-to-b from-transparent via-[#FFF8E7] to-transparent shadow-[0_0_20px_rgba(255,248,231,1)]"
+        initial={{ opacity: 1, scaleY: 1 }}
+        animate={{
+          opacity: phase === "sealed" ? 1 : 0,
+          scaleY: phase === "sealed" ? 1 : 1.4,
+        }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      />
 
-            {/* Right Door */}
-            <motion.div
-              className="absolute right-0 top-0 bottom-0 bg-[#0C1210] origin-left flex justify-start overflow-hidden"
-              initial={{ width: "50%" }}
-              animate={
-                mode === "new-user"
-                  ? { width: ["0%", "50%", "50%", "0%"] }
-                  : { width: ["0%", "50%", "50%", "0%"] }
-              }
-              transition={
-                mode === "new-user"
-                  ? { times: [0, 0.14, 0.85, 1], duration: 3.5 - 0.5, ease: easeInOut }
-                  : { times: [0, 0.22, 0.72, 1], duration: 1.8, ease: easeInOut }
-              }
-              style={{ borderLeft: "1px solid rgba(198, 147, 74, 0.1)" }}
-            >
-              {/* Image Fragments (Right side of portal) */}
-              {mode === "new-user" && (
-                <motion.div
-                  className="absolute left-[20%] md:left-[50%] bottom-[20%] w-20 h-28 md:w-36 md:h-56 z-10"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: [0, 1, 1, 0], y: [30, 0, 0, 0] }}
-                  transition={{ times: [0, 0.2, 0.8, 1], duration: 1.15, delay: 1.5 - 0.5, ease: easeOut }}
-                >
-                  <Image src="/images/editorial/vendor_catering.png" alt="Vendor" fill className="object-cover opacity-80 mix-blend-luminosity" sizes="200px" />
-                </motion.div>
-              )}
-            </motion.div>
+      {/* ── CINEMATIC DISSOLVE OVERLAY (During Warp to Homepage) ── */}
+      <motion.div
+        className="absolute inset-0 z-50 bg-white pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{
+          opacity: phase === "warp" ? [0, 0.75, 0] : 0,
+        }}
+        transition={{ duration: 0.4, ease: easeCinematic }}
+      />
 
-            {/* Central Inspiration Image (Appears across both doors if needed) */}
-            {mode === "new-user" && (
-              <motion.div
-                className="absolute z-10 w-16 h-24 md:w-32 md:h-48 mt-[20vh] ml-[10vw]"
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: [0, 1, 1, 0], scale: [1.05, 1, 1, 1] }}
-                transition={{ times: [0, 0.2, 0.8, 1], duration: 1.05, delay: 1.7 - 0.5, ease: easeOut }}
-              >
-                <Image src="/images/editorial/insp_bridal.png" alt="Inspiration" fill className="object-cover opacity-70 mix-blend-luminosity" sizes="200px" />
-              </motion.div>
-            )}
-
-            {/* ── PHASE 3: THE CHAMPAGNE LIGHT (0.75s - 1.1s) ── */}
-            {/* It appears and then vanishes as the doors open */}
-            <motion.div
-              className="absolute w-[1px] bg-[#C6934A] z-20"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: ["0vh", "75vh", "75vh", "75vh"], opacity: [0, 1, 1, 0] }}
-              transition={{ times: [0, 0.5, 0.8, 1], duration: 0.6, delay: 0.75 - 0.5, ease: easeOut }}
-            />
-
-            {/* ── NEW USER TYPOGRAPHY SEQUENCE ── */}
-            {mode === "new-user" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none">
-                
-                {/* YOUMARRIAGE BRAND (1.65s - 2.45s) */}
-                <motion.div
-                  className="absolute flex flex-col items-center"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: [0, 1, 1, 0], y: [8, 0, 0, 0] }}
-                  transition={{ times: [0, 0.3, 0.7, 1], duration: 0.8, delay: 1.65 - 0.5, ease: easeOut }}
-                >
-                  <div className="text-[12px] md:text-sm tracking-[0.4em] text-[#FDFBF7] font-semibold uppercase">
-                    YouMarriage
-                  </div>
-                </motion.div>
-
-                {/* PRODUCT WORDS (1.8s - 2.45s) */}
-                <motion.div
-                  className="absolute flex items-center justify-center gap-3 md:gap-6 mt-16 font-serif text-[10px] md:text-[13px] text-[#C6934A] tracking-widest uppercase"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 1, 1, 0] }}
-                  transition={{ times: [0, 0.3, 0.7, 1], duration: 0.8, delay: 1.8 - 0.5, ease: easeOut }}
-                >
-                  <motion.span initial={{ x: -20 }} animate={{ x: 0 }} transition={{ duration: 0.5, delay: 1.8 - 0.5, ease: easeOut }}>Venues</motion.span>
-                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 2.0 - 0.5 }}>·</motion.span>
-                  <motion.span initial={{ y: 10 }} animate={{ y: 0 }} transition={{ duration: 0.5, delay: 1.8 - 0.5, ease: easeOut }}>Vendors</motion.span>
-                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 2.0 - 0.5 }}>·</motion.span>
-                  <motion.span initial={{ x: 20 }} animate={{ x: 0 }} transition={{ duration: 0.5, delay: 1.8 - 0.5, ease: easeOut }}>Inspiration</motion.span>
-                </motion.div>
-
-                {/* BIG STATEMENT & SIGNATURE LINE (2.55s - 3.15s) */}
-                <motion.div
-                  className="absolute flex flex-col items-center text-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 1, 1, 0] }}
-                  transition={{ times: [0, 0.15, 0.85, 1], duration: 0.6, delay: 2.55 - 0.5, ease: easeCinematic }}
-                >
-                  <h2 className="font-serif text-[30px] md:text-[52px] lg:text-[64px] leading-[1.1] text-[#FDFBF7] mb-5">
-                    YOUR WEDDING.<br/>YOUR WAY.
-                  </h2>
-                  <motion.div 
-                    className="h-[1px] bg-[#C6934A]"
-                    initial={{ width: 0 }}
-                    animate={{ width: isMobile ? 80 : 140 }}
-                    transition={{ duration: 0.35, delay: 2.8 - 0.5, ease: easeOut }}
-                  />
-                </motion.div>
-
-              </div>
-            )}
-
-            {/* ── RETURNING USER TYPOGRAPHY SEQUENCE ── */}
-            {mode === "returning-user" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none">
-                
-                {/* YOUMARRIAGE (1.05s) */}
-                <motion.div
-                  className="text-[10px] md:text-xs tracking-[0.4em] text-[#C6934A] font-semibold uppercase mb-6"
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: [0, 1, 1, 0], y: [5, 0, 0, 0] }}
-                  transition={{ times: [0, 0.2, 0.8, 1], duration: 0.75, delay: 1.05 - 0.5, ease: easeOut }}
-                >
-                  YouMarriage
-                </motion.div>
-
-                {/* WELCOME BACK (1.2s) */}
-                <motion.h2
-                  className="font-serif text-[28px] md:text-[42px] leading-[1.1] text-[#FDFBF7] mb-3 text-center px-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: [0, 1, 1, 0], y: [10, 0, 0, 0] }}
-                  transition={{ times: [0, 0.2, 0.8, 1], duration: 0.75, delay: 1.2 - 0.5, ease: easeOut }}
-                >
-                  {userName ? `WELCOME BACK, ${userName.toUpperCase()}.` : "WELCOME BACK."}
-                </motion.h2>
-
-                {/* STORY CONTINUES (1.3s) */}
-                <motion.p
-                  className="text-xs md:text-sm text-[#FDFBF7]/60 font-light tracking-widest"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0, 1, 1, 0] }}
-                  transition={{ times: [0, 0.2, 0.8, 1], duration: 0.65, delay: 1.3 - 0.5, ease: easeOut }}
-                >
-                  YOUR STORY CONTINUES.
-                </motion.p>
-                
-              </div>
-            )}
-
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -17,7 +17,7 @@ import {
   editorsPicks
 } from "@/mock-data/inspiration";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion";
-import { Sparkles, Trash2 } from "lucide-react";
+import { Sparkles, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { typography, spacing, layout } from "@/styles";
 
 
@@ -54,8 +54,16 @@ export function InspirationClientPage() {
   
   // Physics & Interaction state for the Editorial Object
   const constraintsRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+
+  const scrollCollections = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = direction === "left" ? -300 : 300;
+      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
     const { left, top } = currentTarget.getBoundingClientRect();
@@ -114,15 +122,25 @@ export function InspirationClientPage() {
           </div>
 
           <div className="relative pb-6 overflow-hidden" ref={constraintsRef}>
-            {/* Left Edge Fade */}
-            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#FBF9F6] to-transparent z-20 pointer-events-none" />
+            {/* Left Edge Fade & Scroll Button */}
+            <div className="absolute left-0 top-0 bottom-6 w-16 bg-gradient-to-r from-[#FBF9F6] via-[#FBF9F6]/80 to-transparent z-20 pointer-events-none flex items-center pl-2">
+              <button
+                type="button"
+                onClick={() => scrollCollections("left")}
+                className="w-8 h-8 rounded-full bg-white/95 border border-[#C5A880]/30 shadow-md flex items-center justify-center pointer-events-auto hover:bg-[#FAF5ED] text-neutral-700 hover:text-[#8B263E] transition-all hover:scale-105 active:scale-95"
+                aria-label="Scroll collections left"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </div>
             
             <motion.div 
+              ref={scrollContainerRef}
               drag="x" 
               dragConstraints={constraintsRef}
               dragElastic={0.1}
               dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
-              className="flex items-center justify-start gap-2 sm:gap-4 px-6 sm:px-12 w-max cursor-grab active:cursor-grabbing relative z-10"
+              className="flex items-center justify-start gap-2 sm:gap-4 px-12 sm:px-16 w-max cursor-grab active:cursor-grabbing relative z-10"
             >
               {CATEGORIES.map((cat) => {
                 const isActive = activeCategory === cat.id;
@@ -220,8 +238,17 @@ export function InspirationClientPage() {
               })}
             </motion.div>
 
-            {/* Right Edge Fade */}
-            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#FBF9F6] to-transparent z-20 pointer-events-none" />
+            {/* Right Edge Fade & Scroll Button */}
+            <div className="absolute right-0 top-0 bottom-6 w-16 bg-gradient-to-l from-[#FBF9F6] via-[#FBF9F6]/80 to-transparent z-20 pointer-events-none flex items-center justify-end pr-2">
+              <button
+                type="button"
+                onClick={() => scrollCollections("right")}
+                className="w-8 h-8 rounded-full bg-white/95 border border-[#C5A880]/30 shadow-md flex items-center justify-center pointer-events-auto hover:bg-[#FAF5ED] text-neutral-700 hover:text-[#8B263E] transition-all hover:scale-105 active:scale-95"
+                aria-label="Scroll collections right"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

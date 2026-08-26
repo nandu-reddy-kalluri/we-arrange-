@@ -34,9 +34,6 @@ export default function Navbar() {
   const isDarkHeroPage = [
     "/",
     "/vendors",
-    "/register",
-    "/venues",
-    "/wedding-studio"
   ].includes(pathname);
 
   const useDarkText = !isDarkHeroPage || scrolled;

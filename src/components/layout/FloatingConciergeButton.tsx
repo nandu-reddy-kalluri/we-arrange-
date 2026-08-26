@@ -13,14 +13,14 @@ export function FloatingConciergeButton() {
     <motion.button
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      whileTap={{ scale: 0.9 }}
+      whileTap={{ scale: 0.92 }}
       transition={{ delay: 1, type: "spring", stiffness: 200, damping: 20 }}
       onClick={handleOpenConcierge}
-      className="md:hidden fixed bottom-[env(safe-area-inset-bottom,16px)] right-4 z-50 w-11 h-11 bg-neutral-charcoal rounded-full flex items-center justify-center shadow-[0_4px_16px_rgb(0,0,0,0.15)] border border-accent-gold/20 mb-4"
+      className="md:hidden fixed bottom-6 right-4 z-40 w-12 h-12 bg-[#8B263E] text-white rounded-full flex items-center justify-center shadow-[0_6px_20px_rgba(139,38,62,0.4)] border border-[#C5A880]/30 transition-transform cursor-pointer"
       aria-label="Contact Concierge"
     >
-      <MessageCircle className="w-5 h-5 text-accent-gold" />
-      <span className="absolute 0 -right-0 w-3 h-3 bg-emerald-500 border-2 border-neutral-charcoal rounded-full" />
+      <MessageCircle className="w-5 h-5 text-white" />
+      <span className="absolute top-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
     </motion.button>
   );
 }

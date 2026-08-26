@@ -54,10 +54,10 @@ export function HeroSection({
           sizes="100vw"
           className="object-cover object-center opacity-80 scale-105 transition-transform duration-[10s]"
         />
-        {/* Cinematic & luxurious overlay (neutral, not muddy) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-neutral-cream/10 z-10" />
+        {/* Cinematic & high-contrast dark overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/70 to-black/90 z-10" />
         {/* Bottom protection gradient for chips */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/40 to-transparent z-10" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/60 to-transparent z-10" />
       </div>
 
       <div className="relative z-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white flex flex-col items-center">

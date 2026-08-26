@@ -1,78 +1,161 @@
 "use client";
 
-import React from "react";
-import { VenueHeroSearch } from "./VenueHeroSearch";
+import React, { useState, useMemo } from "react";
+import Link from "next/link";
+import { VenueHeroSearch, VenueFilterState } from "./VenueHeroSearch";
 import { QuickExperienceCards } from "./QuickExperienceCards";
-
 import { PremiumVenueGrid } from "./PremiumVenueGrid";
-import { typography, spacing } from "@/styles";
+import { featuredVenues } from "@/mock-data/venues";
+import { spacing } from "@/styles";
+import { motion } from "framer-motion";
+import { Sparkles, ArrowRight, Compass } from "lucide-react";
+
+const INITIAL_FILTERS: VenueFilterState = {
+  location: "All Locations",
+  guests: "Any Guests",
+  budget: "Any Budget",
+  venueType: "All Types",
+  space: "All Spaces",
+};
 
 export function VenueDiscoveryClient() {
+  const [filters, setFilters] = useState<VenueFilterState>(INITIAL_FILTERS);
+
+  const handleFilterChange = (key: keyof VenueFilterState, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.location && !filters.location.startsWith("All")) count++;
+    if (filters.guests && !filters.guests.startsWith("Any")) count++;
+    if (filters.budget && !filters.budget.startsWith("Any")) count++;
+    if (filters.venueType && !filters.venueType.startsWith("All")) count++;
+    if (filters.space && !filters.space.startsWith("All")) count++;
+    return count;
+  }, [filters]);
+
+  const filteredVenues = useMemo(() => {
+    return featuredVenues.filter((venue) => {
+      // Location filter
+      if (filters.location && !filters.location.startsWith("All")) {
+        const locLower = filters.location.toLowerCase();
+        const venueLoc = `${venue.location} ${venue.city}`.toLowerCase();
+        if (!venueLoc.includes(locLower)) {
+          return false;
+        }
+      }
+
+      // Guests / Capacity filter
+      if (filters.guests && !filters.guests.startsWith("Any")) {
+        if (filters.guests === "Up to 300 Guests" && venue.maxCapacity > 300) return false;
+        if (filters.guests === "300 - 600 Guests" && (venue.maxCapacity < 300 || venue.maxCapacity > 600)) return false;
+        if (filters.guests === "600 - 1000 Guests" && (venue.maxCapacity < 600 || venue.maxCapacity > 1000)) return false;
+        if (filters.guests === "1000+ Guests" && venue.maxCapacity < 1000) return false;
+      }
+
+      // Budget filter
+      if (filters.budget && !filters.budget.startsWith("Any")) {
+        const price = venue.pricePerPlate || 0;
+        if (filters.budget === "Under ₹500 / plate" && (price === 0 || price > 500)) return false;
+        if (filters.budget === "₹500 - ₹1,000 / plate" && (price < 500 || price > 1000)) return false;
+        if (filters.budget === "₹1,000 - ₹2,000 / plate" && (price < 1000 || price > 2000)) return false;
+        if (filters.budget === "Custom / On Request" && price > 0) return false;
+      }
+
+      // Venue type filter
+      if (filters.venueType && !filters.venueType.startsWith("All")) {
+        if (venue.type !== filters.venueType) return false;
+      }
+
+      // Space filter
+      if (filters.space && !filters.space.startsWith("All")) {
+        if (venue.space !== filters.space) return false;
+      }
+
+      return true;
+    });
+  }, [filters]);
+
+  const handleScrollToGrid = () => {
+    const el = document.getElementById("venue-grid");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#FBF7F2] relative pb-32">
+    <div className="min-h-screen bg-[#FBF7F2] relative pb-28">
       
-      {/* 1. Hero Search */}
-      <VenueHeroSearch />
+      {/* 1. Hero Header & Unified Search */}
+      <section className="pt-28 pb-12 md:pt-36 md:pb-16 px-4 sm:px-6 max-w-6xl mx-auto relative z-20">
+        
+        {/* Header Typography */}
+        <div className="text-center mb-8 md:mb-10">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#C5A880]/30 shadow-sm mb-4"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#C5A880]" />
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.25em] text-[#8B263E]">
+              Curated Spaces • Hyderabad
+            </span>
+          </motion.div>
 
-      {/* 2. Hero Header & Dual Primary Actions */}
-      <section className="pt-6 pb-8 md:pt-32 md:pb-16 px-4 sm:px-6 max-w-5xl mx-auto">
-        <div className="text-center mb-10 md:mb-16">
-          <h1 className="font-serif font-light text-3xl sm:text-4xl md:text-5xl leading-tight tracking-tight mb-4 md:mb-5 max-w-2xl mx-auto text-neutral-900">
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="font-serif font-light text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight tracking-tight mb-4 text-neutral-900"
+          >
             Discover Your <span className="font-semibold text-[#C5A880]">Dream Venue</span>
-          </h1>
-          <p className="text-sm md:text-base text-neutral-500 font-medium max-w-xl mx-auto leading-relaxed">
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-sm md:text-base text-neutral-600 font-medium max-w-xl mx-auto leading-relaxed"
+          >
             Experience a new standard of luxury wedding planning. Find the perfect venue and get the best quotations seamlessly.
-          </p>
+          </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
-          {/* Option 1: Explore */}
-          <div className="bg-white rounded-[24px] p-6 md:p-10 border border-[#C5A880]/20 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.04)] flex flex-col items-center text-center hover:shadow-[0_8px_40px_-12px_rgba(197,168,128,0.15)] transition-all duration-300 cursor-pointer group">
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#8B263E] mb-3">Option 1</span>
-            <h3 className="font-serif text-2xl md:text-3xl font-medium text-neutral-900 mb-3">Explore Venues</h3>
-            <p className="text-[13px] md:text-sm text-neutral-500 font-medium mb-8 leading-relaxed max-w-[280px]">
-              Browse our curated collection of luxury spaces and build your wedding shortlist.
-            </p>
-            <button className="mt-auto flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-800 group-hover:text-[#8B263E] transition-colors">
-              Start Exploring
-              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
+        {/* Hero Search & Filter Bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <VenueHeroSearch
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onSearch={handleScrollToGrid}
+            onReset={handleResetFilters}
+            activeFilterCount={activeFilterCount}
+          />
+        </motion.div>
 
-          {/* Option 2: Direct RFQ */}
-          <div className="bg-gradient-to-b from-[#FDFBF7] to-[#FAF5F0] rounded-[24px] p-6 md:p-10 border border-[#C5A880]/20 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.04)] flex flex-col items-center text-center hover:shadow-[0_8px_40px_-12px_rgba(197,168,128,0.15)] transition-all duration-300 cursor-pointer group">
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#8B263E] mb-3">Option 2</span>
-            <h3 className="font-serif text-2xl md:text-3xl font-medium text-neutral-900 mb-3">Get Best Quotations</h3>
-            <p className="text-[13px] md:text-sm text-neutral-500 font-medium mb-8 leading-relaxed max-w-[280px]">
-              Submit your wedding requirements directly and receive curated quotations from matching venues.
-            </p>
-            <button className="mt-auto flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#C5A880] group-hover:text-[#8B263E] transition-colors">
-              Submit Requirement
-              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
-        </div>
       </section>
 
-      {/* 3. Quick Experience Cards */}
-      <section className={`${spacing.section}`}>
+      {/* 2. Quick Experience Cards */}
+      <section className="mb-12">
         <QuickExperienceCards />
       </section>
 
-
-
-      {/* 5. Premium Venue Grid */}
-      <PremiumVenueGrid />
-
-      {/* Phase 2+ Structural Mount Points (Hidden/Off-canvas) */}
-      <div id="wedding-collection-panel-mount" className="hidden" />
-      <div id="budget-planner-mount" className="hidden" />
-      <div id="concierge-match-mount" className="hidden" />
-      <div id="floating-action-bar-mount" className="hidden" />
+      {/* 3. Filtered Venue Grid */}
+      <PremiumVenueGrid
+        venues={filteredVenues}
+        totalCount={featuredVenues.length}
+        activeFilterCount={activeFilterCount}
+        onReset={handleResetFilters}
+      />
 
     </div>
   );

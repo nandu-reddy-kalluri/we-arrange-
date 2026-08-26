@@ -87,21 +87,37 @@ export function PopularTemplates() {
           className="flex overflow-x-auto gap-3 md:gap-4 pb-6 snap-x snap-mandatory hide-scrollbar"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {VIBES.map((vibe) => (
-            <button
-              key={vibe.id}
-              onClick={() => setActiveVibe(vibe.id)}
-              className={`relative group shrink-0 snap-start rounded-2xl overflow-hidden transition-all duration-300 text-left ${activeVibe === vibe.id ? 'ring-2 ring-[#8B263E] ring-offset-2' : 'hover:opacity-80'}`}
-              style={{ width: '160px', height: '90px' }}
-            >
-              <img src={vibe.image} alt={vibe.name} className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors" />
-              <div className="absolute inset-0 p-3 flex flex-col justify-end">
-                <span className="text-white font-serif text-lg leading-tight font-medium drop-shadow-md">{vibe.name}</span>
-                {vibe.id !== 'All' && <span className="text-white/80 font-sans text-[8px] uppercase tracking-widest font-bold drop-shadow-md">{vibe.desc}</span>}
-              </div>
-            </button>
-          ))}
+          {VIBES.map((vibe) => {
+            const isActive = activeVibe === vibe.id;
+            return (
+              <button
+                key={vibe.id}
+                onClick={() => setActiveVibe(vibe.id)}
+                className={`relative group shrink-0 snap-start rounded-2xl overflow-hidden transition-all duration-300 text-left outline-none ${
+                  isActive
+                    ? "ring-2 ring-[#8B263E] ring-offset-2 shadow-lg scale-[1.03]"
+                    : "opacity-75 hover:opacity-100 hover:scale-[1.01] border border-neutral-200"
+                }`}
+                style={{ width: "160px", height: "90px" }}
+              >
+                <img src={vibe.image} alt={vibe.name} className="absolute inset-0 w-full h-full object-cover" />
+                <div className={`absolute inset-0 transition-colors ${isActive ? "bg-black/30" : "bg-black/50 group-hover:bg-black/35"}`} />
+                
+                {/* Active Indicator Badge */}
+                {isActive && (
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-[#8B263E] text-white text-[8px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 z-10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#E8D8BC]" />
+                    Active
+                  </div>
+                )}
+
+                <div className="absolute inset-0 p-3 flex flex-col justify-end z-10">
+                  <span className="text-white font-serif text-lg leading-tight font-medium drop-shadow-md">{vibe.name}</span>
+                  {vibe.id !== "All" && <span className="text-white/90 font-sans text-[8px] uppercase tracking-widest font-bold drop-shadow-md">{vibe.desc}</span>}
+                </div>
+              </button>
+            );
+          })}
         </div>
         {/* Mobile Gradient Edge */}
         <div className="absolute top-0 right-0 bottom-6 w-12 bg-gradient-to-l from-[#FBF7F1] to-transparent pointer-events-none md:hidden z-10" />

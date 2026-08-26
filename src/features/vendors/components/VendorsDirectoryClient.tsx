@@ -205,14 +205,8 @@ export function VendorsDirectoryClient() {
         onSearch={handleSearchSubmit}
       />
 
-      {/* 2. Category Circular Grid */}
-      <CategoryGrid
-        onSelectCategory={handleSelectCategory}
-        selectedCategory={filters.category}
-      />
-
-      {/* 3. Main Directory Grid */}
-      <section id="results-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 scroll-mt-24">
+      {/* 2. Main Directory Grid & Filters */}
+      <section id="results-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 scroll-mt-24">
         <div className="flex flex-col gap-6">
 
           {/* Mobile filter toggle */}
@@ -253,6 +247,12 @@ export function VendorsDirectoryClient() {
 
         </div>
       </section>
+
+      {/* 3. Category Showcase Grid */}
+      <CategoryGrid
+        onSelectCategory={handleSelectCategory}
+        selectedCategory={filters.category}
+      />
     </main>
   );
 }

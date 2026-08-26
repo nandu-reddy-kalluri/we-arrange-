@@ -110,8 +110,8 @@ export function PremiumSearchAction({ onMenuClose, useDarkText = false }: { onMe
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
                     </svg>
                   </div>
-                  <h2 className="font-serif text-3xl md:text-4xl font-bold text-black mb-2 tracking-tight">Design Your Celebration</h2>
-                  <p className="text-black/60 font-medium">Refine your search to discover spaces that match your vision.</p>
+                  <h2 className="font-serif text-3xl md:text-4xl font-bold text-black mb-2 tracking-tight">Quick Site Search</h2>
+                  <p className="text-black/60 font-medium max-w-lg mx-auto">Instantly explore venues, vendors, themes, and wedding ideas across Hyderabad.</p>
                 </motion.div>
 
                 {/* Sequential reveal of search options */}
@@ -130,11 +130,11 @@ export function PremiumSearchAction({ onMenuClose, useDarkText = false }: { onMe
                       className={`group flex items-center gap-4 p-4 rounded-2xl bg-white/60 hover:bg-[#FAF7F2] border transition-all text-left shadow-sm hover:shadow-md ${activeChip === chip.id ? "border-[#C5A880] ring-1 ring-[#C5A880]/20" : "border-black/5 hover:border-[#E8D8BC]"}`}
                     >
                       <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-300">
-                        <chip.icon className={`w-5 h-5 ${activeChip === chip.id ? "text-[#C5A880]" : "text-black/40 group-hover:text-[#C5A880]"}`} />
+                        <chip.icon className={`w-5 h-5 ${activeChip === chip.id ? "text-[#8B263E]" : "text-black/40 group-hover:text-[#8B263E]"}`} />
                       </div>
                       <div>
                         <span className="block text-sm font-bold text-black">{chip.label}</span>
-                        <span className="block text-xs text-black/60 font-medium mt-0.5">Any</span>
+                        <span className="block text-xs text-black/60 font-medium mt-0.5">Filter by {chip.label.toLowerCase()}</span>
                       </div>
                     </motion.button>
                   ))}
@@ -148,10 +148,10 @@ export function PremiumSearchAction({ onMenuClose, useDarkText = false }: { onMe
                 >
                   <button
                     onClick={handleSearch}
-                    className="bg-black text-white px-12 py-4 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-black/80 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+                    className="bg-[#8B263E] text-white px-12 py-4 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-[#6e1c2f] hover:shadow-[0_8px_30px_rgba(139,38,62,0.3)] hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
                   >
                     <Search className="w-4 h-4" />
-                    Explore Venues
+                    Search All Categories
                   </button>
                 </motion.div>
               </motion.div>
