@@ -6,7 +6,7 @@ import { Heart, ShieldCheck, Sparkles } from "lucide-react";
 
 export function WhyWeddingStudio() {
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
+    <section className="py-8 md:py-24 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}

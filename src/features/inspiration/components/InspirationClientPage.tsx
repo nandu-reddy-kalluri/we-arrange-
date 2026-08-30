@@ -16,7 +16,7 @@ import {
   weddingTrends,
   editorsPicks
 } from "@/mock-data/inspiration";
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { typography, spacing, layout } from "@/styles";
 
@@ -51,25 +51,13 @@ export function InspirationClientPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedItem, setSelectedItem] = useState<InspirationItem | null>(null);
-  
-  // Physics & Interaction state for the Editorial Object
-  const constraintsRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
 
   const scrollCollections = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
-      const scrollAmount = direction === "left" ? -300 : 300;
-      scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" });
     }
   };
-
-  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
-    const { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
-  }
 
   const lowercaseQuery = searchQuery.toLowerCase().trim();
 
@@ -121,7 +109,7 @@ export function InspirationClientPage() {
             </span>
           </div>
 
-          <div className="relative pb-6 overflow-hidden" ref={constraintsRef}>
+          <div className="relative pb-6">
             {/* Left Edge Fade & Scroll Button */}
             <div className="absolute left-0 top-0 bottom-6 w-16 bg-gradient-to-r from-[#FBF9F6] via-[#FBF9F6]/80 to-transparent z-20 pointer-events-none flex items-center pl-2">
               <button
@@ -133,38 +121,31 @@ export function InspirationClientPage() {
                 <ChevronLeft className="w-4 h-4" />
               </button>
             </div>
-            
-            <motion.div 
+
+            {/* Native scroll container — scrollBy() requires scrollLeft, not Framer transform */}
+            <div
               ref={scrollContainerRef}
-              drag="x" 
-              dragConstraints={constraintsRef}
-              dragElastic={0.1}
-              dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
-              className="flex items-center justify-start gap-2 sm:gap-4 px-12 sm:px-16 w-max cursor-grab active:cursor-grabbing relative z-10"
+              className="flex items-center gap-2 sm:gap-4 px-12 sm:px-16 overflow-x-auto scrollbar-hide"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {CATEGORIES.map((cat) => {
                 const isActive = activeCategory === cat.id;
-                
+
                 return (
                   <motion.button
                     layout
                     key={cat.id}
                     onClick={() => setActiveCategory(cat.id)}
-                    onMouseMove={isActive ? handleMouseMove : undefined}
                     whileHover={isActive ? undefined : { scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
-                    transition={
-                      isActive 
-                        ? { type: "spring", stiffness: 650, damping: 45, mass: 0.5 } 
-                        : { type: "spring", stiffness: 650, damping: 45, mass: 0.5 }
-                    }
-                    className={`relative group flex items-center justify-center whitespace-nowrap outline-none transition-colors duration-300 ${
-                      isActive 
-                        ? "h-[60px] px-6 sm:px-8" 
+                    transition={{ type: "spring", stiffness: 650, damping: 45, mass: 0.5 }}
+                    className={`relative group flex-shrink-0 flex items-center justify-center whitespace-nowrap outline-none transition-colors duration-300 ${
+                      isActive
+                        ? "h-[60px] px-6 sm:px-8"
                         : "h-12 px-4 text-neutral-400 hover:text-neutral-800"
                     }`}
                   >
-                    {/* Active Capsule Background (The Shared Object) */}
+                    {/* Active Capsule Background */}
                     {isActive && (
                       <motion.div
                         layoutId="activeCategoryCapsule"
@@ -172,44 +153,28 @@ export function InspirationClientPage() {
                         style={{ borderRadius: 9999 }}
                         transition={{ type: "spring", stiffness: 650, damping: 45, mass: 0.5 }}
                       >
-                        {/* Living Imagery: Cinematic Pan & Depth */}
+                        {/* Cinematic background image */}
                         <motion.div
                           key={`bg-${cat.id}`}
                           className="absolute inset-0 bg-cover bg-center"
                           initial={{ opacity: 0, scale: 1.15 }}
-                          animate={{ opacity: 0.6, scale: 1, x: [-5, 0] }}
-                          transition={{ 
-                            opacity: { duration: 0.8, ease: "easeOut" },
-                            scale: { duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" },
-                            x: { duration: 20, ease: "linear", repeat: Infinity, repeatType: "reverse" }
-                          }}
+                          animate={{ opacity: 0.6, scale: 1 }}
+                          transition={{ opacity: { duration: 0.8, ease: "easeOut" }, scale: { duration: 0.8, ease: "easeOut" } }}
                           style={{ backgroundImage: `url(${cat.bg})` }}
                         />
-                        
-                        {/* Responsive Material Light (Pillar 4) */}
-                        <motion.div
-                          className="absolute inset-0 z-10 pointer-events-none mix-blend-overlay opacity-50"
-                          style={{
-                            background: useMotionTemplate`
-                              radial-gradient(
-                                120px circle at ${mouseX}px ${mouseY}px,
-                                rgba(255, 255, 255, 0.4),
-                                transparent 80%
-                              )
-                            `,
-                          }}
-                        />
+                        {/* Gold shimmer overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[#C8A165]/20 to-transparent z-10" />
                       </motion.div>
                     )}
 
-                    {/* Hover Indicator for Inactive Items */}
+                    {/* Hover dot for inactive items */}
                     {!isActive && (
                       <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#C8A165] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     )}
 
-                    {/* Editorial Text Container */}
-                    <div className="relative z-10 flex flex-col items-center justify-center pointer-events-none pt-0.5">
-                      <motion.span 
+                    {/* Label + subtitle */}
+                    <div className="relative z-10 flex flex-col items-center justify-center pt-0.5">
+                      <motion.span
                         layout="position"
                         className={`text-[11px] uppercase tracking-[0.15em] transition-colors duration-300 ${
                           isActive ? "text-white font-bold" : "font-medium"
@@ -217,13 +182,12 @@ export function InspirationClientPage() {
                       >
                         {cat.label}
                       </motion.span>
-                      
-                      {/* Editorial Storytelling Subtitle */}
+
                       <AnimatePresence>
                         {isActive && cat.subtitle && (
                           <motion.span
                             initial={{ opacity: 0, height: 0, y: 5 }}
-                            animate={{ opacity: 0.9, height: 'auto', y: 0 }}
+                            animate={{ opacity: 0.9, height: "auto", y: 0 }}
                             exit={{ opacity: 0, height: 0, y: 5 }}
                             transition={{ duration: 0.3, delay: 0.1 }}
                             className="text-[9px] font-medium text-[#E8D8BC] uppercase tracking-widest mt-0.5 block"
@@ -236,7 +200,7 @@ export function InspirationClientPage() {
                   </motion.button>
                 );
               })}
-            </motion.div>
+            </div>
 
             {/* Right Edge Fade & Scroll Button */}
             <div className="absolute right-0 top-0 bottom-6 w-16 bg-gradient-to-l from-[#FBF9F6] via-[#FBF9F6]/80 to-transparent z-20 pointer-events-none flex items-center justify-end pr-2">
@@ -275,13 +239,14 @@ export function InspirationClientPage() {
         )}
 
         {/* Dynamic List Content with AnimatePresence */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync">
           {totalResults === 0 ? (
             <motion.div
               key="no-results"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
               className="flex flex-col items-center justify-center text-center py-20 px-4"
             >
               <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center mb-4 border border-neutral-200">
@@ -301,15 +266,16 @@ export function InspirationClientPage() {
               </button>
             </motion.div>
           ) : (
-            <div className="flex flex-col gap-8 md:gap-24">
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col gap-8 md:gap-24"
+            >
               {filteredSections.map((section) => (
-                <motion.section
-                  key={section.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
+                <section key={section.id}>
                   <div className="flex flex-col mb-8 pb-4 border-b border-[#E8D8BC]/30">
                     <span className="font-sans text-[10px] font-black uppercase text-[#C8A165] tracking-[0.25em] block mb-2">
                       {section.eyebrow}
@@ -319,31 +285,25 @@ export function InspirationClientPage() {
                     </h2>
                   </div>
 
-                  <motion.div
-                    layout
-                    className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6"
-                  >
-                    <AnimatePresence>
-                      {section.filteredData.map((item, index) => (
-                        <motion.div
-                          key={item.id}
-                          layout
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{
-                            opacity: 1,
-                            y: 0,
-                            transition: { delay: index * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] },
-                          }}
-                          exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                        >
-                          <InspirationCard item={item} onClick={() => setSelectedItem(item)} />
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </motion.div>
-                </motion.section>
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                    {section.filteredData.map((item, index) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{
+                          delay: Math.min(index * 0.03, 0.15),
+                          duration: 0.3,
+                          ease: [0.16, 1, 0.3, 1],
+                        }}
+                      >
+                        <InspirationCard item={item} onClick={() => setSelectedItem(item)} />
+                      </motion.div>
+                    ))}
+                  </div>
+                </section>
               ))}
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

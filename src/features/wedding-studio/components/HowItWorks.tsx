@@ -23,7 +23,7 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white rounded-3xl my-12 border border-neutral-100 shadow-sm">
+    <section className="py-8 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white rounded-3xl my-6 md:my-12 border border-neutral-100 shadow-sm">
       <div className="text-center mb-16">
         <span className="font-sans text-[10px] font-black uppercase text-[#C5A880] tracking-[0.25em] block mb-3">
           The Process

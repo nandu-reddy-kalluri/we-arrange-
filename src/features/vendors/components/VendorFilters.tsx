@@ -696,13 +696,13 @@ const SidebarContent = React.memo(function SidebarContent({
         isOpen={openSections.category}
         onToggle={() => onToggleSection("category")}
       >
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
           <motion.button
             type="button"
             whileHover={{ y: -1, scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onDraftChange("category", "")}
-            className={`px-2.5 py-1.5 rounded-xl border text-[9px] font-bold transition-all duration-220 cursor-pointer ${
+            className={`flex-shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-xl border text-[9px] font-bold transition-all duration-220 cursor-pointer ${
               draft.category === ""
                 ? "bg-[#C5A880] text-white border-transparent shadow-[0_4px_10px_rgba(197,168,128,0.25)]"
                 : "bg-white text-neutral-charcoal border-gray-200 hover:border-[#C5A880] hover:bg-[#FAF9F6]"
@@ -719,7 +719,7 @@ const SidebarContent = React.memo(function SidebarContent({
                 whileHover={{ y: -1, scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onDraftChange("category", isSel ? "" : cat.slug)}
-                className={`px-2.5 py-1.5 rounded-xl border text-[9px] font-bold transition-all duration-220 flex items-center gap-1 cursor-pointer ${
+                className={`flex-shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-xl border text-[9px] font-bold transition-all duration-220 flex items-center gap-1 cursor-pointer ${
                   isSel
                     ? "bg-[#C5A880] text-white border-transparent shadow-[0_4px_10px_rgba(197,168,128,0.25)]"
                     : "bg-white text-neutral-charcoal border-gray-200 hover:border-[#C5A880] hover:bg-[#FAF9F6]"
@@ -753,7 +753,7 @@ const SidebarContent = React.memo(function SidebarContent({
         isOpen={openSections.budgetTier}
         onToggle={() => onToggleSection("budgetTier")}
       >
-        <div className="grid grid-cols-3 gap-1">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
           {budgetTiers.map((tier) => {
             const isSel = draft.budgetTier === tier;
             return (
@@ -768,7 +768,7 @@ const SidebarContent = React.memo(function SidebarContent({
                     : { boxShadow: "none" }
                 }
                 onClick={() => onDraftChange("budgetTier", isSel ? "" : tier)}
-                className={`py-2 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all duration-220 cursor-pointer ${
+                className={`flex-shrink-0 whitespace-nowrap px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all duration-220 cursor-pointer ${
                   isSel
                     ? "bg-gradient-to-r from-[#C5A880] to-[#E5C8A0] text-white border-transparent"
                     : "bg-white text-neutral-charcoal border-gray-200 hover:border-[#C5A880] hover:bg-[#FAF9F6]"
@@ -782,23 +782,25 @@ const SidebarContent = React.memo(function SidebarContent({
       </FilterCard>
 
       {/* ── Price Range (NEVER updates parent while dragging) ── */}
-      <FilterCard
-        title="Price Range"
-        isOpen={openSections.priceRange}
-        onToggle={() => onToggleSection("priceRange")}
-      >
-        <DoubleRangeSlider
-          min={0.5}
-          max={10.0}
-          step={0.5}
-          minVal={draft.minPrice}
-          maxVal={draft.maxPrice}
-          onChange={(minV, maxV) => {
-            onDraftChange("minPrice", minV);
-            onDraftChange("maxPrice", maxV);
-          }}
-        />
-      </FilterCard>
+      <div className="hidden md:block">
+        <FilterCard
+          title="Price Range"
+          isOpen={openSections.priceRange}
+          onToggle={() => onToggleSection("priceRange")}
+        >
+          <DoubleRangeSlider
+            min={0.5}
+            max={10.0}
+            step={0.5}
+            minVal={draft.minPrice}
+            maxVal={draft.maxPrice}
+            onChange={(minV, maxV) => {
+              onDraftChange("minPrice", minV);
+              onDraftChange("maxPrice", maxV);
+            }}
+          />
+        </FilterCard>
+      </div>
 
       {/* ── Rating ── */}
       <FilterCard
@@ -965,31 +967,39 @@ export const VendorFilters = React.memo(function VendorFilters({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.22 }}
               onClick={onClose}
-              className="fixed inset-0 bg-black backdrop-blur-sm z-[120] lg:hidden"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[120] md:hidden"
             />
 
-            {/* Drawer panel */}
+            {/* Bottom Sheet */}
             <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 26, stiffness: 210 }}
-              className="fixed right-0 top-0 bottom-0 w-[320px] max-w-full bg-white z-[130] shadow-2xl p-6 overflow-y-auto lg:hidden flex flex-col justify-between"
+              className="fixed left-0 right-0 bottom-0 h-[85vh] bg-white z-[130] shadow-[0_-8px_40px_rgba(0,0,0,0.16)] rounded-t-3xl md:hidden flex flex-col overflow-hidden"
             >
-              <div>
-                <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
+              {/* 1. HEADER (Fixed) */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white shrink-0 z-10">
+                <div className="flex flex-col">
                   <span className="font-serif text-xl font-bold text-neutral-charcoal">Filters</span>
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{ type: "spring", stiffness: 320, damping: 18 }}
-                    onClick={onClose}
-                    className="p-2 -mr-2 text-neutral-400 hover:text-neutral-900 cursor-pointer"
-                  >
-                    <X className="w-5 h-5" />
-                  </motion.button>
+                  {matchingCount > 0 && (
+                    <span className="text-[10px] text-neutral-muted uppercase font-bold tracking-wider">{matchingCount} Results</span>
+                  )}
                 </div>
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                  onClick={onClose}
+                  className="p-2 -mr-2 bg-gray-50 rounded-full text-neutral-500 hover:text-neutral-900 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
+              </div>
+
+              {/* 2. SCROLLABLE FILTER CONTENT */}
+              <div className="flex-grow overflow-y-auto px-6 pt-4 pb-20">
                 <SidebarContent
                   draft={draft}
                   onDraftChange={onDraftChange}
@@ -1003,29 +1013,26 @@ export const VendorFilters = React.memo(function VendorFilters({
                 />
               </div>
 
-              {/* Mobile CTA buttons */}
-              <div className="mt-8 pt-4 border-t border-gray-100 flex gap-3">
+              {/* 3. FIXED ACTION FOOTER */}
+              <div className="shrink-0 p-5 bg-white border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.04)] flex gap-3 z-10 safe-area-bottom">
                 <motion.button
                   type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={handleClearAll}
-                  className="flex-grow py-3 rounded-full text-center text-xs font-bold uppercase tracking-wider text-neutral-charcoal bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+                  className="flex-[0.4] py-3.5 rounded-xl text-center text-xs font-bold uppercase tracking-wider text-neutral-charcoal bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
                 >
-                  Clear
+                  Clear All
                 </motion.button>
                 <motion.button
                   type="button"
-                  whileHover={{ scale: 1.03, boxShadow: "0 6px 18px rgba(139,38,62,0.28)" }}
+                  whileHover={{ scale: 1.02, boxShadow: "0 6px 18px rgba(139,38,62,0.28)" }}
                   whileTap={{ scale: 0.96 }}
                   transition={{ type: "spring", stiffness: 320, damping: 18 }}
                   onClick={handleApply}
-                  className="flex-grow py-3 rounded-full text-center text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-[0.6] py-3.5 rounded-xl text-center text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <span>Apply</span>
-                  <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-[9px] font-black">
-                    {matchingCount}
-                  </span>
+                  <span>Show {matchingCount} Results</span>
                 </motion.button>
               </div>
             </motion.div>

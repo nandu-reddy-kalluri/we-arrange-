@@ -45,7 +45,7 @@ export function PopularTemplates() {
   const viewAllRoute = `/wedding-studio/${activeTab}/templates`;
 
   return (
-    <section id="templates" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+    <section id="templates" className="py-8 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
       
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -145,7 +145,7 @@ export function PopularTemplates() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="group relative w-[280px] md:w-auto shrink-0 snap-start bg-white rounded-2xl overflow-hidden border border-neutral-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 flex flex-col"
+                className="group relative w-[78vw] sm:w-[280px] md:w-auto shrink-0 snap-start bg-white rounded-2xl overflow-hidden border border-neutral-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 flex flex-col"
               >
                 {/* Image Area with "Studio Preview" overlay */}
                 <div className="relative aspect-[4/5] bg-neutral-100 overflow-hidden">

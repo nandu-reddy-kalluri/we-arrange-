@@ -96,19 +96,10 @@ function AuthenticationContent() {
       </div>
 
       {/* ── CONTENT WRAPPER ── */}
-      <main className="relative z-10 w-full max-w-[1536px] mx-auto min-h-[100svh] pt-[80px] pb-8 lg:pb-0 px-6 lg:px-12 xl:px-16 flex flex-col lg:grid lg:grid-cols-[56%_44%] items-center justify-center gap-12 lg:gap-16 xl:gap-20">
+      <main className="relative z-10 w-full max-w-[1536px] mx-auto min-h-[100svh] pt-[70px] md:pt-[80px] pb-8 lg:pb-0 px-4 md:px-12 xl:px-16 flex flex-col lg:grid lg:grid-cols-[56%_44%] items-center justify-center gap-6 lg:gap-16 xl:gap-20">
         
-        {/* ── LEFT: MARKETING & HERO ── */}
-        <div className="w-full text-white pt-6 lg:pt-0 flex justify-start lg:justify-center">
-          
-          {/* Subtle Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-10">
-            <div className="w-8 h-8 rounded bg-[#C6934A] flex items-center justify-center text-[#111]">
-              <span className="font-serif font-bold">YM</span>
-            </div>
-            <span className="font-serif text-2xl font-bold tracking-tight">YouMarriage</span>
-          </div>
-
+        {/* ── LEFT: MARKETING & HERO (Desktop Only to prevent mobile crowding) ── */}
+        <div className="hidden lg:flex w-full text-white pt-6 lg:pt-0 justify-start lg:justify-center">
           <div className="w-full max-w-[500px] lg:max-w-[620px]">
             <h1 className="text-[40px] lg:text-[52px] xl:text-[54px] font-serif font-medium leading-[1.05] mb-5">
               Find the Perfect<br className="hidden lg:block" />

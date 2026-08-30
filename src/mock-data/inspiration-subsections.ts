@@ -158,7 +158,7 @@ export const SUBSECTION_CONFIGS: Record<string, InspirationSubsectionConfig> = {
     title: "Photography & Cinematography",
     eyebrow: "STORIES IN MOTION • ETERNAL FRAMES",
     description: "Captivating candid photography, Vogue-style editorial portraits, drone cinematography, and emotional wedding film inspiration.",
-    heroImage: "/images/editorial/vendor_photo.png",
+    heroImage: "/images/editorial/vendor_photography.png",
     categories: ["All", "Candid Portraits", "Editorial & Fashion", "Pre-Wedding Shoots", "Drone Cinematography", "Vintage Film"],
     stats: [
       { label: "Photo Albums", value: 600 },

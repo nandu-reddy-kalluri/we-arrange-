@@ -9,6 +9,11 @@
   --ease-editorial: cubic-bezier(0.8, 0, 0.1, 1);
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);

@@ -10,6 +10,7 @@ import { ClientScrollRail } from "@/components/layout/ClientScrollRail";
 import { FloatingConciergeButton } from "@/components/layout/FloatingConciergeButton";
 import DigitalSuiteSection from "@/features/home/components/DigitalSuiteSection";
 import { CelebrateSection } from "@/features/home/components/CelebrateSection";
+import { MobileHomeExperience } from "@/features/home/components/MobileHomeExperience";
 
 export const metadata = {
   title: "YouMarriageWeArrange | Hyderabad's Premium Wedding Concierge",
@@ -23,31 +24,46 @@ export const metadata = {
 export default function HomePage() {
   return (
     <main className="overflow-hidden relative bg-neutral-cream">
-      <ClientScrollRail />
-      
-      <div id="hero">
-        <HeroSection />
+      {/* --- DESKTOP EXPERIENCE (UNCHANGED) --- */}
+      <div className="hidden md:block">
+        <ClientScrollRail />
+        
+        <div id="hero">
+          <HeroSection />
+        </div>
+
+        <TrustStrip />
+        <MobileQuickSearchChips />
+        
+        <div id="concierge-journey">
+          <ConciergeJourney />
+        </div>
+        
+        <div id="featured-venues">
+          <VenueSection />
+        </div>
+        
+        <div id="featured-vendors">
+          <VendorSection />
+        </div>
+
+        <DigitalSuiteSection />
+        <CelebrateSection />
+        
+        <FloatingConciergeButton />
       </div>
 
-      <TrustStrip />
-      <MobileQuickSearchChips />
-      
-      <div id="concierge-journey">
-        <ConciergeJourney />
+      {/* --- MOBILE EXPERIENCE (SIMPLIFIED) --- */}
+      <div className="block md:hidden">
+        <MobileHomeExperience />
+        {/* We keep SEO structural content in DOM for crawlers by hiding visually but accessible to screen readers/crawlers */}
+        <div className="sr-only">
+          <h2>Featured Venues</h2>
+          <VenueSection />
+          <h2>Featured Vendors</h2>
+          <VendorSection />
+        </div>
       </div>
-      
-      <div id="featured-venues">
-        <VenueSection />
-      </div>
-      
-      <div id="featured-vendors">
-        <VendorSection />
-      </div>
-
-      <DigitalSuiteSection />
-      <CelebrateSection />
-      
-      <FloatingConciergeButton />
     </main>
   );
 }

@@ -520,7 +520,7 @@ export function FeaturedVendors({
                       className="group bg-[#FAF9F6] rounded-[22px] overflow-hidden border border-[#C5A880]/20 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(197,168,128,0.1)] hover:-translate-y-2 hover:border-[#C5A880]/40 transition-all duration-350 flex flex-col justify-between max-w-[340px] mx-auto w-full cursor-pointer relative"
                     >
                       {/* Image */}
-                      <div className="relative h-[220px] w-full overflow-hidden bg-gray-100 shrink-0 rounded-t-[22px]">
+                      <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100 shrink-0 rounded-t-[22px]">
                         <img
                           src={vendor.imageUrl}
                           alt={vendor.name}
@@ -574,42 +574,66 @@ export function FeaturedVendors({
                             </div>
                           </div>
 
-                          {/* 2 Tags format */}
-                          {vendor.tags && (
-                            <div className="text-[10px] font-bold text-[#8B263E] flex items-center gap-1 mt-2.5">
-                              <span>{vendor.tags[0] || "Bridal Makeup"}</span>
-                              <span className="text-gray-300 font-light">•</span>
-                              <span>{vendor.tags[1] || "Airbrush"}</span>
-                              <span className="text-gray-300 font-light">•</span>
-                              <span className="text-neutral-muted font-extrabold uppercase tracking-wide text-[8px]">
-                                +{vendor.tags.length > 2 ? vendor.tags.length - 2 : 10}
-                              </span>
-                            </div>
-                          )}
+                          {/* Category-specific Data or Tags */}
+                          <div className="text-[10px] font-bold text-[#8B263E] flex items-center gap-1 mt-2.5">
+                            {vendor.tags && vendor.tags.length > 0 ? (
+                              <>
+                                <span>{vendor.tags[0]}</span>
+                                {vendor.tags[1] && (
+                                  <>
+                                    <span className="text-gray-300 font-light">•</span>
+                                    <span>{vendor.tags[1]}</span>
+                                  </>
+                                )}
+                                {vendor.tags.length > 2 && (
+                                  <>
+                                    <span className="text-gray-300 font-light">•</span>
+                                    <span className="text-neutral-muted font-extrabold uppercase tracking-wide text-[8px]">
+                                      +{vendor.tags.length - 2} More
+                                    </span>
+                                  </>
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {vendor.category === "catering" ? (
+                                  <><span>Veg & Non-Veg</span><span className="text-gray-300 font-light">•</span><span>Live Counters</span></>
+                                ) : vendor.category === "mehendi" ? (
+                                  <><span>Bridal Mehendi</span><span className="text-gray-300 font-light">•</span><span>Guest Mehendi</span></>
+                                ) : vendor.category === "decor" ? (
+                                  <><span>Floral Decor</span><span className="text-gray-300 font-light">•</span><span>Lighting</span></>
+                                ) : vendor.category === "photography" ? (
+                                  <><span>Candid</span><span className="text-gray-300 font-light">•</span><span>Traditional</span></>
+                                ) : (
+                                  <><span>Bridal Services</span><span className="text-gray-300 font-light">•</span><span>Pre-wedding</span></>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
 
                         {/* Pricing and Action row */}
-                        <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between mt-auto">
+                        <div className="pt-2.5 border-t border-gray-100 flex flex-col xs:flex-row items-start xs:items-center justify-between mt-auto gap-3">
                           <div>
                             <span className="text-[7.5px] uppercase font-black text-neutral-muted block tracking-widest">Starts From</span>
                             <span className="text-[13px] font-black text-[#8B263E]">{formatPrice(vendor.priceStart)}</span>
                           </div>
                           
-                          <div className="flex gap-2">
+                          <div className="flex w-full xs:w-auto gap-2">
                             <Link
                               href={`/vendors/${vendor.slug}`}
-                              className="h-9 px-3 flex items-center justify-center rounded-full text-[9px] font-black uppercase tracking-wider text-[#C5A880] border border-[#C5A880] bg-white hover:bg-[#C5A880] hover:text-white transition-all duration-300 cursor-pointer"
+                              className="flex-1 xs:flex-none h-9 px-3 flex items-center justify-center rounded-full text-[9px] font-black uppercase tracking-wider text-[#C5A880] border border-[#C5A880] bg-white hover:bg-[#C5A880] hover:text-white transition-all duration-300 cursor-pointer"
                             >
-                              View Details
+                              View
                             </Link>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 alert(`Consultation inquiries initiated for ${vendor.name}`);
                               }}
-                              className="h-9 px-3 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
+                              className="flex-1 xs:flex-none h-9 px-3 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
                             >
-                              Book Consultation
+                              Book
                             </button>
                           </div>
                         </div>
@@ -670,41 +694,66 @@ export function FeaturedVendors({
                           <span className="flex items-center gap-0.5"><MapPin className="w-3.5 h-3.5 text-[#C5A880]" /> {vendor.city}</span>
                         </div>
 
-                        {vendor.tags && (
-                          <div className="text-[10px] font-bold text-[#8B263E] flex items-center gap-1 mt-3">
-                            <span>{vendor.tags[0]}</span>
-                            <span className="text-gray-300 font-light">•</span>
-                            <span>{vendor.tags[1]}</span>
-                            <span className="text-gray-300 font-light">•</span>
-                            <span className="text-neutral-muted font-extrabold uppercase tracking-wide text-[8px]">
-                              +{vendor.tags.length - 2} More Services
-                            </span>
-                          </div>
-                        )}
+                        {/* Category-specific Data or Tags */}
+                        <div className="text-[10px] font-bold text-[#8B263E] flex items-center gap-1 mt-3">
+                          {vendor.tags && vendor.tags.length > 0 ? (
+                            <>
+                              <span>{vendor.tags[0]}</span>
+                              {vendor.tags[1] && (
+                                <>
+                                  <span className="text-gray-300 font-light">•</span>
+                                  <span>{vendor.tags[1]}</span>
+                                </>
+                              )}
+                              {vendor.tags.length > 2 && (
+                                <>
+                                  <span className="text-gray-300 font-light">•</span>
+                                  <span className="text-neutral-muted font-extrabold uppercase tracking-wide text-[8px]">
+                                    +{vendor.tags.length - 2} More
+                                  </span>
+                                </>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {vendor.category === "catering" ? (
+                                <><span>Veg & Non-Veg</span><span className="text-gray-300 font-light">•</span><span>Live Counters</span></>
+                              ) : vendor.category === "mehendi" ? (
+                                <><span>Bridal Mehendi</span><span className="text-gray-300 font-light">•</span><span>Guest Mehendi</span></>
+                              ) : vendor.category === "decor" ? (
+                                <><span>Floral Decor</span><span className="text-gray-300 font-light">•</span><span>Lighting</span></>
+                              ) : vendor.category === "photography" ? (
+                                <><span>Candid</span><span className="text-gray-300 font-light">•</span><span>Traditional</span></>
+                              ) : (
+                                <><span>Bridal Services</span><span className="text-gray-300 font-light">•</span><span>Pre-wedding</span></>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
 
                       {/* Pricing and Actions bottom part */}
-                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between mt-auto">
+                      <div className="pt-2 border-t border-gray-100 flex flex-col xs:flex-row items-start xs:items-center justify-between mt-auto gap-3">
                         <div>
                           <span className="text-[7.5px] uppercase font-black text-neutral-muted block tracking-widest">Starts From</span>
                           <span className="text-xs font-black text-[#8B263E]">{formatPrice(vendor.priceStart)}</span>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex w-full xs:w-auto gap-2">
                           <Link
                             href={`/vendors/${vendor.slug}`}
-                            className="h-9 px-3 flex items-center justify-center rounded-full text-[9px] font-black uppercase tracking-wider text-[#C5A880] border border-[#C5A880] bg-white hover:bg-[#C5A880] hover:text-white transition-all duration-300 cursor-pointer"
+                            className="flex-1 xs:flex-none h-9 px-3 flex items-center justify-center rounded-full text-[9px] font-black uppercase tracking-wider text-[#C5A880] border border-[#C5A880] bg-white hover:bg-[#C5A880] hover:text-white transition-all duration-300 cursor-pointer"
                           >
-                            View Details
+                            View
                           </Link>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               alert(`Consultation inquiries initiated for ${vendor.name}`);
                             }}
-                            className="h-9 px-3 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
+                            className="flex-1 xs:flex-none h-9 px-3 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
                           >
-                            Book Consultation
+                            Book
                           </button>
                         </div>
                       </div>

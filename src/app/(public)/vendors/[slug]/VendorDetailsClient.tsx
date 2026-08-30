@@ -651,17 +651,25 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
       </div>
 
       {/* 4. Mobile Sticky Bottom Consultation Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-250/60 p-3.5 flex items-center justify-between z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
-        <div>
-          <span className="text-[7.5px] uppercase font-black text-neutral-muted block tracking-widest">Starts From</span>
-          <span className="text-sm font-black text-[#8B263E]">{formatPrice(vendor.priceStart)}</span>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-250/60 p-3 flex items-center gap-3 z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
+        <div className="flex-1">
+          <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider block">Starts From</span>
+          <span className="text-sm font-bold text-[#8B263E] leading-none">{formatPrice(vendor.priceStart)}</span>
         </div>
-        <button
-          onClick={() => alert(`Initiated wedding journey for ${vendor.name}.`)}
-          className="px-5 py-2.5 rounded-full bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-[10px] font-black uppercase tracking-wider shadow-md cursor-pointer"
-        >
-          Begin Your Journey
-        </button>
+        <div className="flex items-center gap-2">
+          <a
+            href="tel:+919876543210"
+            className="px-4 py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[10px] font-bold uppercase tracking-wider text-center transition-colors"
+          >
+            Call
+          </a>
+          <button
+            onClick={() => alert(`Requested quote for ${vendor.name}.`)}
+            className="px-4 py-2.5 rounded-xl bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-[10px] font-bold uppercase tracking-wider shadow-md text-center transition-colors"
+          >
+            Get Quote
+          </button>
+        </div>
       </div>
 
     </main>
