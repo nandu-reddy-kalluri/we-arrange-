@@ -55,38 +55,28 @@ export const NAVIGATION_HIERARCHY: NavItem[] = [
     type: "mega-menu",
     sections: [
       {
-        title: "Photography & Media",
+        title: "Photography",
         items: [
-          { label: "Photography", href: "/vendors/photography" },
-          { label: "Videography", href: "/vendors/videography" },
+          { label: "Wedding Photographers", href: "/vendors/photography" },
         ],
       },
       {
         title: "Design & Decor",
         items: [
-          { label: "Decoration", href: "/vendors/decoration" },
-          { label: "Wedding Planner", href: "/vendors/planners" },
+          { label: "Wedding Decorators", href: "/vendors/decor" },
         ],
       },
       {
         title: "Beauty & Style",
         items: [
-          { label: "Makeup", href: "/vendors/makeup" },
-          { label: "Mehendi", href: "/vendors/mehendi" },
-          { label: "Bridal Wear", href: "/vendors/bridal-wear" },
-          { label: "Groom Wear", href: "/vendors/groom-wear" },
-          { label: "Jewellery", href: "/vendors/jewellery" },
+          { label: "Bridal Makeup Artists", href: "/vendors/makeup" },
+          { label: "Mehendi Artists", href: "/vendors/mehendi" },
         ],
       },
       {
-        title: "Experience",
+        title: "Catering",
         items: [
-          { label: "Catering", href: "/vendors/catering" },
-          { label: "Music & DJ", href: "/vendors/music" },
-          { label: "Entertainment", href: "/vendors/entertainment" },
-          { label: "Invitations", href: "/vendors/invitations" },
-          { label: "Transportation", href: "/vendors/transportation" },
-          { label: "Return Gifts", href: "/vendors/gifts" },
+          { label: "Wedding Catering", href: "/vendors/catering" },
         ],
       },
     ],

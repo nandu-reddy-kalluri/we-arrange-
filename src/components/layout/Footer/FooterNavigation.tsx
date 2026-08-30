@@ -10,8 +10,8 @@ export function FooterNavigation() {
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.8, delay: 0.3 }}
-      className="flex flex-wrap justify-center items-center gap-x-8 gap-y-3"
+      transition={{ duration: 0.6 }}
+      className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 md:gap-x-8 md:gap-y-3"
     >
       {[
         { label: "Venues", href: "/venues" },
@@ -26,7 +26,7 @@ export function FooterNavigation() {
         <Link 
           key={item.label} 
           href={item.href} 
-          className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-bold text-white/50 hover:text-white transition-colors duration-300 drop-shadow-[0_0_10px_rgba(255,255,255,0)] hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]"
+          className="text-[9px] md:text-[11px] uppercase tracking-[0.15em] md:tracking-[0.2em] font-bold text-white/50 hover:text-white transition-colors duration-300"
         >
           {item.label}
         </Link>

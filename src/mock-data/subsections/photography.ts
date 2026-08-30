@@ -11,9 +11,9 @@ export const PHOTOGRAPHY_ITEMS: InspirationDetailItem[] = [
     subtitle: "High-fashion pose direction, cinematic lighting, and architectural framing",
     shortDescription: "Magazine-worthy wedding portraits captured with editorial lighting and candid elegance.",
     description: "Transform your wedding gallery into a high-fashion editorial spread. Professional camera crews use off-camera lighting, prime lenses, and artistic symmetry to capture intimate glance moments, regal couple portraits, and motion blur dance shots.",
-    heroImage: "/images/editorial/vendor_photo.png",
+    heroImage: "/images/editorial/vendor_photography.png",
     gallery: [
-      "/images/editorial/vendor_photo.png",
+      "/images/editorial/vendor_photography.png",
       "/images/editorial/hero_venue.png",
       "/images/editorial/venue_2.png",
       "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
@@ -46,9 +46,9 @@ export const PHOTOGRAPHY_ITEMS: InspirationDetailItem[] = [
       subtitle: `Emotional storytelling captured through prime lenses & drone perspectives`,
       shortDescription: `A masterfully shot ${subCategory.toLowerCase()} collection preserving the true spirit of your wedding.`,
       description: `Combining documentary candid shooting with artistic portrait direction, this photography team captures raw emotional tears, energetic sangeet dances, and architectural venue aerial shots.`,
-      heroImage: "/images/editorial/vendor_photo.png",
+      heroImage: "/images/editorial/vendor_photography.png",
       gallery: [
-        "/images/editorial/vendor_photo.png",
+        "/images/editorial/vendor_photography.png",
         "/images/editorial/hero_venue.png",
         "/images/editorial/venue_2.png",
         "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",

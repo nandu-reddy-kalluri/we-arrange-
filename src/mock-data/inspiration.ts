@@ -227,7 +227,7 @@ export const photography: InspirationItem[] = [
     id: "photo-1",
     title: "Editorial Portraits",
     description: "Vogue-inspired poses and dramatic lighting for a fashion-forward album.",
-    imageUrl: "/images/editorial/vendor_photo.png",
+    imageUrl: "/images/editorial/vendor_photography.png",
     slug: "editorial-portraits",
     category: "photography",
   },

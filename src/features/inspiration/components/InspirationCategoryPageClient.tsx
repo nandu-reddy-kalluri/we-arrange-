@@ -27,7 +27,7 @@ const ALL_OTHER_SUBSECTIONS = [
   { title: "Makeup Trends", link: "/inspiration/makeup", img: "/images/editorial/vendor_makeup.png" },
   { title: "Hairstyles", link: "/inspiration/hairstyles", img: "/images/editorial/insp_bridal.png" },
   { title: "Mehendi Designs", link: "/inspiration/mehendi", img: "/images/editorial/vendor_makeup.png" },
-  { title: "Photography", link: "/inspiration/photography", img: "/images/editorial/vendor_photo.png" },
+  { title: "Photography", link: "/inspiration/photography", img: "/images/editorial/vendor_photography.png" },
 ];
 
 function StatCounter({ value, label }: { value: number; label: string }) {

@@ -184,6 +184,7 @@ export function HeroForm() {
   const [location, setLocation] = useState(searchParams.get("location") || "");
   const [guests,   setGuests]   = useState(searchParams.get("guests")   || "");
   const [budget,   setBudget]   = useState(searchParams.get("budget")   || "");
+  const [activeSelect, setActiveSelect] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -194,19 +195,16 @@ export function HeroForm() {
   }, [location, guests, budget, router, searchParams]);
 
   const handleStartPlanning  = () => document.getElementById("concierge-journey")?.scrollIntoView({ behavior: "smooth" });
-  const handleExploreVenues  = () => document.getElementById("featured-venues")?.scrollIntoView({ behavior: "smooth" });
-
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
-
-  // Helper to format values for the mobile pill
-  const mobilePillText = [
-    location || "Hyderabad",
-    guests || "Guests",
-    budget ? `₹${budget.split('-')[0]}L+` : "Budget",
-  ].join(" • ");
+  const handleExploreVenues  = () => {
+    const params = new URLSearchParams();
+    if (location) params.set("location", location);
+    if (guests) params.set("guests", guests);
+    if (budget) params.set("budget", budget);
+    router.push(`/venues?${params.toString()}`);
+  };
 
   return (
-    <div className="w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-2">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -218,7 +216,7 @@ export function HeroForm() {
           WebkitBackdropFilter: "blur(20px) saturate(140%)",
           border: "1px solid rgba(200, 161, 101, 0.15)",
           borderRadius: "16px",
-          padding: "14px 14px 16px",
+          padding: "10px 10px 12px",
           boxShadow:
             "0 24px 60px -16px rgba(10, 4, 8, 0.4), 0 0 0 0.5px rgba(200,161,101,0.08) inset, 0 1px 0 rgba(255,255,255,0.05) inset",
         }}
@@ -233,18 +231,26 @@ export function HeroForm() {
         />
 
         {/* Input grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-20">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 relative z-20">
           <CustomSelect
             icon={<MapPin className="w-4 h-4" />}
             label="Location"
             value={location}
-            onChange={setLocation}
+            onChange={(val) => {
+              setLocation(val);
+              setActiveSelect(null);
+            }}
             placeholder="All Hyderabad Areas"
+            isOpen={activeSelect === "location"}
+            onToggle={() => setActiveSelect(activeSelect === "location" ? null : "location")}
+            onClose={() => setActiveSelect(null)}
             options={[
               { value: "", label: "All Hyderabad Areas" },
               { value: "Banjara Hills", label: "Banjara Hills" },
               { value: "Jubilee Hills", label: "Jubilee Hills" },
               { value: "Gachibowli", label: "Gachibowli" },
+              { value: "Hitech City", label: "Hitech City" },
+              { value: "Secunderabad", label: "Secunderabad" },
             ]}
           />
 
@@ -252,13 +258,20 @@ export function HeroForm() {
             icon={<Users className="w-4 h-4" />}
             label="Guests Size"
             value={guests}
-            onChange={setGuests}
+            onChange={(val) => {
+              setGuests(val);
+              setActiveSelect(null);
+            }}
             placeholder="Select size"
+            isOpen={activeSelect === "guests"}
+            onToggle={() => setActiveSelect(activeSelect === "guests" ? null : "guests")}
+            onClose={() => setActiveSelect(null)}
             options={[
               { value: "", label: "Select size" },
               { value: "Under 200", label: "Under 200" },
               { value: "200-500", label: "200 - 500" },
               { value: "500-1000", label: "500 - 1000" },
+              { value: "1000+", label: "1000+" },
             ]}
           />
 
@@ -266,13 +279,20 @@ export function HeroForm() {
             icon={<IndianRupee className="w-4 h-4" />}
             label="Budget Limit"
             value={budget}
-            onChange={setBudget}
+            onChange={(val) => {
+              setBudget(val);
+              setActiveSelect(null);
+            }}
             placeholder="Select range"
+            isOpen={activeSelect === "budget"}
+            onToggle={() => setActiveSelect(activeSelect === "budget" ? null : "budget")}
+            onClose={() => setActiveSelect(null)}
             options={[
               { value: "", label: "Select range" },
-              { value: "10-25", label: "₹10L - ₹25 Lakhs" },
-              { value: "25-50", label: "₹25L - ₹50 Lakhs" },
-              { value: "50-100", label: "₹50L - ₹1 Crore" },
+              { value: "Under ₹5L", label: "Under ₹5 Lakhs" },
+              { value: "₹5L-₹10L", label: "₹5L - ₹10 Lakhs" },
+              { value: "₹10L-₹25L", label: "₹10L - ₹25 Lakhs" },
+              { value: "₹25L+", label: "₹25 Lakhs+" },
             ]}
           />
         </div>
@@ -299,7 +319,7 @@ export function HeroForm() {
         </div>
 
         {/* Buttons */}
-        <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-1">
+        <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-0.5 md:mt-1">
           <PrimaryButton onClick={handleExploreVenues} id="hero-cta-discovery">
             <span className="md:hidden">Find Matches</span>
             <span className="hidden md:inline">Find My Matches</span>
@@ -311,18 +331,6 @@ export function HeroForm() {
           </div>
         </div>
       </motion.div>
-
-      {/* Mobile Quick Chips */}
-      <div className="md:hidden flex flex-col gap-3 mt-1">
-        <span className="text-[10px] font-black uppercase tracking-widest text-white/70 ml-1">Popular Searches</span>
-        <div className="flex flex-wrap gap-2">
-          {["Luxury Venues", "Photographers", "Decor", "Catering", "Makeup"].map((chip) => (
-            <button key={chip} className="px-4 py-2 min-h-[48px] rounded-full border border-white/20 bg-white/5 text-white text-xs font-semibold backdrop-blur-sm active:bg-white/10 transition-colors flex items-center justify-center">
-              {chip}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

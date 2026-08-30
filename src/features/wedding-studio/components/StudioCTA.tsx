@@ -7,7 +7,7 @@ import { ArrowRight } from "lucide-react";
 
 export function StudioCTA() {
   return (
-    <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-12">
+    <section className="py-8 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-6 md:mb-12">
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}

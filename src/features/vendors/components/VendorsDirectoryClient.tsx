@@ -83,7 +83,7 @@ const MemoizedVendorGrid = React.memo(function MemoizedVendorGrid({
 // Main Client Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function VendorsDirectoryClient() {
+export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCategory?: string }) {
   const router = useRouter();
 
   // Defer rendering until after hydration
@@ -91,7 +91,10 @@ export function VendorsDirectoryClient() {
   useEffect(() => { setMounted(true); }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
+  const [filters, setFilters] = useState<FilterState>({
+    ...INITIAL_FILTERS,
+    category: defaultCategory || INITIAL_FILTERS.category,
+  });
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Transition skeleton — only fires when committed filters change
@@ -206,17 +209,17 @@ export function VendorsDirectoryClient() {
       />
 
       {/* 2. Main Directory Grid & Filters */}
-      <section id="results-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 scroll-mt-24">
+      <section id="results-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-28 scroll-mt-24">
         <div className="flex flex-col gap-6">
 
-          {/* Mobile filter toggle */}
-          <div className="lg:hidden flex items-center justify-between border-b border-gray-150 pb-4">
+          {/* Mobile floating filter toggle */}
+          <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-auto shadow-[0_8px_30px_rgba(139,38,62,0.3)] rounded-full">
             <button
               type="button"
               onClick={handleOpenMobileFilter}
-              className="flex items-center gap-2 bg-[#8B263E] text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-md hover:bg-[#6e1c2f] transition-all"
+              className="flex items-center gap-2 bg-[#8B263E] text-white px-6 py-3.5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-[#6e1c2f] transition-all"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <SlidersHorizontal className="w-4 h-4" />
               <span>Filters &amp; Sort</span>
             </button>
           </div>

@@ -15,7 +15,7 @@ export default function HeroSection() {
   const scrollCueOpacity = useTransform(scrollY, [0, 120], [1, 0]);
 
   return (
-    <section className={`relative ${layout.heroHeight} flex items-center justify-center text-white overflow-hidden pt-20 md:pt-28 pb-8 md:pb-16`}>
+    <section className={`relative min-h-[60vh] md:min-h-screen flex items-center justify-center text-white overflow-hidden pt-16 md:pt-28 pb-6 md:pb-16`}>
       <HeroBackdrop />
 
       <div className={`${layout.maxWidth} ${spacing.container} ${layout.fullWidth} ${zIndex.content} flex flex-col lg:flex-row items-center justify-between ${spacing.gapHero} relative`}>

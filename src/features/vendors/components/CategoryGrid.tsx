@@ -29,18 +29,18 @@ export function CategoryGrid({ onSelectCategory, selectedCategory }: CategoryGri
   };
 
   return (
-    <section className="pt-10 pb-16 bg-[#FAF9F6] border-b border-neutral-border">
+    <section className="py-6 md:pt-10 md:pb-16 bg-[#FAF9F6] border-b border-neutral-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Title */}
-        <div className="text-center mb-12">
-          <span className="font-sans text-[10px] font-black uppercase text-[#C5A880] tracking-[0.25em] block mb-2">
+        <div className="text-center mb-6 md:mb-12">
+          <span className="font-sans text-[10px] font-black uppercase text-[#C5A880] tracking-[0.25em] block mb-1 md:mb-2">
             EXPLORE • Wedding Specialties
           </span>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#2D2D2D]">
+          <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#2D2D2D]">
             Browse Vendors by Category
           </h2>
-          <div className="w-16 h-0.5 bg-[#C5A880] mx-auto mt-4" />
+          <div className="w-12 md:w-16 h-0.5 bg-[#C5A880] mx-auto mt-2 md:mt-4" />
         </div>
 
         {/* Categories Grid */}
@@ -49,7 +49,7 @@ export function CategoryGrid({ onSelectCategory, selectedCategory }: CategoryGri
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 max-w-5xl mx-auto"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-6 max-w-5xl mx-auto"
         >
           {vendorCategories.map((cat) => {
             const isSelected = selectedCategory === cat.slug;

@@ -499,17 +499,25 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
       </div>
 
       {/* Mobile Sticky Bottom Consultation Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-250/60 p-3.5 flex items-center justify-between z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
-        <div>
-          <span className="text-[7.5px] uppercase font-black text-neutral-muted block tracking-widest">Pricing</span>
-          <span className="text-sm font-black text-[#8B263E]">{venue.priceOnwards}</span>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-250/60 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center gap-3 z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
+        <div className="flex-1">
+          <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider block leading-tight mb-0.5">Pricing</span>
+          <span className="text-sm font-bold text-[#8B263E] leading-tight">{venue.priceOnwards}</span>
         </div>
-        <button
-          onClick={() => alert(`Requested quote for ${venue.name}.`)}
-          className="px-5 py-2.5 rounded-full bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-[10px] font-black uppercase tracking-wider shadow-md cursor-pointer"
-        >
-          Get Free Quote
-        </button>
+        <div className="flex items-center gap-2">
+          <a
+            href="tel:+919876543210"
+            className="px-4 py-3 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-[11px] font-bold uppercase tracking-wider text-center transition-colors"
+          >
+            Call
+          </a>
+          <button
+            onClick={() => alert(`Requested quote for ${venue.name}.`)}
+            className="px-4 py-3 rounded-xl bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-[11px] font-bold uppercase tracking-wider shadow-md text-center transition-colors"
+          >
+            Get Quote
+          </button>
+        </div>
       </div>
 
     </main>

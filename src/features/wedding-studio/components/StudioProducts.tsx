@@ -7,7 +7,7 @@ import { ArrowRight, Mail, Globe } from "lucide-react";
 
 export function StudioProducts() {
   return (
-    <section id="products" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <section id="products" className="py-8 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="text-center mb-16">
         <motion.h2 
           initial={{ opacity: 0, y: 20 }}

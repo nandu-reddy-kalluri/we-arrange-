@@ -10,24 +10,14 @@ export function TrustStrip() {
   ];
 
   return (
-    <div className="w-full bg-neutral-charcoal py-7 border-y border-white/10 relative z-20 shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.15)]">
+    <div className="hidden md:block w-full bg-neutral-charcoal py-7 border-y border-white/10 relative z-20 shadow-[0_-12px_40px_-12px_rgba(0,0,0,0.15)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop: single row */}
-        <div className="hidden md:flex justify-between items-center">
+        <div className="flex justify-between items-center">
           {features.map((feature, idx) => (
             <div key={idx} className="flex items-center gap-3">
               {feature.icon}
               <span className="text-sm font-medium text-white tracking-wide">{feature.label}</span>
-            </div>
-          ))}
-        </div>
-        
-        {/* Mobile: 2x2 grid */}
-        <div className="grid grid-cols-2 gap-4 md:hidden">
-          {features.map((feature, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              {feature.icon}
-              <span className="text-xs font-medium text-white tracking-wide">{feature.label}</span>
             </div>
           ))}
         </div>
