@@ -12,6 +12,13 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error(error);
+    // Auto-reload once if a stale chunk failed to load after an update
+    if (
+      (error?.message?.includes("Loading chunk") || error?.name === "ChunkLoadError") &&
+      typeof window !== "undefined"
+    ) {
+      window.location.reload();
+    }
   }, [error]);
 
   return (

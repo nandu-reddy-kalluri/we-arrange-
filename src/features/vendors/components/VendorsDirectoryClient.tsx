@@ -31,7 +31,7 @@ const INITIAL_FILTERS: FilterState = {
 
 export function PageLoader() {
   return (
-    <div className="w-full min-h-screen bg-neutral-cream flex flex-col items-center justify-center">
+    <div className="w-full min-h-screen bg-[#FBF7F2] flex flex-col items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 rounded-full border-4 border-[#C5A880]/20 border-t-[#8B263E] animate-spin" />
         <span className="text-xs font-black uppercase tracking-widest text-[#C5A880]">
@@ -195,7 +195,7 @@ export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCatego
   if (!mounted) return <PageLoader />;
 
   return (
-    <main className="min-h-screen bg-neutral-cream text-neutral-charcoal">
+    <main className="min-h-screen bg-[#FBF7F2] text-neutral-charcoal">
 
       {/* 1. Hero Search Section */}
       <HeroSection

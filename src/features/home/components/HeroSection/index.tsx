@@ -86,14 +86,14 @@ export default function HeroSection() {
             venues and vendors.
           </motion.p>
 
-          {/* ── 3C: Search Panel — rises at 1.8s ── */}
+          {/* ── 3C: Action CTAs — rises at 1.8s ── */}
           <motion.div
             className="w-full"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 1.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Suspense fallback={<div className="w-full h-48 bg-white/10 animate-pulse rounded-2xl" />}>
+            <Suspense fallback={<div className="w-full sm:w-80 h-12 bg-white/10 animate-pulse rounded-xl" />}>
               <HeroForm />
             </Suspense>
           </motion.div>

@@ -2,9 +2,11 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart, ChevronRight, LogIn } from "lucide-react";
 import { FooterSocials } from "../Footer/FooterSocials";
+import { useSavedStore } from "@/store/useSavedStore";
 
 interface MobileExperienceProps {
   isOpen: boolean;
@@ -14,6 +16,11 @@ interface MobileExperienceProps {
 
 
 export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
+  const { savedVenueIds, savedVendorIds } = useSavedStore();
+  const [isMounted, setIsMounted] = React.useState(false);
+  React.useEffect(() => setIsMounted(true), []);
+  const savedCount = isMounted ? savedVenueIds.length + savedVendorIds.length : 0;
+
   React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -43,7 +50,13 @@ export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
         { label: "Catering", href: "/vendors/catering" },
       ]
     },
-    { label: "Wedding Studio", href: "/wedding-studio" },
+    { 
+      label: "Wedding Studio", 
+      href: "/wedding-studio",
+      subItems: [
+        { label: "Explore eInvites", href: "/e-invites" },
+      ]
+    },
     { label: "Inspiration", href: "/inspiration" },
   ];
 
@@ -71,13 +84,28 @@ export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-6 pb-4 border-b border-neutral-100">
-              <Link href="/" onClick={onClose} className="flex flex-col text-left">
-                <span className="font-serif text-[19px] font-bold leading-none tracking-tight text-[#C5A880]">
-                  YouMarriage
-                </span>
-                <span className="font-sans text-[9px] uppercase tracking-[0.25em] text-[#8B263E] font-bold leading-none mt-1">
-                  WE ARRANGE
-                </span>
+              <Link href="/" onClick={onClose} className="flex items-center gap-2.5">
+                {/* YM Icon */}
+                <div className="relative overflow-hidden shrink-0" style={{ width: '46px', height: '46px' }}>
+                  <Image
+                    src="/assets/you_marriage_logo_transparent.png"
+                    alt=""
+                    width={46}
+                    height={60}
+                    className="absolute top-0 left-0 w-full"
+                    style={{ height: 'auto' }}
+                    unoptimized
+                  />
+                </div>
+                {/* Brand Text */}
+                <div className="flex flex-col leading-none">
+                  <span className="font-serif text-[14px] font-bold tracking-tight text-[#C5A880]">
+                    YOU MARRIAGE
+                  </span>
+                  <span className="font-sans text-[8px] font-black uppercase tracking-[0.22em] text-[#8B263E] mt-0.5">
+                    WE ARRANGE
+                  </span>
+                </div>
               </Link>
 
               <button
@@ -156,6 +184,11 @@ export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
                   <div className="flex items-center gap-2.5">
                     <Heart className="w-4 h-4 text-[#8B263E]" />
                     <span>Saved</span>
+                    {savedCount > 0 && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-[#8B263E] text-white">
+                        {savedCount}
+                      </span>
+                    )}
                   </div>
                   <ChevronRight className="w-4 h-4 text-neutral-300" />
                 </Link>
@@ -170,14 +203,6 @@ export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
                     <span>Login</span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-neutral-300" />
-                </Link>
-
-                <Link
-                  href="/register"
-                  onClick={onClose}
-                  className="w-full mt-2 py-3 rounded-full text-center text-xs font-bold uppercase tracking-widest text-white bg-[#8B263E] hover:bg-[#6e1c2f] transition-all shadow-sm"
-                >
-                  Create Account
                 </Link>
 
                 {/* Social icons */}

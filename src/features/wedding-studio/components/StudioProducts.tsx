@@ -58,7 +58,7 @@ export function StudioProducts() {
 
 
             <Link 
-              href="/wedding-studio/einvites" 
+              href="/e-invites" 
               className="inline-flex items-center gap-2 text-[#8B263E] font-bold uppercase tracking-widest text-xs group/btn hover:text-[#6e1c2f] transition-colors"
             >
               Explore eInvites

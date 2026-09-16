@@ -49,6 +49,7 @@ const SECTION_DATA = [
 
 export function InspirationClientPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedItem, setSelectedItem] = useState<InspirationItem | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -85,18 +86,22 @@ export function InspirationClientPage() {
   }, [filteredSections]);
 
   return (
-    <div className="min-h-screen bg-[#FBF9F6] pb-0 relative overflow-hidden">
+    <div className="min-h-screen bg-[#FBF9F6] pb-0 relative overflow-x-clip">
       {/* Decorative background lights */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C8A165]/5 blur-[120px] rounded-full pointer-events-none z-0" />
       <div className="absolute top-[40%] left-0 w-[600px] h-[600px] bg-[#8B263E]/3 blur-[150px] rounded-full pointer-events-none z-0" />
 
-      {/* Hero Section */}
-      <div className="relative z-10">
-        <InspirationHero searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      {/* Hero Section - Elevated stacking context so search recommendations float directly above Browse Collections */}
+      <div className={`relative ${isSearchDropdownOpen ? "z-50" : "z-30"} overflow-visible transition-[z-index] duration-150`}>
+        <InspirationHero
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onOpenChange={setIsSearchDropdownOpen}
+        />
       </div>
 
       {/* Category Navigation */}
-      <div className="relative z-10 border-b border-[#E8D8BC]/30 sticky top-[56px] md:top-[88px] pt-4 md:pt-8 pb-0 mb-4 md:mb-8">
+      <div className="relative z-20 border-b border-[#E8D8BC]/30 sticky top-[56px] md:top-[88px] pt-4 md:pt-8 pb-0 mb-4 md:mb-8">
         
         {/* Semi-transparent overlay to ensure text readability */}
         <div className="absolute inset-0 z-0 bg-[#FBF9F6]/85 backdrop-blur-md" />

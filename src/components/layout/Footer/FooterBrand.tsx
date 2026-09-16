@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 export function FooterBrand() {
   return (
     <>
-      {/* TOP: Big Floating Logo + Spotlight */}
+      {/* TOP: Big Floating Text + Spotlight */}
       <div className="relative flex flex-col items-center mb-2 group">
         {/* Slow moving golden spotlight behind logo (Desktop only) */}
         <motion.div 
@@ -20,14 +20,17 @@ export function FooterBrand() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="relative flex flex-col items-center"
+          className="relative flex flex-col items-center text-center"
         >
-          <span className="font-serif text-2xl md:text-[40px] font-bold text-white tracking-tight leading-none drop-shadow-[0_0_20px_rgba(200,155,60,0.3)] block text-center">
-            YouMarriage
-          </span>
-          <span className="font-sans text-[10px] md:text-[14px] font-black text-white/80 tracking-[0.4em] md:tracking-[0.5em] block text-center mt-1 md:mt-2 uppercase">
-            We Arrange
-          </span>
+          {/* Brand Text */}
+          <div className="flex flex-col leading-none">
+            <span className="font-serif text-3xl md:text-[40px] font-bold tracking-tight text-[#F0D28D] leading-none drop-shadow-[0_0_20px_rgba(240,210,141,0.3)]">
+              YOU MARRIAGE
+            </span>
+            <span className="font-sans text-[11px] md:text-[14px] font-black text-[#8B263E] tracking-[0.4em] md:tracking-[0.5em] uppercase mt-2">
+              WE ARRANGE
+            </span>
+          </div>
         </motion.div>
       </div>
 

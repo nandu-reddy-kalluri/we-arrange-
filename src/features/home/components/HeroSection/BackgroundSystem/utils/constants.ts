@@ -7,6 +7,6 @@ export const HERO_COLORS = {
 };
 
 export const VIDEO_CONFIG = {
-  src: "/videos/hero-video.mp4",
+  src: "",
   poster: "/images/editorial/hero_venue.png"
 };

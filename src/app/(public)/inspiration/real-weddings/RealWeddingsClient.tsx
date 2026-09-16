@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronRight, Search, MapPin, Calendar, Camera, ArrowRight, RefreshCcw } from "lucide-react";
+import { ChevronRight, Search, MapPin, Calendar, Camera, ArrowRight, RefreshCcw, Sparkles, X } from "lucide-react";
 import { RealWeddingDetail } from "@/mock-data/real-weddings";
 import { RealWeddingCard } from "./RealWeddingCard";
 import { layout, typography, spacing } from "@/styles";
@@ -61,16 +61,63 @@ const fadeUpVariant = {
 export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(8);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const featuredWedding = weddings[0];
   const gridWeddings = weddings.slice(1);
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  // All recommendation suggestions from weddings (couples, venues, cities, themes)
+  const allSuggestions = useMemo(() => {
+    const map = new Map<string, { title: string; type: string }>();
+
+    CATEGORIES.filter(c => c !== "All").forEach(cat => {
+      map.set(cat.toLowerCase(), { title: cat, type: "Theme" });
+    });
+
+    weddings.forEach(w => {
+      if (w.coupleNames) map.set(w.coupleNames.toLowerCase(), { title: w.coupleNames, type: "Couple" });
+      if (w.venue) map.set(w.venue.toLowerCase(), { title: w.venue, type: "Venue" });
+      if (w.city) map.set(w.city.toLowerCase(), { title: w.city, type: "City" });
+    });
+
+    return Array.from(map.values());
+  }, [weddings]);
+
+  // Smart letter-based matching for recommendations
+  const filteredSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return allSuggestions;
+    return allSuggestions.filter(s => s.title.toLowerCase().includes(q));
+  }, [allSuggestions, searchQuery]);
+
   const filteredWeddings = useMemo(() => {
     return gridWeddings.filter((w) => {
       const matchCategory = activeCategory === "All" || w.theme.toLowerCase() === activeCategory.toLowerCase();
-      const lowerQuery = searchQuery.toLowerCase();
+      const lowerQuery = searchQuery.toLowerCase().trim();
       const matchSearch =
+        !lowerQuery ||
         w.coupleNames.toLowerCase().includes(lowerQuery) ||
         w.venue.toLowerCase().includes(lowerQuery) ||
         w.city.toLowerCase().includes(lowerQuery) ||
@@ -108,48 +155,53 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
       {/* Breadcrumb */}
       <div className="border-b border-[#E8D8BC]/30 bg-white/90 backdrop-blur-md sticky top-[72px] md:top-[88px] z-40">
         <motion.div 
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className={`${layout.maxWidth} px-4 sm:px-6 py-3 flex items-center text-xs font-medium text-neutral-500`}
+          className={`${layout.maxWidth} px-4 sm:px-6 py-3`}
         >
-          <Link href="/" className="hover:text-[#C8A165] transition-colors focus:outline-none focus:ring-2 focus:ring-[#C8A165] rounded-sm">Home</Link>
-          <ChevronRight className="w-3 h-3 mx-2 opacity-50" />
-          <Link href="/inspiration" className="hover:text-[#C8A165] transition-colors focus:outline-none focus:ring-2 focus:ring-[#C8A165] rounded-sm">Inspiration</Link>
-          <ChevronRight className="w-3 h-3 mx-2 opacity-50" />
-          <span className="text-neutral-900 font-bold">Real Weddings</span>
+          <div className="flex items-center gap-2 text-xs text-neutral-500 font-medium">
+            <Link href="/" className="hover:text-[#8B263E] transition-colors">Home</Link>
+            <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
+            <Link href="/inspiration" className="hover:text-[#8B263E] transition-colors">Inspiration</Link>
+            <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
+            <span className="text-[#8B263E] font-bold">Real Weddings</span>
+          </div>
         </motion.div>
       </div>
 
       {/* Hero Section */}
-      <section className="relative z-10 text-center flex flex-col items-center justify-center min-h-[220px] px-4 pt-12 md:pt-16 pb-8">
-        <motion.div 
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.15 } }
-          }}
-          className={`${layout.maxWidth} flex flex-col items-center`}
+      <section className="relative pt-12 pb-10 px-4 sm:px-6 text-center max-w-4xl mx-auto z-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FAF5ED] border border-[#E8D8BC] mb-6"
         >
-          <motion.span variants={fadeUpVariant} className="font-sans text-[11px] font-black uppercase text-[#C8A165] tracking-[0.25em] block mb-4">
-            Real Wedding Stories
-          </motion.span>
-          <motion.h1 variants={fadeUpVariant} className="font-serif text-3xl md:text-4xl lg:text-[40px] font-bold text-neutral-900 mb-5 max-w-[800px] leading-tight line-clamp-2">
-            Discover breathtaking weddings, timeless traditions, luxury celebrations, and unforgettable love stories.
-          </motion.h1>
-          <motion.div variants={fadeUpVariant}>
-            <button 
-              onClick={() => window.scrollTo({ top: 500, behavior: 'smooth' })}
-              className="px-6 py-2.5 bg-[#8B263E] text-white rounded-full text-sm font-bold hover:bg-[#6e1c2f] transition-all shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-[#8B263E]"
-            >
-              Explore Stories
-            </button>
-          </motion.div>
+          <span className="w-2 h-2 rounded-full bg-[#C8A165] animate-pulse" />
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#8B263E]">Exclusive Gallery</span>
         </motion.div>
+
+        <motion.h1 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="font-serif text-4xl sm:text-5xl md:text-6xl text-neutral-900 tracking-tight mb-4 font-light"
+        >
+          Real Celebrations, <span className="italic font-normal text-[#8B263E]">Timeless</span> Memories
+        </motion.h1>
+
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="text-neutral-600 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed"
+        >
+          Immerse yourself in authentic love stories, magnificent venues, exquisite ensembles, and lavish decor crafted by India’s finest wedding curators.
+        </motion.p>
       </section>
 
-      {/* Statistics */}
+      {/* Statistics Counter */}
       <motion.section 
         initial="hidden"
         whileInView="visible"
@@ -158,24 +210,24 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
         className={`relative z-10 ${layout.maxWidth} px-4 sm:px-6 mb-12`}
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          <StatCounter value={250} label="Real Weddings" />
-          <StatCounter value={40} label="Cities" />
-          <StatCounter value={500} label="Verified Vendors" />
-          <StatCounter value={1000} label="Wedding Photos" />
+          <StatCounter value={120} label="Weddings Featured" />
+          <StatCounter value={45} label="Luxury Destinations" />
+          <StatCounter value={350} label="Top Vendors" />
+          <StatCounter value={15} label="Wedding Themes" />
         </div>
       </motion.section>
 
-      {/* Search & Filters */}
+      {/* Filter & Search Bar */}
       <motion.section 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className={`relative z-10 ${layout.maxWidth} px-4 sm:px-6 mb-10`}
+        className={`relative ${isSearchOpen ? "z-40" : "z-10"} ${layout.maxWidth} px-4 sm:px-6 mb-10`}
       >
-        <div className="flex flex-col lg:flex-row gap-6 items-center justify-between bg-white rounded-3xl border border-[#E8D8BC]/30 p-2 shadow-sm transition-all">
+        <div className="flex flex-col lg:flex-row gap-6 items-center justify-between bg-white rounded-3xl border border-[#E8D8BC]/30 p-2 shadow-sm transition-all overflow-visible">
           {/* Categories */}
           <div className="flex items-center gap-1.5 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-hide px-2">
-            {CATEGORIES.map(cat => (
+            {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => { setActiveCategory(cat); setVisibleCount(8); }}
@@ -190,17 +242,100 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
             ))}
           </div>
 
-          {/* Search */}
-          <div className="relative w-full lg:w-[350px] shrink-0 px-2 lg:pr-2 lg:pl-0 pb-2 lg:pb-0">
+          {/* Search with Recommendation Popover */}
+          <div ref={searchContainerRef} className="relative w-full lg:w-[350px] shrink-0 px-2 lg:pr-2 lg:pl-0 pb-2 lg:pb-0">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Search couple, venue, city..."
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(8); }}
-              className="w-full pl-11 pr-4 py-2.5 bg-[#FBF9F6] border border-transparent rounded-full text-sm transition-all duration-300 hover:shadow-md focus:outline-none focus:border-[#C8A165]/50 focus:ring-2 focus:ring-[#C8A165]/30 focus:shadow-[0_0_15px_rgba(200,161,101,0.2)] placeholder:text-neutral-400"
+              onFocus={() => setIsSearchOpen(true)}
+              onClick={() => setIsSearchOpen(true)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setVisibleCount(8);
+                setIsSearchOpen(true);
+              }}
+              className="w-full pl-11 pr-10 py-2.5 bg-[#FBF9F6] border border-transparent rounded-full text-sm transition-all duration-300 hover:shadow-md focus:outline-none focus:border-[#C8A165]/50 focus:ring-2 focus:ring-[#C8A165]/30 focus:shadow-[0_0_15px_rgba(200,161,101,0.2)] placeholder:text-neutral-400"
               aria-label="Search weddings"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setVisibleCount(8);
+                }}
+                className="absolute right-5 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-neutral-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C8A165] rounded-full"
+                aria-label="Clear search query"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {/* Recommendations Dropdown */}
+            <AnimatePresence>
+              {isSearchOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 4, scale: 0.97 }}
+                  transition={{ duration: 0.16, ease: "easeOut" }}
+                  className="absolute left-2 right-2 lg:left-0 lg:right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] border border-[#C5A880]/30 p-3 z-[1000] text-left"
+                >
+                  <div className="px-2 py-1 border-b border-neutral-100 mb-1 flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#C8A165] flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#C8A165]" />
+                      {searchQuery.trim() ? "Matching Weddings" : "Recommended Searches"}
+                    </span>
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="text-[10px] text-neutral-400 hover:text-[#8B263E] font-semibold transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
+                    {filteredSuggestions.map((item, idx) => (
+                      <button
+                        key={`${item.title}-${idx}`}
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery(item.title);
+                          setVisibleCount(8);
+                          setIsSearchOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl font-medium text-neutral-800 hover:bg-[#FAF5ED] hover:text-[#8B263E] transition-all text-left group"
+                      >
+                        <span className="truncate font-semibold group-hover:text-[#8B263E]">
+                          {item.title}
+                        </span>
+                        <span className="text-[10px] text-neutral-400 shrink-0 ml-2 group-hover:text-[#C8A165]">
+                          {item.type}
+                        </span>
+                      </button>
+                    ))}
+
+                    {filteredSuggestions.length === 0 && (
+                      <div className="text-center py-5 px-2">
+                        <p className="text-xs text-neutral-500 font-medium">No results found for &quot;{searchQuery}&quot;</p>
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery("")}
+                          className="mt-1 text-xs text-[#8B263E] font-bold hover:underline"
+                        >
+                          Show all
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </motion.section>

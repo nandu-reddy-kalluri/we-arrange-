@@ -4,7 +4,7 @@ import React, { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, MapPin, Camera, Sparkles, Scissors, Utensils, Brush, Search, Check } from "lucide-react";
+import { ArrowRight, MapPin, Camera, Sparkles, Scissors, Utensils, Brush, Check } from "lucide-react";
 import VenueCard from "@/components/cards/VenueCard";
 import { featuredVenues } from "@/mock-data/venues";
 import VendorCard from "@/components/cards/VendorCard";
@@ -51,6 +51,7 @@ export function MobileHomeExperience() {
             alt="Beautiful Indian wedding venue in Hyderabad"
             fill
             priority
+            quality={90}
             sizes="100vw"
             className="object-cover"
           />
@@ -107,20 +108,7 @@ export function MobileHomeExperience() {
         </div>
       </section>
 
-      {/* 3. QUICK SEARCH */}
-      <section className="px-4 pb-8 pt-2">
-        <Link href="#concierge-journey">
-          <motion.div 
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center justify-between w-full px-5 py-3.5 rounded-full bg-white border border-[#E8D8BC] text-neutral-500 shadow-sm"
-          >
-            <span className="text-[13px] font-medium">Search venues, vendors...</span>
-            <Search className="w-4 h-4 text-[#C5A880]" />
-          </motion.div>
-        </Link>
-      </section>
-
-      {/* 4. HORIZONTAL FEATURED VENUES */}
+      {/* 3. HORIZONTAL FEATURED VENUES */}
       <section className="py-8 bg-white border-y border-neutral-100">
         <div className="px-4 flex flex-col mb-5">
           <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C5A880] mb-1">

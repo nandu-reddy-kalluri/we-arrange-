@@ -25,6 +25,28 @@ function AuthenticationContent() {
 
   useEffect(() => {
     setMounted(true);
+
+    const lockScrollOnMobile = () => {
+      if (typeof window !== "undefined" && window.innerWidth < 1024) {
+        document.body.style.overflow = "hidden";
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.touchAction = "none";
+      } else {
+        document.body.style.overflow = "";
+        document.documentElement.style.overflow = "";
+        document.body.style.touchAction = "";
+      }
+    };
+
+    lockScrollOnMobile();
+    window.addEventListener("resize", lockScrollOnMobile);
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.body.style.touchAction = "";
+      window.removeEventListener("resize", lockScrollOnMobile);
+    };
   }, []);
 
   useEffect(() => {
@@ -46,17 +68,34 @@ function AuthenticationContent() {
     setAuthState("cinematic");
   };
 
+  const handleClose = () => {
+    if (typeof window !== "undefined" && window.history.state?.idx > 0) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
+
   const fadeVariants = {
-    initial: { opacity: 0, x: authMode === 'signup' ? 12 : -12 },
+    initial: { 
+      opacity: 0, 
+      x: typeof window !== 'undefined' && window.innerWidth < 1024 ? 0 : (authMode === 'signup' ? 12 : -12) 
+    },
     animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: authMode === 'signup' ? -12 : 12 },
-    transition: { duration: 0.5, ease: "easeInOut" }
+    exit: { 
+      opacity: 0, 
+      x: typeof window !== 'undefined' && window.innerWidth < 1024 ? 0 : (authMode === 'signup' ? -12 : 12) 
+    },
+    transition: { duration: 0.4, ease: "easeInOut" }
   };
 
   if (!mounted) return null; // Prevent hydration mismatch with searchParams
 
   return (
-    <div className="relative min-h-[100svh] w-full bg-[#111] font-sans overflow-x-hidden flex flex-col">
+    <div 
+      className="relative h-[100dvh] lg:min-h-[100svh] w-full bg-[#111] font-sans overflow-hidden lg:overflow-x-hidden flex flex-col cursor-pointer touch-none lg:touch-auto"
+      onClick={handleClose}
+    >
       
       <AnimatePresence>
         {authState === "cinematic" && (
@@ -75,7 +114,7 @@ function AuthenticationContent() {
       {authVisible && (
         <>
           {/* ── BACKGROUND ── */}
-      <div className="fixed inset-0 z-0">
+      <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
           src="/images/register/mandap_hero.png"
           alt="Luxury Wedding Venue"
@@ -91,12 +130,12 @@ function AuthenticationContent() {
       </div>
 
       {/* ── NAVBAR OVERLAY ── */}
-      <div className="relative z-50">
+      <div className="relative z-50 cursor-default" onClick={(e) => e.stopPropagation()}>
         <Navbar />
       </div>
 
       {/* ── CONTENT WRAPPER ── */}
-      <main className="relative z-10 w-full max-w-[1536px] mx-auto min-h-[100svh] pt-[70px] md:pt-[80px] pb-8 lg:pb-0 px-4 md:px-12 xl:px-16 flex flex-col lg:grid lg:grid-cols-[56%_44%] items-center justify-center gap-6 lg:gap-16 xl:gap-20">
+      <main className="relative z-10 w-full max-w-[1536px] mx-auto h-[calc(100dvh-70px)] lg:min-h-[100svh] pt-[72px] md:pt-[80px] pb-2 lg:pb-0 px-4 md:px-12 xl:px-16 flex flex-col lg:grid lg:grid-cols-[56%_44%] items-center justify-center gap-6 lg:gap-16 xl:gap-20 overflow-hidden lg:overflow-visible">
         
         {/* ── LEFT: MARKETING & HERO (Desktop Only to prevent mobile crowding) ── */}
         <div className="hidden lg:flex w-full text-white pt-6 lg:pt-0 justify-start lg:justify-center">
@@ -121,17 +160,20 @@ function AuthenticationContent() {
         </div>
 
         {/* ── RIGHT: AUTHENTICATION PANEL ── */}
-        <div className="w-full flex justify-center lg:justify-start xl:justify-center relative">
+        <div 
+          className="w-full flex justify-center lg:justify-start xl:justify-center relative cursor-default lg:-translate-x-10 xl:-translate-x-16 2xl:-translate-x-24 touch-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
           <AnimatePresence mode="wait">
             {authMode === "signin" ? (
-              <motion.div key="signin" {...fadeVariants}>
+              <motion.div key="signin" {...fadeVariants} className="w-full flex justify-center" onClick={(e) => e.stopPropagation()}>
                 <SignInForm 
                   onSuccess={handleAuthSuccess}
                   onSwitchToSignup={() => handleModeSwitch("signup")}
                 />
               </motion.div>
             ) : (
-              <motion.div key="signup" {...fadeVariants}>
+              <motion.div key="signup" {...fadeVariants} className="w-full flex justify-center" onClick={(e) => e.stopPropagation()}>
                 <CreateAccountForm 
                   onSuccess={handleAuthSuccess}
                   onSwitchToSignin={() => handleModeSwitch("signin")}
@@ -141,7 +183,7 @@ function AuthenticationContent() {
           </AnimatePresence>
         </div>
 
-          </main>
+      </main>
         </>
       )}
     </div>

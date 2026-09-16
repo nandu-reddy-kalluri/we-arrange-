@@ -64,10 +64,61 @@ const fadeUpVariant = {
 export function InspirationCategoryPageClient({ config, items }: InspirationCategoryPageClientProps) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(8);
   const [isLoading, setIsLoading] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const featuredItem = items.find(item => item.featured) || items[0];
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  // All recommendation suggestions from items, tags, and subcategories
+  const allSuggestions = useMemo(() => {
+    const map = new Map<string, { title: string; type: string }>();
+    
+    // Add subcategories
+    config.categories.filter(c => c !== "All").forEach(cat => {
+      map.set(cat.toLowerCase(), { title: cat, type: "Category" });
+    });
+
+    // Add item titles
+    items.forEach(item => {
+      map.set(item.title.toLowerCase(), { title: item.title, type: item.subCategory || "Idea" });
+      item.tags.forEach(t => {
+        if (!map.has(t.toLowerCase())) {
+          map.set(t.toLowerCase(), { title: t, type: "Tag" });
+        }
+      });
+    });
+
+    return Array.from(map.values());
+  }, [items, config.categories]);
+
+  // Smart letter-based matching for recommendations
+  const filteredSuggestions = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return allSuggestions;
+    return allSuggestions.filter(s => s.title.toLowerCase().includes(q));
+  }, [allSuggestions, searchQuery]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -191,9 +242,9 @@ export function InspirationCategoryPageClient({ config, items }: InspirationCate
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className={`relative z-10 ${layout.maxWidth} px-4 sm:px-6 mb-10`}
+        className={`relative ${isSearchOpen ? "z-40" : "z-10"} ${layout.maxWidth} px-4 sm:px-6 mb-10`}
       >
-        <div className="flex flex-col lg:flex-row gap-6 items-center justify-between bg-white rounded-3xl border border-[#E8D8BC]/30 p-2 shadow-sm transition-all">
+        <div className="flex flex-col lg:flex-row gap-6 items-center justify-between bg-white rounded-3xl border border-[#E8D8BC]/30 p-2 shadow-sm transition-all overflow-visible">
           {/* Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-hide px-2" role="tablist" aria-label="Category filters">
             {config.categories.map(cat => (
@@ -213,26 +264,100 @@ export function InspirationCategoryPageClient({ config, items }: InspirationCate
             ))}
           </div>
 
-          {/* Search Input */}
-          <div className="relative w-full lg:w-[350px] shrink-0 px-2 lg:pr-2 lg:pl-0 pb-2 lg:pb-0">
+          {/* Search Input with Recommendation Popover */}
+          <div ref={searchContainerRef} className="relative w-full lg:w-[350px] shrink-0 px-2 lg:pr-2 lg:pl-0 pb-2 lg:pb-0">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
             <input
               type="text"
               placeholder={`Search ${config.title.toLowerCase()}...`}
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(8); }}
+              onFocus={() => setIsSearchOpen(true)}
+              onClick={() => setIsSearchOpen(true)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setVisibleCount(8);
+                setIsSearchOpen(true);
+              }}
               className="w-full pl-11 pr-10 py-2.5 bg-[#FBF9F6] border border-transparent rounded-full text-sm transition-all duration-300 hover:shadow-md focus:outline-none focus:border-[#C8A165]/50 focus:ring-2 focus:ring-[#C8A165]/30 focus:shadow-[0_0_15px_rgba(200,161,101,0.2)] placeholder:text-neutral-400"
               aria-label={`Search ${config.title}`}
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  setVisibleCount(8);
+                }}
                 className="absolute right-5 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-neutral-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C8A165] rounded-full"
                 aria-label="Clear search query"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+
+            {/* Recommendations Dropdown */}
+            <AnimatePresence>
+              {isSearchOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 4, scale: 0.97 }}
+                  transition={{ duration: 0.16, ease: "easeOut" }}
+                  className="absolute left-2 right-2 lg:left-0 lg:right-0 top-full mt-2 bg-white rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.2)] border border-[#C5A880]/30 p-3 z-[1000] text-left"
+                >
+                  <div className="px-2 py-1 border-b border-neutral-100 mb-1 flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#C8A165] flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#C8A165]" />
+                      {searchQuery.trim() ? "Matching Results" : "Recommendations"}
+                    </span>
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="text-[10px] text-neutral-400 hover:text-[#8B263E] font-semibold transition-colors"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto space-y-0.5 pr-1 scrollbar-thin">
+                    {filteredSuggestions.map((item, idx) => (
+                      <button
+                        key={`${item.title}-${idx}`}
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery(item.title);
+                          setVisibleCount(8);
+                          setIsSearchOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 text-xs rounded-xl font-medium text-neutral-800 hover:bg-[#FAF5ED] hover:text-[#8B263E] transition-all text-left group"
+                      >
+                        <span className="truncate font-semibold group-hover:text-[#8B263E]">
+                          {item.title}
+                        </span>
+                        <span className="text-[10px] text-neutral-400 shrink-0 ml-2 group-hover:text-[#C8A165]">
+                          {item.type}
+                        </span>
+                      </button>
+                    ))}
+
+                    {filteredSuggestions.length === 0 && (
+                      <div className="text-center py-5 px-2">
+                        <p className="text-xs text-neutral-500 font-medium">No results found for &quot;{searchQuery}&quot;</p>
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery("")}
+                          className="mt-1 text-xs text-[#8B263E] font-bold hover:underline"
+                        >
+                          Show all
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </motion.section>

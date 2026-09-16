@@ -10,7 +10,7 @@ export function MobileWeddingStudio() {
     <div className="flex flex-col bg-[#FBF8F4] min-h-screen pb-20">
       
       {/* 1. Simplified Mobile Hero */}
-      <section className="px-5 pt-8 pb-10 flex flex-col items-center text-center">
+      <section className="px-5 pt-28 pb-10 flex flex-col items-center text-center">
         <span className="text-[10px] font-black uppercase text-[#C5A880] tracking-[0.3em] mb-4">
           Wedding Studio
         </span>
@@ -24,16 +24,16 @@ export function MobileWeddingStudio() {
 
         <div className="flex flex-col gap-3 w-full">
           <Link 
-            href="#create"
+            href="/e-invites"
             className="w-full py-4 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-[#8B263E] shadow-md flex items-center justify-center gap-2"
           >
             Start Creating <ArrowRight className="w-4 h-4" />
           </Link>
           <Link 
-            href="#templates"
-            className="w-full py-4 rounded-full text-xs font-bold uppercase tracking-widest text-neutral-700 bg-white border border-[#C5A880]/30 shadow-sm flex items-center justify-center"
+            href="/e-invites"
+            className="w-full py-4 rounded-full text-xs font-bold uppercase tracking-widest text-neutral-700 bg-white border border-[#C5A880]/30 shadow-sm flex items-center justify-center gap-2"
           >
-            Explore Templates
+            Explore eInvites <ArrowRight className="w-4 h-4 text-[#8B263E]" />
           </Link>
         </div>
       </section>
@@ -64,9 +64,15 @@ export function MobileWeddingStudio() {
             <div className="w-10 h-10 rounded-full bg-[#FAF5ED] flex items-center justify-center shrink-0">
               <Smartphone className="w-5 h-5 text-[#C5A880]" />
             </div>
-            <div>
+            <div className="flex-1">
               <h3 className="text-sm font-bold text-neutral-900 mb-1">Stunning eInvites</h3>
-              <p className="text-xs text-neutral-600 leading-relaxed">Send animated, responsive invites directly via WhatsApp or Email.</p>
+              <p className="text-xs text-neutral-600 leading-relaxed mb-2.5">Send animated, responsive invites directly via WhatsApp or Email.</p>
+              <Link 
+                href="/e-invites"
+                className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#8B263E] hover:text-[#6e1c2f] transition-colors"
+              >
+                Explore eInvites <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
 
@@ -95,10 +101,10 @@ export function MobileWeddingStudio() {
       {/* 4. Final Inline CTA */}
       <div className="px-5 py-8 bg-[#FBF8F4]">
         <Link 
-          href="#create"
+          href="/e-invites"
           className="w-full py-4 rounded-full text-xs font-bold uppercase tracking-widest text-white bg-[#8B263E] shadow-[0_8px_20px_rgba(139,38,62,0.25)] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
         >
-          Start Your Design <Sparkles className="w-4 h-4" />
+          Explore eInvites <Sparkles className="w-4 h-4" />
         </Link>
       </div>
 

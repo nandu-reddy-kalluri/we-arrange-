@@ -29,6 +29,8 @@ export interface VenueStore {
   addRecentlyViewed: (venueId: string) => void;
 }
 
+import { useSavedStore } from './useSavedStore';
+
 export const useVenueStore = create<VenueStore>()(
   persist(
     (set) => ({
@@ -61,12 +63,14 @@ export const useVenueStore = create<VenueStore>()(
         } 
       }),
 
-      toggleShortlist: (venueId) =>
+      toggleShortlist: (venueId) => {
+        useSavedStore.getState().toggleSaveVenue(venueId);
         set((state) => ({
           weddingShortlist: state.weddingShortlist.includes(venueId)
             ? state.weddingShortlist.filter((id) => id !== venueId)
             : [...state.weddingShortlist, venueId],
-        })),
+        }));
+      },
 
       toggleCompare: (venueId) =>
         set((state) => ({

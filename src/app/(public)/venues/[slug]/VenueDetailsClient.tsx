@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
   Heart, MapPin, CheckCircle, ChevronLeft, ChevronRight, Share2, 
-  Star, ShieldCheck, ArrowLeft,
+  Star, ArrowLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { featuredVenues } from "@/mock-data/venues";
@@ -59,9 +59,11 @@ function X({ className }: { className?: string }) {
   );
 }
 
+import { useSavedStore } from "@/store/useSavedStore";
+
 export default function VenueDetailsClient({ slug }: { slug: string }) {
   const router = useRouter();
-  const { weddingShortlist, toggleShortlist } = useVenueStore();
+  const { isVenueSaved, toggleSaveVenue } = useSavedStore();
   
   // Find venue by slug
   const venue = featuredVenues.find((v) => v.slug === slug);
@@ -69,10 +71,141 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
   // Safe check for store hydration
   const [isMounted, setIsMounted] = React.useState(false);
   React.useEffect(() => setIsMounted(true), []);
-  const isWishlisted = isMounted && venue ? weddingShortlist.includes(venue.id) : false;
+  const isWishlisted = isMounted && venue ? isVenueSaved(venue.id) : false;
 
-  const [activeLightbox, setActiveLightbox] = useState<string | null>(null);
+  const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Complete Venue Gallery (No duplicates, complete image set)
+  const allGalleryImages = React.useMemo(() => {
+    if (!venue) return [];
+    const list = Array.from(new Set([
+      venue.imageUrl,
+      ...(venue.gallery || []),
+      "/images/editorial/venue_1.png",
+      "/images/editorial/venue_2.png",
+      "/images/editorial/venue_3.png",
+      "/images/editorial/venue_4.png",
+      "/images/editorial/hero_venue.png",
+      "/images/editorial/garden_wedding.png",
+      "/images/editorial/royal_wedding.png",
+      "/images/editorial/mandap_design.png",
+      "/images/editorial/minimal_wedding.png",
+      "https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1200&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1200&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=1200&auto=format&fit=crop&q=80",
+    ].filter(Boolean))) as string[];
+    return list;
+  }, [venue]);
+
+  // Gallery Navigation Handlers (No Loop: stops at first and last image)
+  const handlePrevImage = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setActiveLightboxIndex((prev) => {
+      if (prev === null || prev <= 0) return prev;
+      return prev - 1;
+    });
+  }, []);
+
+  const handleNextImage = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setActiveLightboxIndex((prev) => {
+      if (prev === null || prev >= allGalleryImages.length - 1) return prev;
+      return prev + 1;
+    });
+  }, [allGalleryImages.length]);
+
+  const isFirstImage = activeLightboxIndex === 0;
+  const isLastImage = activeLightboxIndex !== null && activeLightboxIndex === allGalleryImages.length - 1;
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeLightboxIndex === null) return;
+      if (e.key === "ArrowLeft") handlePrevImage();
+      if (e.key === "ArrowRight") handleNextImage();
+      if (e.key === "Escape") setActiveLightboxIndex(null);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeLightboxIndex, handlePrevImage, handleNextImage]);
+
+  // Touch Swipe Handlers (Mobile)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const isDraggingRef = useRef(false);
+  const mouseStartRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
+    touchStartRef.current = null;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 25) {
+      if (deltaX < 0) {
+        // Swipe RIGHT -> LEFT = NEXT image
+        handleNextImage();
+      } else {
+        // Swipe LEFT -> RIGHT = PREVIOUS image
+        handlePrevImage();
+      }
+    }
+  };
+
+  // Mouse drag handlers (Desktop / Laptop)
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDraggingRef.current = false;
+    mouseStartRef.current = e.clientX;
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (mouseStartRef.current === null) return;
+    if (Math.abs(e.clientX - mouseStartRef.current) > 10) {
+      isDraggingRef.current = true;
+    }
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (mouseStartRef.current === null) return;
+    const deltaX = e.clientX - mouseStartRef.current;
+    mouseStartRef.current = null;
+
+    if (Math.abs(deltaX) > 35) {
+      if (deltaX < 0) {
+        // Drag RIGHT -> LEFT = NEXT image
+        handleNextImage();
+      } else {
+        // Drag LEFT -> RIGHT = PREVIOUS image
+        handlePrevImage();
+      }
+    }
+  };
+
+  // Wheel scroll debounce for trackpad horizontal scrolling
+  const wheelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const handleWheel = (e: React.WheelEvent) => {
+    if (wheelTimeoutRef.current) return;
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (Math.abs(delta) > 25) {
+      if (delta > 0) {
+        handleNextImage();
+      } else {
+        handlePrevImage();
+      }
+      wheelTimeoutRef.current = setTimeout(() => {
+        wheelTimeoutRef.current = null;
+      }, 350);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -108,18 +241,8 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
     );
   }
 
-  // Populate gallery (pad with default images if necessary to fill the 5-grid)
-  const defaultImages = [
-    "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=800&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&auto=format&fit=crop&q=80",
-  ];
-  
-  const imagesGrid = [venue.imageUrl, ...venue.gallery.slice(1)];
-  while(imagesGrid.length < 5) {
-    imagesGrid.push(defaultImages[(imagesGrid.length - 1) % defaultImages.length]);
-  }
+  // 5 showcase images for the top grid
+  const showcaseGrid = allGalleryImages.slice(0, 5);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -148,41 +271,121 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
   return (
     <main className="min-h-screen bg-neutral-cream pb-24 lg:pb-16 text-neutral-charcoal relative">
       
+      {/* Complete Venue Gallery Lightbox Modal */}
       <AnimatePresence>
-        {activeLightbox && (
+        {activeLightboxIndex !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setActiveLightbox(null)}
-            className="fixed inset-0 bg-black/95 backdrop-blur-md z-[200] flex items-center justify-center p-4"
+            onClick={() => setActiveLightboxIndex(null)}
+            className="fixed top-[70px] sm:top-[76px] md:top-[88px] lg:top-[92px] bottom-0 left-0 right-0 z-40 bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 md:p-6 pb-6 md:pb-8 select-none overflow-hidden"
           >
-            <button
-              onClick={() => setActiveLightbox(null)}
-              className="absolute top-6 right-6 text-white hover:text-[#C5A880] transition-colors p-2 z-[210] cursor-pointer"
+            {/* Top Bar with clear header gap */}
+            <div 
+              className="flex items-center justify-between text-white z-10 mb-2"
+              onClick={(e) => e.stopPropagation()}
             >
-              <X className="w-8 h-8" />
-            </button>
-            <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              className="relative max-w-4xl max-h-[85vh] overflow-hidden rounded-xl shadow-2xl"
+              <div className="flex items-center gap-3">
+                <span className="font-serif text-sm md:text-base font-bold truncate max-w-[200px] sm:max-w-md">
+                  {venue.name}
+                </span>
+                <span className="text-[10px] md:text-xs font-mono font-bold bg-white/10 px-3 py-1 rounded-full text-white/90">
+                  {activeLightboxIndex + 1} / {allGalleryImages.length}
+                </span>
+              </div>
+              
+              <button
+                onClick={() => setActiveLightboxIndex(null)}
+                className="p-2.5 text-white/80 hover:text-white rounded-full bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+                aria-label="Close gallery"
+              >
+                <X className="w-5 h-5 md:w-6 md:h-6" />
+              </button>
+            </div>
+
+            {/* Main Stage (Image + Drag/Swipe + Conditional Arrow controls) */}
+            <div 
+              className="relative flex-1 my-auto w-full flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden min-h-0"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onWheel={handleWheel}
+              onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={activeLightbox}
-                alt="Gallery item"
-                className="max-w-full max-h-[85vh] object-contain rounded-xl"
-              />
-            </motion.div>
+              {/* Left Arrow Button (Hidden on First Image) */}
+              {!isFirstImage && (
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 p-3 md:p-4 bg-black/60 hover:bg-[#8B263E] text-white rounded-full backdrop-blur-md border border-white/15 transition-all z-20 cursor-pointer shadow-lg"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+              )}
+
+              {/* Main Image */}
+              <motion.div
+                key={activeLightboxIndex}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.25 }}
+                className="relative max-w-5xl max-h-[55vh] md:max-h-[62vh] w-full h-full flex items-center justify-center pointer-events-none"
+              >
+                <img
+                  src={allGalleryImages[activeLightboxIndex]}
+                  alt={`${venue.name} photo ${activeLightboxIndex + 1}`}
+                  className="max-w-full max-h-[55vh] md:max-h-[62vh] object-contain rounded-xl shadow-2xl"
+                  draggable={false}
+                />
+              </motion.div>
+
+              {/* Right Arrow Button (Hidden on Last Image) */}
+              {!isLastImage && (
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 p-3 md:p-4 bg-black/60 hover:bg-[#8B263E] text-white rounded-full backdrop-blur-md border border-white/15 transition-all z-20 cursor-pointer shadow-lg"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+              )}
+            </div>
+
+            {/* Bottom Thumbnail Strip with clean bottom gap */}
+            <div 
+              className="w-full max-w-5xl mx-auto flex items-center gap-2 overflow-x-auto py-2 px-4 hide-scrollbar z-10 justify-start sm:justify-center mt-2 mb-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {allGalleryImages.map((thumbUrl, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveLightboxIndex(idx)}
+                  className={`relative w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                    idx === activeLightboxIndex 
+                      ? "border-[#C5A880] scale-105 shadow-md opacity-100" 
+                      : "border-transparent opacity-50 hover:opacity-80"
+                  }`}
+                >
+                  <img
+                    src={thumbUrl}
+                    alt={`Thumbnail ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Header Container & Gallery */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+      {/* Header Container & Gallery (Proper desktop header spacing) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-24 lg:pt-28">
         
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-5 md:mb-6">
           <button
             onClick={() => router.back()}
             className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-muted hover:text-[#8B263E] transition-colors cursor-pointer group"
@@ -200,40 +403,43 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
               <Share2 className="w-4 h-4" />
             </button>
             <button
-              onClick={() => toggleShortlist(venue.id)}
+              onClick={() => toggleSaveVenue(venue.id)}
               className="p-2 rounded-full border border-gray-250 bg-white shadow-sm hover:border-[#8B263E] text-gray-500 hover:text-[#8B263E] transition-colors cursor-pointer"
-              title="Add to Wishlist"
+              title={isWishlisted ? "Remove from Saved" : "Save Venue"}
             >
               <Heart className={`w-4 h-4 ${isWishlisted ? "text-[#8B263E] fill-[#8B263E]" : ""}`} />
             </button>
           </div>
         </div>
 
-        {/* Hero Image Grid (5 Photos) */}
+        {/* Hero Image Grid (5 Photos Showcase) */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3.5 rounded-[22px] overflow-hidden bg-gray-150 h-[300px] md:h-[450px] relative shadow-md group/hero">
-          <div className="md:col-span-2 relative h-full w-full overflow-hidden">
+          <div 
+            className="md:col-span-2 relative h-full w-full overflow-hidden cursor-pointer"
+            onClick={() => setActiveLightboxIndex(0)}
+          >
             <img
-              src={imagesGrid[0]}
+              src={showcaseGrid[0]}
               alt={`${venue.name} main showcase`}
               className="w-full h-full object-cover hover:scale-102 transition-transform duration-700 ease-out"
             />
           </div>
 
           <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-3.5 h-full">
-            {imagesGrid.slice(1, 5).map((imgUrl, i) => (
+            {showcaseGrid.slice(1, 5).map((imgUrl, i) => (
               <div key={i} className="relative h-full w-full overflow-hidden bg-gray-200">
                 <img
                   src={imgUrl}
                   alt={`Showcase item ${i + 1}`}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 ease-out cursor-pointer"
-                  onClick={() => setActiveLightbox(imgUrl)}
+                  onClick={() => setActiveLightboxIndex(i + 1)}
                 />
               </div>
             ))}
           </div>
 
           <button
-            onClick={() => setActiveLightbox(imagesGrid[0])}
+            onClick={() => setActiveLightboxIndex(0)}
             className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-md border border-neutral-border text-neutral-charcoal text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-md hover:bg-white hover:border-[#C5A880] transition-all cursor-pointer z-10"
           >
             🖼️ View All Photos
@@ -357,17 +563,25 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
               </div>
             </div>
 
-            {/* Gallery (Pinterest Column Grid) */}
+            {/* Gallery (Masonry / Column Grid with All Gallery Images) */}
             <div id="portfolio" className="border-b border-gray-100 pb-6 scroll-mt-24">
-              <h3 className="font-serif text-lg font-bold text-neutral-charcoal mb-4">Venue Gallery</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-serif text-lg font-bold text-neutral-charcoal">Complete Venue Gallery</h3>
+                <button
+                  onClick={() => setActiveLightboxIndex(0)}
+                  className="text-xs font-bold uppercase tracking-wider text-[#8B263E] hover:text-[#C5A880] transition-colors cursor-pointer"
+                >
+                  View Fullscreen ({allGalleryImages.length} photos) →
+                </button>
+              </div>
               <div className="columns-2 sm:columns-3 gap-3">
-                {imagesGrid.map((imgUrl, i) => (
+                {allGalleryImages.map((imgUrl, i) => (
                   <div key={i} className="mb-3 break-inside-avoid relative overflow-hidden rounded-xl bg-gray-100 group shadow-sm">
                     <img
                       src={imgUrl}
-                      alt={`Gallery item ${i}`}
+                      alt={`Gallery item ${i + 1}`}
                       className="w-full h-auto object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 cursor-pointer"
-                      onClick={() => setActiveLightbox(imgUrl)}
+                      onClick={() => setActiveLightboxIndex(i)}
                     />
                     <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3 pointer-events-none">
                       <span className="text-[9px] font-bold text-white uppercase tracking-wider">Expand image</span>
@@ -448,13 +662,19 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
           <div id="contact" className="lg:col-span-1 scroll-mt-24">
             <div className="lg:sticky lg:top-24 bg-white border border-[#C5A880]/20 rounded-[22px] p-6 shadow-[0_12px_40px_rgba(197,168,128,0.06)] flex flex-col">
               
+              {/* Add to Cart Area (Replacing price) */}
               <div className="mb-6">
-                <span className="text-[8px] font-black uppercase text-neutral-muted block tracking-widest">
-                  Starting Price
-                </span>
-                <span className="text-2xl font-black text-[#8B263E]">
-                  {venue.priceOnwards}
-                </span>
+                <button
+                  onClick={() => toggleSaveVenue(venue.id)}
+                  className={`w-full py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2.5 font-bold text-xs uppercase tracking-wider transition-all duration-300 cursor-pointer shadow-sm ${
+                    isWishlisted
+                      ? "bg-[#8B263E] text-white border border-[#8B263E] shadow-[0_4px_16px_rgba(139,38,62,0.25)]"
+                      : "bg-[#FAF9F6] text-neutral-charcoal border border-[#C5A880]/40 hover:border-[#8B263E] hover:text-[#8B263E]"
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 transition-colors ${isWishlisted ? "text-white fill-white" : "text-[#8B263E]"}`} />
+                  <span>{isWishlisted ? "Added to Cart" : "Add to Cart"}</span>
+                </button>
               </div>
 
               <div className="flex flex-col gap-3 mb-4">
@@ -473,7 +693,7 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
                 
                 <div className="flex gap-2.5 mt-2">
                   <button
-                    onClick={() => toggleShortlist(venue.id)}
+                    onClick={() => toggleSaveVenue(venue.id)}
                     className="flex-1 py-2.5 rounded-full border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-1.5 text-neutral-charcoal text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "text-[#8B263E] fill-[#8B263E]" : ""}`} />
@@ -501,8 +721,17 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
       {/* Mobile Sticky Bottom Consultation Bar */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-250/60 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center gap-3 z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
         <div className="flex-1">
-          <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider block leading-tight mb-0.5">Pricing</span>
-          <span className="text-sm font-bold text-[#8B263E] leading-tight">{venue.priceOnwards}</span>
+          <button
+            onClick={() => toggleSaveVenue(venue.id)}
+            className={`w-full py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 font-bold text-[11px] uppercase tracking-wider transition-all border ${
+              isWishlisted
+                ? "bg-[#8B263E] text-white border-[#8B263E]"
+                : "bg-[#FAF9F6] text-neutral-charcoal border-[#C5A880]/30 hover:border-[#8B263E]"
+            }`}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "text-white fill-white" : "text-[#8B263E]"}`} />
+            <span>{isWishlisted ? "Saved" : "Save"}</span>
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <a

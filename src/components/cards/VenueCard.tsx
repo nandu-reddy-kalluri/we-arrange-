@@ -1,18 +1,20 @@
 "use client";
 
 import React from "react";
-import { Heart, MapPin, ShieldCheck, Star, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Heart, MapPin, ShieldCheck, Star, ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Venue } from "@/mock-data/venues";
-import { useVenueStore } from "@/store/useVenueStore";
+import { useSavedStore } from "@/store/useSavedStore";
 
-export default function VenueCard({ venue }: { venue: Venue }) {
-  const { weddingShortlist, toggleShortlist } = useVenueStore();
+export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?: () => void }) {
+  const router = useRouter();
+  const { isVenueSaved, toggleSaveVenue } = useSavedStore();
   
   const [isMounted, setIsMounted] = React.useState(false);
   React.useEffect(() => setIsMounted(true), []);
-  const isSaved = isMounted ? weddingShortlist.includes(venue.id) : false;
+  const isSaved = isMounted ? isVenueSaved(venue.id) : false;
 
   const images = React.useMemo(() => {
     const list = Array.from(new Set([venue.imageUrl, ...(venue.gallery || [])].filter(Boolean)));
@@ -25,8 +27,21 @@ export default function VenueCard({ venue }: { venue: Venue }) {
   const [currentImgIndex, setCurrentImgIndex] = React.useState(0);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const isSwipingRef = React.useRef(false);
+
+  // Automatic image slider: every 3000ms (3 seconds) with continuous loop
+  React.useEffect(() => {
+    if (images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentImgIndex((prev) => (prev + 1) % images.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    isSwipingRef.current = false;
     touchStartRef.current = {
       x: e.touches[0].clientX,
       y: e.touches[0].clientY,
@@ -39,7 +54,8 @@ export default function VenueCard({ venue }: { venue: Venue }) {
     const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
     touchStartRef.current = null;
 
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 35) {
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 20) {
+      isSwipingRef.current = true;
       if (deltaX < 0) {
         setCurrentImgIndex((prev) => (prev + 1) % images.length);
       } else {
@@ -48,28 +64,39 @@ export default function VenueCard({ venue }: { venue: Venue }) {
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (isSwipingRef.current) {
+      isSwipingRef.current = false;
+      return;
+    }
+    router.push(`/venues/${venue.slug}`);
+  };
+
   return (
     <>
-      <div className="group flex flex-col bg-white border border-gray-100 shadow-[0_8px_32px_0_rgba(25,45,50,0.02)] hover:shadow-[0_20px_40px_rgba(200,161,101,0.15)] hover:-translate-y-1 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-[#C8A165] rounded-2xl overflow-hidden">
-        {/* Image Container with Touch Swipe on Mobile */}
+      <div 
+        onClick={handleCardClick}
+        className="group flex flex-col bg-white border border-gray-100 shadow-[0_8px_32px_0_rgba(25,45,50,0.02)] hover:shadow-[0_20px_40px_rgba(200,161,101,0.15)] hover:-translate-y-1 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-[#C8A165] rounded-2xl overflow-hidden cursor-pointer"
+      >
+        {/* Image Container with Automatic 1s Slider and Touch Swipe */}
         <div 
-          className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden select-none cursor-pointer"
+          className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden select-none"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          onClick={() => {
-            if (!touchStartRef.current) {
-              setIsModalOpen(true);
-            }
-          }}
         >
-          <Image
-            src={images[currentImgIndex] || venue.imageUrl}
-            alt={venue.name}
-            fill
-            unoptimized
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          {images.map((imgUrl, idx) => (
+            <Image
+              key={imgUrl + idx}
+              src={imgUrl}
+              alt={venue.name}
+              fill
+              unoptimized
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              className={`object-cover transition-opacity duration-500 ease-in-out group-hover:scale-105 ${
+                idx === currentImgIndex ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
+              }`}
+            />
+          ))}
           <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300 pointer-events-none" />
           
           {venue.isVerified && (
@@ -83,28 +110,41 @@ export default function VenueCard({ venue }: { venue: Venue }) {
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              toggleShortlist(venue.id);
+              if (onRemove && isSaved) {
+                onRemove();
+              } else {
+                toggleSaveVenue(venue.id);
+              }
             }}
             className="absolute top-3 right-3 p-1.5 focus:outline-none z-10"
-            aria-label={isSaved ? "Remove from wishlist" : "Add to wishlist"}
+            aria-label={isSaved ? "Remove from saved" : "Save venue"}
           >
             <Heart
               className={`w-5 h-5 transition-colors ${
-                isSaved ? "fill-[#6F1D2C] text-[#6F1D2C]" : "text-white hover:text-white/80 drop-shadow-md"
+                isSaved ? "fill-[#8B263E] text-[#8B263E]" : "text-white hover:text-white/80 drop-shadow-md"
               }`}
             />
           </button>
 
-          {/* Mobile Subtle Image Indicator */}
+          {/* Image Indicator Dots */}
           {images.length > 1 && (
-            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm z-10">
+            <div 
+              className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm z-10"
+              onClick={(e) => e.stopPropagation()}
+            >
               {images.length <= 5 ? (
                 images.map((_, idx) => (
-                  <span
+                  <button
                     key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImgIndex(idx);
+                    }}
                     className={`w-1.5 h-1.5 rounded-full transition-all ${
                       idx === currentImgIndex ? "bg-white scale-125" : "bg-white/50"
                     }`}
+                    aria-label={`Go to slide ${idx + 1}`}
                   />
                 ))
               ) : (
@@ -119,7 +159,11 @@ export default function VenueCard({ venue }: { venue: Venue }) {
         {/* Info Section */}
         <div className="flex flex-col gap-1.5 md:gap-2.5 p-3 md:p-5">
           <div className="flex items-start justify-between gap-2">
-            <Link href={`/venues/${venue.slug}`} className="font-serif text-base md:text-[17px] font-bold text-neutral-900 leading-snug line-clamp-1 group-hover:text-[#6F1D2C] transition-colors">
+            <Link 
+              href={`/venues/${venue.slug}`} 
+              onClick={(e) => e.stopPropagation()}
+              className="font-serif text-base md:text-[17px] font-bold text-neutral-900 leading-snug line-clamp-1 group-hover:text-[#6F1D2C] transition-colors"
+            >
               {venue.name}
             </Link>
           </div>
@@ -155,6 +199,7 @@ export default function VenueCard({ venue }: { venue: Venue }) {
           <div className="md:hidden pt-3 mt-1 border-t border-gray-100 flex items-center justify-between gap-2">
             <button
               onClick={(e) => {
+                e.stopPropagation();
                 e.preventDefault();
                 window.location.href = "tel:+919876543210";
               }}
@@ -164,6 +209,7 @@ export default function VenueCard({ venue }: { venue: Venue }) {
             </button>
             <button
               onClick={(e) => {
+                e.stopPropagation();
                 e.preventDefault();
                 alert(`Quote requested for ${venue.name}`);
               }}
@@ -171,13 +217,25 @@ export default function VenueCard({ venue }: { venue: Venue }) {
             >
               Get Quote
             </button>
-            <Link
-              href={`/venues/${venue.slug}`}
-              className="flex-1 py-2.5 rounded-lg text-[10px] font-bold text-center bg-[#8B263E] text-white hover:bg-[#6e1c2f] transition-colors flex items-center justify-center whitespace-nowrap"
-            >
-              View
-            </Link>
           </div>
+
+          {onRemove && (
+            <div className="pt-2.5 mt-1 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onRemove();
+                }}
+                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold text-[#8B263E] bg-[#8B263E]/8 hover:bg-[#8B263E] hover:text-white border border-[#8B263E]/20 transition-all duration-200"
+                title="Remove from saved"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Remove</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -234,3 +292,4 @@ export default function VenueCard({ venue }: { venue: Venue }) {
     </>
   );
 }
+

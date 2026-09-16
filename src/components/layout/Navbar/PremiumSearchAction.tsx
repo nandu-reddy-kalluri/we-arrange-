@@ -16,7 +16,27 @@ const searchChips = [
 ];
 
 const searchOptions: Record<string, string[]> = {
-  location: ["All Hyderabad Areas", "Banjara Hills", "Jubilee Hills", "Gachibowli", "Hitech City", "Secunderabad", "Kondapur", "Madhapur"],
+  location: [
+    "All Hyderabad Areas",
+    "Banjara Hills",
+    "Jubilee Hills",
+    "Gachibowli",
+    "Hitech City",
+    "Secunderabad",
+    "Kondapur",
+    "Madhapur",
+    "Shamshabad",
+    "Begumpet",
+    "Kompally",
+    "Kukatpally",
+    "Manikonda",
+    "Financial District",
+    "Miyapur",
+    "Somajiguda",
+    "Abids",
+    "Gandipet",
+    "Old City Hyderabad"
+  ],
   guests: ["Under 200", "200-500", "500-1000", "1000+"],
   budget: ["Under ₹5L", "₹5L-₹10L", "₹10L-₹25L", "₹25L+"],
   venueType: ["All Venue Types", "Banquet Hall", "Hotel", "Resort", "Farmhouse", "Destination Wedding", "Convention Hall", "Heritage Venue", "Garden Venue"],
@@ -234,12 +254,24 @@ export function PremiumSearchAction({ onMenuClose, useDarkText = false }: { onMe
                                           <input
                                             autoFocus
                                             type="text"
-                                            placeholder="Search area, venue or locality..."
+                                            placeholder="Search area, venue or locality (e.g. Banjara, hy)..."
                                             value={locationQuery}
                                             onChange={(e) => setLocationQuery(e.target.value)}
                                             onClick={(e) => e.stopPropagation()}
-                                            className="w-full bg-gray-50 border border-gray-100 rounded-lg py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-1 focus:ring-[#8B263E]/20 text-black font-medium placeholder:text-black/30 placeholder:font-normal"
+                                            className="w-full bg-gray-50 border border-gray-100 rounded-lg py-2.5 pl-9 pr-8 text-sm outline-none focus:ring-1 focus:ring-[#8B263E]/20 text-black font-medium placeholder:text-black/30 placeholder:font-normal"
                                           />
+                                          {locationQuery && (
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setLocationQuery("");
+                                              }}
+                                              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-black/40 hover:text-black transition-colors"
+                                            >
+                                              <X className="w-3.5 h-3.5" />
+                                            </button>
+                                          )}
                                         </div>
                                       </div>
                                       <div className="max-h-[240px] overflow-y-auto">

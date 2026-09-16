@@ -25,7 +25,7 @@ export function HeroVideo({ isReducedMotion }: BackgroundLayerProps) {
       </div>
 
       {/* Video Player — rendered on top when ready, also crisp */}
-      {!isReducedMotion && (
+      {!isReducedMotion && VIDEO_CONFIG.src && (
         <AnimatePresence>
           <motion.video
             initial={{ opacity: 0 }}

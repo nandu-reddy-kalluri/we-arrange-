@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { Sparkles, ArrowRight, Compass } from "lucide-react";
 
 const INITIAL_FILTERS: VenueFilterState = {
-  location: "All Locations",
+  location: "Any Location",
   guests: "Any Guests",
   budget: "Any Budget",
   venueType: "All Types",
@@ -31,50 +31,118 @@ export function VenueDiscoveryClient() {
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (filters.location && !filters.location.startsWith("All")) count++;
+    if (filters.location && !filters.location.startsWith("All") && !filters.location.startsWith("Any")) count++;
     if (filters.guests && !filters.guests.startsWith("Any")) count++;
     if (filters.budget && !filters.budget.startsWith("Any")) count++;
-    if (filters.venueType && !filters.venueType.startsWith("All")) count++;
-    if (filters.space && !filters.space.startsWith("All")) count++;
+    if (filters.venueType && !filters.venueType.startsWith("All") && !filters.venueType.startsWith("Any")) count++;
+    if (filters.space && !filters.space.startsWith("All") && !filters.space.startsWith("Any")) count++;
     return count;
   }, [filters]);
 
   const filteredVenues = useMemo(() => {
     return featuredVenues.filter((venue) => {
-      // Location filter
-      if (filters.location && !filters.location.startsWith("All")) {
-        const locLower = filters.location.toLowerCase();
-        const venueLoc = `${venue.location} ${venue.city}`.toLowerCase();
-        if (!venueLoc.includes(locLower)) {
-          return false;
+      // 1. Location filter
+      if (filters.location && !filters.location.startsWith("All") && !filters.location.startsWith("Any")) {
+        const locLower = filters.location.trim().toLowerCase();
+        // If "hyderabad" or "hyderabad city", match all Hyderabad venues
+        if (locLower === "hyderabad" || locLower === "hyderabad city") {
+          if (!venue.city.toLowerCase().includes("hyderabad")) return false;
+        } else {
+          const venueSearchTarget = `${venue.name} ${venue.location} ${venue.city}`.toLowerCase();
+          if (!venueSearchTarget.includes(locLower)) {
+            return false;
+          }
         }
       }
 
-      // Guests / Capacity filter
+      // 2. Guests / Capacity filter
       if (filters.guests && !filters.guests.startsWith("Any")) {
-        if (filters.guests === "Up to 300 Guests" && venue.maxCapacity > 300) return false;
-        if (filters.guests === "300 - 600 Guests" && (venue.maxCapacity < 300 || venue.maxCapacity > 600)) return false;
-        if (filters.guests === "600 - 1000 Guests" && (venue.maxCapacity < 600 || venue.maxCapacity > 1000)) return false;
-        if (filters.guests === "1000+ Guests" && venue.maxCapacity < 1000) return false;
+        // Parse venue capacity min/max
+        const rangeParts = venue.capacityRange.match(/(\d+)\s*-\s*(\d+)/);
+        const venueMin = rangeParts ? parseInt(rangeParts[1], 10) : 0;
+        const venueMax = venue.maxCapacity || (rangeParts ? parseInt(rangeParts[2], 10) : 1000);
+
+        if (filters.guests === "50–100 Guests" || filters.guests === "50-100 Guests") {
+          // Venue accommodates intimate/small events
+          if (venueMin > 150 || venueMax < 50) return false;
+        } else if (filters.guests === "100–200 Guests" || filters.guests === "100-200 Guests") {
+          if (venueMin > 250 || venueMax < 100) return false;
+        } else if (filters.guests === "200–500 Guests" || filters.guests === "200-500 Guests") {
+          if (venueMin > 500 || venueMax < 200) return false;
+        } else if (filters.guests === "500–1000 Guests" || filters.guests === "500-1000 Guests") {
+          if (venueMin > 1000 || venueMax < 500) return false;
+        } else if (filters.guests === "1000+ Guests") {
+          if (venueMax < 1000) return false;
+        } else {
+          // Custom manual number: e.g. "350 Guests"
+          const parsed = parseInt(filters.guests.replace(/\D/g, ""), 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            if (venueMax < parsed) return false;
+          }
+        }
       }
 
-      // Budget filter
+      // 3. Budget filter
       if (filters.budget && !filters.budget.startsWith("Any")) {
         const price = venue.pricePerPlate || 0;
-        if (filters.budget === "Under ₹500 / plate" && (price === 0 || price > 500)) return false;
-        if (filters.budget === "₹500 - ₹1,000 / plate" && (price < 500 || price > 1000)) return false;
-        if (filters.budget === "₹1,000 - ₹2,000 / plate" && (price < 1000 || price > 2000)) return false;
-        if (filters.budget === "Custom / On Request" && price > 0) return false;
+        const isRequestOnly = !venue.pricePerPlate || venue.priceOnwards.toLowerCase().includes("request");
+
+        if (filters.budget === "Price on Request") {
+          if (!isRequestOnly) return false;
+        } else if (filters.budget === "₹500 per plate") {
+          if (isRequestOnly || price > 500) return false;
+        } else if (filters.budget === "₹1,000 per plate") {
+          if (isRequestOnly || price > 1000) return false;
+        } else if (filters.budget === "₹1,500 per plate") {
+          if (isRequestOnly || price > 1500) return false;
+        } else if (filters.budget === "₹2,000 per plate") {
+          if (isRequestOnly || price > 2000) return false;
+        } else if (filters.budget === "₹2,500 per plate") {
+          if (isRequestOnly || price > 2500) return false;
+        } else if (filters.budget === "₹3,000+ per plate") {
+          if (isRequestOnly || price < 3000) return false;
+        }
       }
 
-      // Venue type filter
-      if (filters.venueType && !filters.venueType.startsWith("All")) {
-        if (venue.type !== filters.venueType) return false;
+      // 4. Venue Type filter
+      if (filters.venueType && !filters.venueType.startsWith("All") && !filters.venueType.startsWith("Any")) {
+        const vType = filters.venueType;
+        const fullDesc = `${venue.type} ${venue.name} ${venue.venueHighlights.join(" ")} ${venue.moodTags.join(" ")}`.toLowerCase();
+        
+        if (vType === "Banquet Hall") {
+          if (venue.type !== "Banquet" && !fullDesc.includes("banquet")) return false;
+        } else if (vType === "Wedding Hall") {
+          if (venue.type !== "Banquet" && venue.type !== "Convention" && !fullDesc.includes("mandapam") && !fullDesc.includes("hall")) return false;
+        } else if (vType === "Convention Centre") {
+          if (venue.type !== "Convention" && !fullDesc.includes("convention")) return false;
+        } else if (vType === "Hotel") {
+          if (venue.type !== "Hotel" && !fullDesc.includes("hotel")) return false;
+        } else if (vType === "Resort") {
+          if (venue.type !== "Resort" && !fullDesc.includes("resort")) return false;
+        } else if (vType === "Lawn") {
+          if (!fullDesc.includes("lawn") && venue.space !== "Outdoor" && venue.space !== "Garden") return false;
+        } else if (vType === "Farmhouse") {
+          if (venue.type !== "Farmhouse" && !fullDesc.includes("farmhouse")) return false;
+        } else if (vType === "Palace") {
+          if (venue.type !== "Palace" && !fullDesc.includes("palace")) return false;
+        } else if (vType === "Outdoor Venue") {
+          if (venue.space !== "Outdoor" && venue.space !== "Garden" && venue.space !== "Poolside" && !fullDesc.includes("lawn")) return false;
+        } else if (vType === "Indoor Venue") {
+          if (venue.space !== "Indoor" && !fullDesc.includes("hall") && !fullDesc.includes("banquet")) return false;
+        }
       }
 
-      // Space filter
-      if (filters.space && !filters.space.startsWith("All")) {
-        if (venue.space !== filters.space) return false;
+      // 5. Space filter (Indoor / Outdoor)
+      if (filters.space && !filters.space.startsWith("All") && !filters.space.startsWith("Any")) {
+        const fullDesc = `${venue.space} ${venue.venueHighlights.join(" ")}`.toLowerCase();
+        if (filters.space === "Indoor") {
+          if (venue.space !== "Indoor" && !fullDesc.includes("hall") && !fullDesc.includes("indoor")) return false;
+        } else if (filters.space === "Outdoor") {
+          if (venue.space !== "Outdoor" && venue.space !== "Garden" && venue.space !== "Poolside" && !fullDesc.includes("lawn") && !fullDesc.includes("outdoor")) return false;
+        } else if (filters.space === "Indoor & Outdoor") {
+          // Matches venues having both or either combination
+          if (!fullDesc.includes("lawn") && !fullDesc.includes("banquet") && venue.space !== "Outdoor" && venue.space !== "Indoor") return false;
+        }
       }
 
       return true;
@@ -92,7 +160,7 @@ export function VenueDiscoveryClient() {
     <div className="min-h-screen bg-[#FBF7F2] relative pb-28">
       
       {/* 1. Hero Header & Unified Search */}
-      <section className="pt-28 pb-12 md:pt-36 md:pb-16 px-4 sm:px-6 max-w-6xl mx-auto relative z-20">
+      <section className="pt-28 pb-12 md:pt-36 md:pb-16 px-4 sm:px-6 max-w-6xl mx-auto relative z-40">
         
         {/* Header Typography */}
         <div className="text-center mb-8 md:mb-10">
@@ -132,6 +200,7 @@ export function VenueDiscoveryClient() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
+          className="relative z-50"
         >
           <VenueHeroSearch
             filters={filters}

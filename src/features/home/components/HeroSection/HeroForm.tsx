@@ -1,22 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
-import { MapPin, Users, IndianRupee, Sparkles } from "lucide-react";
-import { CustomSelect } from "@/components/ui/CustomSelect";
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   Counter: animated number roll-up
-───────────────────────────────────────────────────────────────────────────── */
-// Counter removed (no fake stats)
-
-// InputField replaced by CustomSelect
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   4C: Double-ring sonar pulse
-───────────────────────────────────────────────────────────────────────────── */
-// SonarDot removed
+import React, { useRef } from "react";
+import { useRouter } from "next/navigation";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    4D+4E: Luxury Burgundy Primary Button — liquid shimmer + press state
@@ -34,11 +19,9 @@ function PrimaryButton({
 
   const handleMouseEnter = () => {
     if (!shimmerRef.current) return;
-    // Reset position so sweep starts from right
     shimmerRef.current.style.transition = "none";
     shimmerRef.current.style.backgroundPosition = "200% center";
     shimmerRef.current.style.opacity = "1";
-    // Trigger sweep on next frame
     requestAnimationFrame(() => {
       if (!shimmerRef.current) return;
       shimmerRef.current.style.transition =
@@ -58,16 +41,13 @@ function PrimaryButton({
       suppressHydrationWarning
       onClick={onClick}
       id={id}
-      className="group relative w-full sm:w-auto px-8 min-h-[48px] rounded-xl text-[11px] font-black uppercase tracking-widest text-white overflow-hidden"
+      className="group relative w-full sm:w-auto px-8 min-h-[48px] rounded-xl text-[11px] font-black uppercase tracking-widest text-white overflow-hidden cursor-pointer"
       style={{
         background: "linear-gradient(135deg, #7A2033 0%, #6F1D2C 50%, #5C1724 100%)",
         boxShadow: "0 8px 32px -6px rgba(111,29,44,0.60), 0 1px 0 rgba(255,255,255,0.10) inset",
         border: "1px solid rgba(200,161,101,0.25)",
-        // 4E: Physical press — defined via CSS class below
         transition: "transform 80ms ease-out, box-shadow 80ms ease-out",
       }}
-      // 4E: Lift on hover, press on active
-      // 4E: Lift on hover, press on active
       onMouseDown={(e) => {
         (e.currentTarget as HTMLElement).style.transform = "scale(0.97) translateY(1px)";
         (e.currentTarget as HTMLElement).style.boxShadow =
@@ -101,7 +81,6 @@ function PrimaryButton({
           "0 8px 32px -6px rgba(111,29,44,0.60), 0 1px 0 rgba(255,255,255,0.10) inset";
       }}
     >
-      {/* 4D: Liquid gold shimmer sweep */}
       <span
         ref={shimmerRef}
         className="absolute inset-0 pointer-events-none opacity-0"
@@ -137,7 +116,7 @@ function SecondaryButton({
       suppressHydrationWarning
       onClick={onClick}
       id={id}
-      className="group relative w-full sm:w-auto px-8 min-h-[48px] rounded-xl text-[11px] font-black uppercase tracking-widest overflow-hidden"
+      className="group relative w-full sm:w-auto px-8 min-h-[48px] rounded-xl text-[11px] font-black uppercase tracking-widest overflow-hidden cursor-pointer"
       style={{
         background: "rgba(10, 5, 8, 0.45)",
         backdropFilter: "blur(12px)",
@@ -175,162 +154,26 @@ function SecondaryButton({
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   HeroForm — main export
+   HeroForm — Action Buttons
 ───────────────────────────────────────────────────────────────────────────── */
 export function HeroForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const [location, setLocation] = useState(searchParams.get("location") || "");
-  const [guests,   setGuests]   = useState(searchParams.get("guests")   || "");
-  const [budget,   setBudget]   = useState(searchParams.get("budget")   || "");
-  const [activeSelect, setActiveSelect] = useState<string | null>(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (location) params.set("location", location); else params.delete("location");
-    if (guests)   params.set("guests",   guests);   else params.delete("guests");
-    if (budget)   params.set("budget",   budget);   else params.delete("budget");
-    router.replace(`/?${params.toString()}`, { scroll: false });
-  }, [location, guests, budget, router, searchParams]);
-
-  const handleStartPlanning  = () => document.getElementById("concierge-journey")?.scrollIntoView({ behavior: "smooth" });
-  const handleExploreVenues  = () => {
-    const params = new URLSearchParams();
-    if (location) params.set("location", location);
-    if (guests) params.set("guests", guests);
-    if (budget) params.set("budget", budget);
-    router.push(`/venues?${params.toString()}`);
+  const handleExploreVenues = () => {
+    router.push("/venues");
   };
 
   return (
-    <div className="w-full flex flex-col gap-2">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="w-full flex flex-col gap-2 md:gap-3 text-neutral-charcoal relative"
-        style={{
-          background: "rgba(255, 252, 248, 0.08)",
-          backdropFilter: "blur(20px) saturate(140%)",
-          WebkitBackdropFilter: "blur(20px) saturate(140%)",
-          border: "1px solid rgba(200, 161, 101, 0.15)",
-          borderRadius: "16px",
-          padding: "10px 10px 12px",
-          boxShadow:
-            "0 24px 60px -16px rgba(10, 4, 8, 0.4), 0 0 0 0.5px rgba(200,161,101,0.08) inset, 0 1px 0 rgba(255,255,255,0.05) inset",
-        }}
-      >
-        {/* Internal glass shimmer */}
-        <div
-          className="absolute inset-0 pointer-events-none rounded-[20px] overflow-hidden hidden md:block"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%, rgba(200,161,101,0.04) 100%)",
-          }}
-        />
-
-        {/* Input grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3 relative z-20">
-          <CustomSelect
-            icon={<MapPin className="w-4 h-4" />}
-            label="Location"
-            value={location}
-            onChange={(val) => {
-              setLocation(val);
-              setActiveSelect(null);
-            }}
-            placeholder="All Hyderabad Areas"
-            isOpen={activeSelect === "location"}
-            onToggle={() => setActiveSelect(activeSelect === "location" ? null : "location")}
-            onClose={() => setActiveSelect(null)}
-            options={[
-              { value: "", label: "All Hyderabad Areas" },
-              { value: "Banjara Hills", label: "Banjara Hills" },
-              { value: "Jubilee Hills", label: "Jubilee Hills" },
-              { value: "Gachibowli", label: "Gachibowli" },
-              { value: "Hitech City", label: "Hitech City" },
-              { value: "Secunderabad", label: "Secunderabad" },
-            ]}
-          />
-
-          <CustomSelect
-            icon={<Users className="w-4 h-4" />}
-            label="Guests Size"
-            value={guests}
-            onChange={(val) => {
-              setGuests(val);
-              setActiveSelect(null);
-            }}
-            placeholder="Select size"
-            isOpen={activeSelect === "guests"}
-            onToggle={() => setActiveSelect(activeSelect === "guests" ? null : "guests")}
-            onClose={() => setActiveSelect(null)}
-            options={[
-              { value: "", label: "Select size" },
-              { value: "Under 200", label: "Under 200" },
-              { value: "200-500", label: "200 - 500" },
-              { value: "500-1000", label: "500 - 1000" },
-              { value: "1000+", label: "1000+" },
-            ]}
-          />
-
-          <CustomSelect
-            icon={<IndianRupee className="w-4 h-4" />}
-            label="Budget Limit"
-            value={budget}
-            onChange={(val) => {
-              setBudget(val);
-              setActiveSelect(null);
-            }}
-            placeholder="Select range"
-            isOpen={activeSelect === "budget"}
-            onToggle={() => setActiveSelect(activeSelect === "budget" ? null : "budget")}
-            onClose={() => setActiveSelect(null)}
-            options={[
-              { value: "", label: "Select range" },
-              { value: "Under ₹5L", label: "Under ₹5 Lakhs" },
-              { value: "₹5L-₹10L", label: "₹5L - ₹10 Lakhs" },
-              { value: "₹10L-₹25L", label: "₹10L - ₹25 Lakhs" },
-              { value: "₹25L+", label: "₹25 Lakhs+" },
-            ]}
-          />
-        </div>
-
-        {/* Status row - Desktop only */}
-        <div
-          className="hidden md:flex relative z-10 flex-wrap items-center justify-between gap-3 pt-4 pb-1 text-xs font-bold px-2"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.12)" }}
-        >
-          <div className="flex flex-wrap items-center gap-6">
-            <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="flex items-center gap-1.5 text-white/90">
-              <span className="text-[#C8A165]">✓</span> Preferences understood
-            </motion.span>
-            <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="flex items-center gap-1.5 text-white/90">
-              <span className="text-[#C8A165]">✓</span> Smart filtering
-            </motion.span>
-            <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-1.5 text-[#C8A165]">
-              <Sparkles className="w-3.5 h-3.5" /> Personalized results
-            </motion.span>
-          </div>
-          <div className="text-[9px] text-white/50 uppercase tracking-widest font-black">
-            Smart Wedding Discovery
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-0.5 md:mt-1">
-          <PrimaryButton onClick={handleExploreVenues} id="hero-cta-discovery">
-            <span className="md:hidden">Find Matches</span>
-            <span className="hidden md:inline">Find My Matches</span>
-          </PrimaryButton>
-          <div className="hidden md:block">
-            <SecondaryButton onClick={handleExploreVenues} id="hero-cta-venues">
-              Explore Collections
-            </SecondaryButton>
-          </div>
-        </div>
-      </motion.div>
+    <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+      <PrimaryButton onClick={handleExploreVenues} id="hero-cta-discovery">
+        <span className="md:hidden">Find Matches</span>
+        <span className="hidden md:inline">Find My Matches</span>
+      </PrimaryButton>
+      <div className="hidden md:block">
+        <SecondaryButton onClick={handleExploreVenues} id="hero-cta-venues">
+          Explore Collections
+        </SecondaryButton>
+      </div>
     </div>
   );
 }

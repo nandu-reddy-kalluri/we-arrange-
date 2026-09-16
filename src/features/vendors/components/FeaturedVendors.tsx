@@ -7,6 +7,7 @@ import { Heart, MapPin, CheckCircle, ChevronLeft, ChevronRight, X, Star, Trophy,
 import { motion, AnimatePresence } from "framer-motion";
 import { Vendor, vendorCategories } from "@/mock-data/vendors";
 import { FilterState } from "./VendorFilters";
+import { useSavedStore } from "@/store/useSavedStore";
 
 interface FeaturedVendorsProps {
   vendors: Vendor[];
@@ -162,54 +163,6 @@ export function FeaturedVendors({
   // View mode switcher: grid vs list layout
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  // Local Search Input state for debouncing
-  const [searchVal, setSearchVal] = useState(searchQuery);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-
-  // Autocomplete Suggestions List
-  const suggestions = [
-    "Photography",
-    "Photographer",
-    "Photo Booth",
-    "Photobooth Decor",
-    "Makeup Artist",
-    "Makeup",
-    "Bridal Makeup",
-    "Wedding Decorator",
-    "Decorator",
-    "Catering",
-    "Mehendi Artist",
-  ];
-
-  const filteredSuggestions = suggestions.filter((sug) =>
-    sug.toLowerCase().startsWith(searchVal.toLowerCase()) && searchVal.length > 0
-  );
-
-  // Sync internal search state if searchQuery changes externally (like reset)
-  useEffect(() => {
-    setSearchVal(searchQuery);
-  }, [searchQuery]);
-
-  // Debouncing search value (250ms delay)
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setSearchQuery(searchVal);
-    }, 250);
-    return () => clearTimeout(handler);
-  }, [searchVal, setSearchQuery]);
-
-  // Handle outside click to close autocomplete suggestion drop
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   // Quick chips toggling handlers
   const handleToggleVerifiedChip = () => {
     setFilters((prev) => ({ ...prev, isVerified: !prev.isVerified }));
@@ -224,19 +177,13 @@ export function FeaturedVendors({
     setFilters((prev) => ({ ...prev, experience: prev.experience === "10" ? "" : "10" }));
   };
 
-  const handleSuggestionSelect = (sug: string) => {
-    setSearchVal(sug);
-    setShowSuggestions(false);
-  };
-
-  const [wishlist, setWishlist] = useState<Record<string, boolean>>({
-    "1": true,
-    "3": true,
-  });
+  const { isVendorSaved, toggleSaveVendor } = useSavedStore();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
 
   const toggleWishlist = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setWishlist((prev) => ({ ...prev, [id]: !prev[id] }));
+    toggleSaveVendor(id);
   };
 
   const handleCardClick = (slug: string) => {
@@ -286,50 +233,8 @@ export function FeaturedVendors({
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      
-      {/* 1. Large Top Search Bar with debouncing Suggestions */}
-      <div ref={searchContainerRef} className="relative w-full">
-        <div className="flex items-center bg-white border border-[#C5A880]/30 hover:border-[#C5A880]/60 focus-within:border-[#C5A880] focus-within:shadow-[0_4px_16px_rgba(197,168,128,0.15)] rounded-2xl px-4 py-3.5 transition-all shadow-sm">
-          <span className="text-gray-400 mr-2 text-sm">🔍</span>
-          <input
-            type="text"
-            placeholder="Search Vendors, Services or City..."
-            value={searchVal}
-            onChange={(e) => {
-              setSearchVal(e.target.value);
-              setShowSuggestions(true);
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            className="w-full bg-transparent border-none text-xs font-semibold text-neutral-charcoal placeholder-gray-400 focus:outline-none focus:ring-0 p-0"
-          />
-          {searchVal && (
-            <button
-              onClick={() => setSearchVal("")}
-              className="text-gray-400 hover:text-neutral-charcoal p-1"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        {/* Autocomplete suggestion drop links */}
-        {showSuggestions && filteredSuggestions.length > 0 && (
-          <div className="absolute z-40 left-0 right-0 top-full bg-white border border-[#C5A880]/20 rounded-xl shadow-lg mt-1 max-h-48 overflow-y-auto">
-            {filteredSuggestions.map((sug) => (
-              <button
-                key={sug}
-                onClick={() => handleSuggestionSelect(sug)}
-                className="w-full text-left px-4 py-2.5 text-xs text-neutral-charcoal hover:bg-[#FAF9F6] transition-colors font-bold cursor-pointer"
-              >
-                🔍 {sug}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 2. Top Quick Filters row with Icons */}
+    <div className="flex flex-col gap-4">
+      {/* 1. Top Quick Filters row with Icons */}
       <div className="flex flex-wrap gap-2 py-1">
         <button
           onClick={handleToggleVerifiedChip}
@@ -506,7 +411,7 @@ export function FeaturedVendors({
           ) : (
             <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" : "flex flex-col gap-4"}>
               {vendors.map((vendor, index) => {
-                const isWishlisted = !!wishlist[vendor.id];
+                const isWishlisted = isMounted ? isVendorSaved(vendor.id) : false;
                 
                 {/* GRID VIEW CARD */}
                 if (viewMode === "grid") {
@@ -620,18 +525,12 @@ export function FeaturedVendors({
                           </div>
                           
                           <div className="flex w-full xs:w-auto gap-2">
-                            <Link
-                              href={`/vendors/${vendor.slug}`}
-                              className="flex-1 xs:flex-none h-9 px-3 flex items-center justify-center rounded-full text-[9px] font-black uppercase tracking-wider text-[#C5A880] border border-[#C5A880] bg-white hover:bg-[#C5A880] hover:text-white transition-all duration-300 cursor-pointer"
-                            >
-                              View
-                            </Link>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 alert(`Consultation inquiries initiated for ${vendor.name}`);
                               }}
-                              className="flex-1 xs:flex-none h-9 px-3 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
+                              className="w-full xs:w-auto h-9 px-4 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
                             >
                               Book
                             </button>
@@ -740,18 +639,12 @@ export function FeaturedVendors({
                         </div>
 
                         <div className="flex w-full xs:w-auto gap-2">
-                          <Link
-                            href={`/vendors/${vendor.slug}`}
-                            className="flex-1 xs:flex-none h-9 px-3 flex items-center justify-center rounded-full text-[9px] font-black uppercase tracking-wider text-[#C5A880] border border-[#C5A880] bg-white hover:bg-[#C5A880] hover:text-white transition-all duration-300 cursor-pointer"
-                          >
-                            View
-                          </Link>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               alert(`Consultation inquiries initiated for ${vendor.name}`);
                             }}
-                            className="flex-1 xs:flex-none h-9 px-3 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
+                            className="w-full xs:w-auto h-9 px-4 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
                           >
                             Book
                           </button>

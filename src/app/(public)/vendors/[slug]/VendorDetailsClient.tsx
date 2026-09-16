@@ -12,6 +12,7 @@ import { mockVendors, vendorCategories } from "@/mock-data/vendors";
 import { WeddingCuratorCard } from "@/features/vendors/components/WeddingCuratorCard";
 import { VendorTrustHighlights } from "@/features/vendors/components/VendorTrustHighlights";
 import { PlanningJourney } from "@/features/vendors/components/PlanningJourney";
+import { useSavedStore } from "@/store/useSavedStore";
 
 // Standard Indian Currency Formatter helper
 const formatPrice = (lakhs: number) => {
@@ -81,7 +82,10 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
   // Find vendor by slug
   const vendor = mockVendors.find((v) => v.slug === slug);
 
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { isVendorSaved, toggleSaveVendor } = useSavedStore();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+  const isWishlisted = isMounted && vendor ? isVendorSaved(vendor.id) : false;
   const [activeLightbox, setActiveLightbox] = useState<string | null>(null);
 
   // Active section scroll tracking state
@@ -208,9 +212,9 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
               <Share2 className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
+              onClick={() => vendor && toggleSaveVendor(vendor.id)}
               className="p-2 rounded-full border border-gray-250 bg-white shadow-sm hover:border-[#8B263E] text-gray-500 hover:text-[#8B263E] transition-colors cursor-pointer"
-              title="Add to Wishlist"
+              title={isWishlisted ? "Remove from Saved" : "Add to Saved"}
             >
               <Heart className={`w-4 h-4 ${isWishlisted ? "text-[#8B263E] fill-[#8B263E]" : ""}`} />
             </button>
@@ -550,7 +554,7 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
                 
                 <div className="flex gap-2.5">
                   <button
-                    onClick={() => setIsWishlisted(!isWishlisted)}
+                    onClick={() => vendor && toggleSaveVendor(vendor.id)}
                     className="flex-1 py-2.5 rounded-full border border-gray-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-1.5 text-neutral-charcoal text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "text-[#8B263E] fill-[#8B263E]" : ""}`} />

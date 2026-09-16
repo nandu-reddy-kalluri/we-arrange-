@@ -17,10 +17,6 @@ export function Footer() {
       </div>
 
       <footer className="relative w-full overflow-hidden">
-        
-        {/* MOBILE SUBTLE TRANSITION */}
-        <div className="md:hidden h-24 bg-gradient-to-b from-[#FBF9F6] to-[#120004]" />
-
         <div className="bg-[#120004] pt-2 pb-6 md:pt-6 md:pb-4 relative w-full">
           {/* Huge Background Watermark (Desktop Only) */}
           <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-serif font-black text-[180px] leading-none text-white opacity-[0.03] pointer-events-none select-none z-0 whitespace-nowrap">
@@ -49,10 +45,10 @@ export function Footer() {
           <div className="flex md:hidden flex-col items-center text-center px-6 py-2 space-y-4 relative z-10 w-full">
             {/* Brand Wordmark & Tagline */}
             <div className="flex flex-col items-center">
-              <span className="font-serif text-2xl font-bold text-white tracking-tight leading-none">
+              <span className="font-serif text-2xl font-bold text-[#F0D28D] tracking-tight leading-none">
                 YouMarriage
               </span>
-              <span className="font-sans text-[9px] font-black text-[#C89B3C] tracking-[0.4em] uppercase mt-1">
+              <span className="font-sans text-[9px] font-black text-[#8B263E] tracking-[0.4em] uppercase mt-1">
                 WE ARRANGE
               </span>
               <p className="font-serif italic text-xs text-[#C89B3C]/90 max-w-xs mt-2">

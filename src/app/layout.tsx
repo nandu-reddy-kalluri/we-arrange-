@@ -44,8 +44,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${jakarta.variable}`} style={{ scrollBehavior: 'smooth' }}>
-      <body className="antialiased bg-[hsl(30,20%,98%)] font-sans text-[hsl(240,10%,15%)] min-h-screen flex flex-col justify-between relative">
+    <html lang="en" className={`${playfair.variable} ${jakarta.variable}`} style={{ scrollBehavior: 'smooth' }} suppressHydrationWarning>
+      <body className="antialiased bg-[hsl(30,20%,98%)] font-sans text-[hsl(240,10%,15%)] min-h-screen flex flex-col justify-between relative" suppressHydrationWarning>
         <div className="luxury-texture-overlay" />
         <GlobalLayoutWrapper>{children}</GlobalLayoutWrapper>
       </body>
