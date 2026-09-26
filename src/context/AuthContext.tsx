@@ -16,7 +16,10 @@ type AuthContextType = {
   logout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
+
 
 export function AuthProvider({
   children,
@@ -29,41 +32,68 @@ export function AuthProvider({
   useEffect(() => {
     let mounted = true;
 
-    const loadUser = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (mounted) {
-          setUser(user ?? null);
-        }
-      } catch (error) {
-        console.error("AUTH USER LOAD ERROR:", error);
-
-        if (mounted) {
-          setUser(null);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadUser();
+    // ------------------------------------------
+    // AUTH STATE LISTENER
+    // ------------------------------------------
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!mounted) {
-          return;
-        }
+      (event, session) => {
+        if (!mounted) return;
+
+        console.log(
+          "AUTH STATE:",
+          event,
+          session?.user?.email
+        );
 
         setUser(session?.user ?? null);
+        setLoading(false);
       }
     );
+
+    // ------------------------------------------
+    // INITIAL SESSION
+    // ------------------------------------------
+
+    const loadSession = async () => {
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (error) {
+          console.error(
+            "AUTH SESSION ERROR:",
+            error
+          );
+        }
+
+        if (!mounted) return;
+
+        console.log(
+          "INITIAL SESSION:",
+          session?.user?.email
+        );
+
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } catch (error) {
+        console.error(
+          "AUTH LOAD ERROR:",
+          error
+        );
+
+        if (!mounted) return;
+
+        setUser(null);
+        setLoading(false);
+      }
+    };
+
+    loadSession();
 
     return () => {
       mounted = false;
@@ -71,18 +101,33 @@ export function AuthProvider({
     };
   }, []);
 
+  // ------------------------------------------
+  // LOGOUT
+  // ------------------------------------------
+
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      const { error } =
+        await supabase.auth.signOut();
 
       if (error) {
-        console.error("LOGOUT ERROR:", error);
+        console.error(
+          "LOGOUT ERROR:",
+          error
+        );
+
         throw error;
       }
 
       setUser(null);
+
+      console.log("USER LOGGED OUT");
     } catch (error) {
-      console.error("LOGOUT FAILED:", error);
+      console.error(
+        "LOGOUT FAILED:",
+        error
+      );
+
       throw error;
     }
   };

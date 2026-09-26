@@ -21,19 +21,26 @@ interface SignInFormProps {
 }
 
 type AuthMethod = "email" | "mobile";
+
 type EmailFlowState =
   | "password"
   | "otp-request"
   | "otp-verify";
-type MobileFlowState = "request" | "verify";
+
+type MobileFlowState =
+  | "request"
+  | "verify";
 
 export default function SignInForm({
   onSuccess,
   onSwitchToSignup,
 }: SignInFormProps) {
-  const [method, setMethod] = useState<AuthMethod>("email");
+  const [method, setMethod] =
+    useState<AuthMethod>("email");
+
   const [emailFlow, setEmailFlow] =
     useState<EmailFlowState>("password");
+
   const [mobileFlow, setMobileFlow] =
     useState<MobileFlowState>("request");
 
@@ -44,11 +51,20 @@ export default function SignInForm({
   const [otp, setOtp] = useState("");
 
   // UI State
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [rememberMe, setRememberMe] =
+    useState(false);
+
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  const [isSuccess, setIsSuccess] =
+    useState(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
 
   // Timer State
   const [timer, setTimer] = useState(0);
@@ -58,7 +74,9 @@ export default function SignInForm({
 
     if (timer > 0) {
       interval = setInterval(() => {
-        setTimer((currentTimer) => currentTimer - 1);
+        setTimer(
+          (currentTimer) => currentTimer - 1
+        );
       }, 1000);
     }
 
@@ -73,46 +91,53 @@ export default function SignInForm({
   // SOCIAL AUTH
   // --------------------------------------------------
 
-const handleSocialAuth = async (
-  provider: "google" | "facebook" | "apple"
-) => {
-  try {
-    setError(null);
-    setIsLoading(true);
+  const handleSocialAuth = async (
+    provider: "google" | "facebook" | "apple"
+  ) => {
+    try {
+      setError(null);
+      setIsLoading(true);
 
-    if (provider === "apple") {
-      throw new Error("Apple authentication is not available yet.");
-    }
+      // Only Google is enabled for now
+      if (provider !== "google") {
+        throw new Error(
+          `${provider} authentication is not available yet.`
+        );
+      }
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/login`,
-      },
-    });
+      const { error } =
+        await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo:
+              `${window.location.origin}/login`,
+          },
+        });
 
-    if (error) {
+      if (error) {
+        console.error(
+          "GOOGLE LOGIN ERROR:",
+          error
+        );
+
+        throw error;
+      }
+    } catch (err: unknown) {
       console.error(
-        `${provider.toUpperCase()} LOGIN ERROR:`,
-        error
+        "SOCIAL LOGIN ERROR:",
+        err
       );
-      throw error;
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Social authentication failed.";
+
+      setError(message);
+      setIsLoading(false);
     }
-  } catch (err: unknown) {
-    console.error(
-      `${provider.toUpperCase()} SOCIAL LOGIN ERROR:`,
-      err
-    );
+  };
 
-    const message =
-      err instanceof Error
-        ? err.message
-        : `${provider} authentication failed.`;
-
-    setError(message);
-    setIsLoading(false);
-  }
-};
   // --------------------------------------------------
   // EMAIL + PASSWORD LOGIN
   // --------------------------------------------------
@@ -131,7 +156,8 @@ const handleSocialAuth = async (
     setError(null);
 
     try {
-      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedEmail =
+        email.trim().toLowerCase();
 
       if (!normalizedEmail) {
         throw new Error(
@@ -176,9 +202,42 @@ const handleSocialAuth = async (
         data.user.id
       );
 
-      // Get the actual user's name from Supabase metadata.
+      // --------------------------------------------------
+      // CONFIRM SESSION
+      // --------------------------------------------------
+
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error(
+          "SESSION CHECK ERROR:",
+          sessionError
+        );
+
+        throw sessionError;
+      }
+
+      if (!session?.user) {
+        throw new Error(
+          "Login succeeded, but the session was not created."
+        );
+      }
+
+      console.log(
+        "SUPABASE SESSION CONFIRMED:",
+        session.user.id
+      );
+
+      // --------------------------------------------------
+      // USER NAME
+      // --------------------------------------------------
+
       const userName =
         data.user.user_metadata?.full_name ||
+        data.user.user_metadata?.name ||
         normalizedEmail.split("@")[0];
 
       console.log(
@@ -186,19 +245,9 @@ const handleSocialAuth = async (
         userName
       );
 
-      /*
-       * IMPORTANT FLOW:
-       *
-       * Supabase login successful
-       *        ↓
-       * Stop loading
-       *        ↓
-       * Mark login successful
-       *        ↓
-       * Existing cinematic animation
-       *        ↓
-       * Home page
-       */
+      // --------------------------------------------------
+      // LOGIN SUCCESS
+      // --------------------------------------------------
 
       setIsLoading(false);
       setIsSuccess(true);
@@ -247,7 +296,6 @@ const handleSocialAuth = async (
 
       setEmailFlow("otp-verify");
       setTimer(30);
-
     } catch (err: unknown) {
       const message =
         err instanceof Error
@@ -255,7 +303,6 @@ const handleSocialAuth = async (
           : "Could not send OTP.";
 
       setError(message);
-
     } finally {
       setIsLoading(false);
     }
@@ -284,7 +331,6 @@ const handleSocialAuth = async (
           email.trim().split("@")[0]
         );
       }, 400);
-
     } catch (err) {
       console.error(
         "EMAIL OTP ERROR:",
@@ -312,9 +358,10 @@ const handleSocialAuth = async (
     setError(null);
 
     try {
-      const formattedPhone = phone.startsWith("+")
-        ? phone
-        : `+91${phone}`;
+      const formattedPhone =
+        phone.startsWith("+")
+          ? phone
+          : `+91${phone}`;
 
       console.log(
         "MOBILE OTP REQUEST:",
@@ -328,7 +375,6 @@ const handleSocialAuth = async (
 
       setMobileFlow("verify");
       setTimer(30);
-
     } catch (err) {
       console.error(
         "MOBILE OTP ERROR:",
@@ -338,7 +384,6 @@ const handleSocialAuth = async (
       setError(
         "Mobile verification is currently unavailable. Please use email."
       );
-
     } finally {
       setIsLoading(false);
     }
@@ -362,9 +407,10 @@ const handleSocialAuth = async (
       setIsLoading(false);
 
       setTimeout(() => {
-        onSuccess("returning-user");
+        onSuccess(
+          "returning-user"
+        );
       }, 400);
-
     } catch (err) {
       console.error(
         "MOBILE OTP ERROR:",
@@ -423,9 +469,11 @@ const handleSocialAuth = async (
       onClick={(e) => e.stopPropagation()}
     >
       {/* METHOD SWITCHER */}
+
       {emailFlow !== "otp-verify" &&
         mobileFlow !== "verify" && (
           <div className="flex bg-[#1a1a1a]/50 p-1 rounded-lg mb-3 lg:mb-4 border border-white/5">
+
             <button
               onClick={() => {
                 setMethod("email");
@@ -457,6 +505,7 @@ const handleSocialAuth = async (
         )}
 
       {/* ERROR */}
+
       {error && (
         <div className="mb-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center">
           {error}
@@ -466,9 +515,7 @@ const handleSocialAuth = async (
       <div className="relative">
         <AnimatePresence mode="wait">
 
-          {/* ==================================================
-              EMAIL METHOD
-          ================================================== */}
+          {/* EMAIL METHOD */}
 
           {method === "email" && (
             <motion.div
@@ -477,6 +524,7 @@ const handleSocialAuth = async (
             >
 
               {/* EMAIL PASSWORD */}
+
               {emailFlow === "password" && (
                 <motion.div
                   key="password"
@@ -498,6 +546,7 @@ const handleSocialAuth = async (
                     className="flex flex-col gap-2.5 lg:gap-3"
                   >
                     {/* EMAIL */}
+
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <Mail className="h-4 w-4 text-[#FDFBF7]/50" />
@@ -516,6 +565,7 @@ const handleSocialAuth = async (
                     </div>
 
                     {/* PASSWORD */}
+
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <Lock className="h-4 w-4 text-[#FDFBF7]/50" />
@@ -554,8 +604,11 @@ const handleSocialAuth = async (
                     </div>
 
                     {/* REMEMBER / FORGOT */}
+
                     <div className="flex items-center justify-between mt-0.5 mb-0.5 px-0.5">
+
                       <label className="flex items-center gap-1.5 cursor-pointer group">
+
                         <div className="w-3.5 h-3.5 rounded border border-white/20 flex items-center justify-center group-hover:border-[#C6934A]/50 transition-colors bg-white/5">
                           <Check
                             className={`h-2.5 w-2.5 text-[#C6934A] ${
@@ -590,7 +643,8 @@ const handleSocialAuth = async (
                       </button>
                     </div>
 
-                    {/* LOGIN BUTTON */}
+                    {/* LOGIN */}
+
                     <button
                       type="submit"
                       disabled={
@@ -606,6 +660,7 @@ const handleSocialAuth = async (
                     </button>
 
                     {/* EMAIL OTP */}
+
                     <button
                       type="button"
                       onClick={() =>
@@ -622,6 +677,7 @@ const handleSocialAuth = async (
               )}
 
               {/* EMAIL OTP REQUEST */}
+
               {emailFlow === "otp-request" && (
                 <motion.div
                   key="otp-req"
@@ -685,6 +741,7 @@ const handleSocialAuth = async (
               )}
 
               {/* EMAIL OTP VERIFY */}
+
               {emailFlow === "otp-verify" && (
                 <motion.div
                   key="otp-ver"
@@ -699,6 +756,7 @@ const handleSocialAuth = async (
                     <p className="text-xs lg:text-sm text-[#FDFBF7]/70 leading-relaxed">
                       We've sent a verification code to:
                       <br />
+
                       <span className="text-white font-medium">
                         {email}
                       </span>
@@ -706,6 +764,7 @@ const handleSocialAuth = async (
                   </div>
 
                   <div className="flex flex-col gap-3">
+
                     <OtpInput
                       value={otp}
                       onChange={setOtp}
@@ -731,6 +790,7 @@ const handleSocialAuth = async (
                     </button>
 
                     <div className="flex flex-col items-center gap-1.5 mt-0.5">
+
                       <button
                         onClick={
                           handleSendEmailOtp
@@ -765,9 +825,7 @@ const handleSocialAuth = async (
             </motion.div>
           )}
 
-          {/* ==================================================
-              MOBILE METHOD
-          ================================================== */}
+          {/* MOBILE METHOD */}
 
           {method === "mobile" && (
             <motion.div
@@ -776,6 +834,7 @@ const handleSocialAuth = async (
             >
 
               {/* MOBILE OTP REQUEST */}
+
               {mobileFlow === "request" && (
                 <motion.div
                   key="mob-req"
@@ -797,6 +856,7 @@ const handleSocialAuth = async (
                     className="flex flex-col gap-2.5 lg:gap-3"
                   >
                     <div className="relative flex">
+
                       <div className="w-14 h-[46px] lg:h-[48px] bg-white/5 border border-white/10 border-r-0 rounded-l-xl flex items-center justify-center text-xs lg:text-sm text-[#FDFBF7]/70">
                         +91
                       </div>
@@ -832,6 +892,7 @@ const handleSocialAuth = async (
               )}
 
               {/* MOBILE OTP VERIFY */}
+
               {mobileFlow === "verify" && (
                 <motion.div
                   key="mob-ver"
@@ -846,6 +907,7 @@ const handleSocialAuth = async (
                     <p className="text-xs lg:text-sm text-[#FDFBF7]/70 leading-relaxed">
                       We've sent a verification code to:
                       <br />
+
                       <span className="text-white font-medium">
                         +91 {phone}
                       </span>
@@ -853,6 +915,7 @@ const handleSocialAuth = async (
                   </div>
 
                   <div className="flex flex-col gap-3">
+
                     <OtpInput
                       value={otp}
                       onChange={setOtp}
@@ -878,6 +941,7 @@ const handleSocialAuth = async (
                     </button>
 
                     <div className="flex flex-col items-center gap-1.5 mt-0.5">
+
                       <button
                         onClick={
                           handleSendMobileOtp
@@ -915,6 +979,7 @@ const handleSocialAuth = async (
       </div>
 
       {/* SOCIAL AUTH & REGISTRATION */}
+
       {emailFlow !== "otp-verify" &&
         mobileFlow !== "verify" && (
           <motion.div
@@ -923,7 +988,9 @@ const handleSocialAuth = async (
             transition={{ delay: 0.2 }}
             className="mt-2.5 lg:mt-3"
           >
+
             <div className="relative flex items-center justify-center mb-2.5 lg:mb-3">
+
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10" />
               </div>
@@ -936,6 +1003,7 @@ const handleSocialAuth = async (
             <div className="flex items-center justify-center gap-2.5 lg:gap-3">
 
               {/* GOOGLE */}
+
               <button
                 onClick={() =>
                   handleSocialAuth("google")
@@ -952,14 +1020,17 @@ const handleSocialAuth = async (
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                     fill="#4285F4"
                   />
+
                   <path
                     d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
                     fill="#34A853"
                   />
+
                   <path
                     d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
                     fill="#FBBC05"
                   />
+
                   <path
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     fill="#EA4335"
@@ -968,6 +1039,7 @@ const handleSocialAuth = async (
               </button>
 
               {/* FACEBOOK */}
+
               <button
                 onClick={() =>
                   handleSocialAuth("facebook")
@@ -988,6 +1060,7 @@ const handleSocialAuth = async (
               </button>
 
               {/* APPLE */}
+
               <button
                 onClick={() =>
                   handleSocialAuth("apple")
@@ -1000,12 +1073,13 @@ const handleSocialAuth = async (
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
-                  <path d="M17.05 13.31c-.02-2.58 2.11-3.83 2.2-3.88-1.2-1.75-3.06-1.99-3.73-2.02-1.57-.16-3.07.92-3.88.92-.8 0-2.04-.9-3.34-.88-1.7.02-3.26.99-4.14 2.52-1.79 3.1-.46 7.69 1.28 10.2 .85 1.23 1.86 2.61 3.19 2.56 1.28-.05 1.78-.82 3.32-.82 1.54 0 2.01.82 3.35.79 1.37-.03 2.23-1.24 3.08-2.48.98-1.43 1.39-2.82 1.41-2.9-.03-.01-2.7-1.04-2.74-4.01zM15.02 5.06c.71-.85 1.18-2.04 1.05-3.22-1.02.04-2.25.68-2.98 1.54-.58.68-1.15 1.89-1 3.06 1.14.09 2.22-.53 2.93-1.38z" />
+                  <path d="M17.05 13.31c-.02-2.58 2.11-3.83 2.2-3.88-1.2-1.75-3.06-1.99-3.73-2.02-1.57-.16-3.07.92-3.88.92-.8 0-2.04-.9-3.34-.88-1.7.02-3.26.99-4.14 2.52-1.79 3.1-.46 7.69 1.28 10.2 .85 1.23 1.86 2.61 3.19 2.56 1.28-.05 1.78-.82 3.32-.82 1.54 0 2.01.82 3.35.79 1.37-.03 2.23-1.24 3.08-2.48.98-1.43 1.39-2.82 1.41-2.9-.03-.01-2.7-1.04-2.74-4.01zM15.02 5.06c.71-.85 1.18-2.04 1.05-3.22-1.02.04-2.25.68-2.98 1.54-.58.68-1.15 1.89-1 3.06 1.14.09 2.22-.53 2.93-1.38.71-.85 1.18-2.04 1.05-3.22z" />
                 </svg>
               </button>
             </div>
 
             {/* CREATE ACCOUNT */}
+
             <div className="mt-2.5 lg:mt-3 text-center">
               <span className="text-[11px] lg:text-xs text-[#FDFBF7]/50">
                 Don&apos;t have an account?{" "}

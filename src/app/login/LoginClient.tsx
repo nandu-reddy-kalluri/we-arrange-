@@ -26,8 +26,7 @@ function AuthenticationContent() {
   );
 
   const [mounted, setMounted] = useState(false);
-  const [authState, setAuthState] =
-    useState<AuthState>("idle");
+  const [authState, setAuthState] = useState<AuthState>("idle");
 
   const [authData, setAuthData] = useState<{
     mode: "new-user" | "returning-user";
@@ -62,10 +61,7 @@ function AuthenticationContent() {
 
     lockScrollOnMobile();
 
-    window.addEventListener(
-      "resize",
-      lockScrollOnMobile
-    );
+    window.addEventListener("resize", lockScrollOnMobile);
 
     return () => {
       document.body.style.overflow = "";
@@ -99,26 +95,60 @@ function AuthenticationContent() {
   // --------------------------------------------------
 
   useEffect(() => {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
 
     const handleOAuthCallback = async () => {
       try {
+        const params = new URLSearchParams(
+          window.location.search
+        );
+
+        const code = params.get("code");
+
+        // Normal /login visit
+        if (!code) {
+          return;
+        }
+
+        console.log("OAUTH CODE FOUND");
+
+        // Exchange OAuth code for Supabase session
+        const { error: exchangeError } =
+          await supabase.auth.exchangeCodeForSession(code);
+
+        if (exchangeError) {
+          console.error(
+            "OAUTH CODE EXCHANGE ERROR:",
+            exchangeError
+          );
+          return;
+        }
+
+        console.log("OAUTH SESSION CREATED");
+
+        // Remove OAuth code from URL
+        window.history.replaceState(
+          {},
+          document.title,
+          "/login"
+        );
+
+        // Get logged-in user
         const {
           data: { user },
-          error,
+          error: userError,
         } = await supabase.auth.getUser();
 
-        if (error) {
+        if (userError) {
           console.error(
             "OAUTH USER ERROR:",
-            error
+            userError
           );
           return;
         }
 
         if (!user) {
+          console.error("OAUTH USER NOT FOUND");
           return;
         }
 
@@ -138,8 +168,6 @@ function AuthenticationContent() {
           userName
         );
 
-        // Start the same cinematic login animation
-        // used by normal email/password login.
         setAuthData({
           mode: "returning-user",
           userName,
@@ -148,7 +176,7 @@ function AuthenticationContent() {
         setAuthState("cinematic");
       } catch (error) {
         console.error(
-          "GOOGLE OAUTH CALLBACK ERROR:",
+          "OAUTH CALLBACK ERROR:",
           error
         );
       }
@@ -171,28 +199,27 @@ function AuthenticationContent() {
         ? "/login?mode=signup"
         : "/login";
 
-    window.history.pushState(
-      null,
-      "",
-      url
-    );
+    window.history.pushState(null, "", url);
   };
 
   // --------------------------------------------------
   // NORMAL LOGIN / SIGNUP SUCCESS
   // --------------------------------------------------
+const handleAuthSuccess = (
+  mode: "new-user" | "returning-user",
+  userName?: string
+) => {
+  console.log("AUTH SUCCESS");
+  console.log("AUTH MODE:", mode);
+  console.log("AUTH USER:", userName);
 
-  const handleAuthSuccess = (
-    mode: "new-user" | "returning-user",
-    userName?: string
-  ) => {
-    setAuthData({
-      mode,
-      userName,
-    });
+  setAuthData({
+    mode,
+    userName,
+  });
 
-    setAuthState("cinematic");
-  };
+  setAuthState("cinematic");
+};
 
   // --------------------------------------------------
   // CLOSE LOGIN
@@ -265,13 +292,17 @@ function AuthenticationContent() {
           <CinematicPortal
             mode={authData.mode}
             userName={authData.userName}
-            onShuttersClosed={() =>
-              setAuthVisible(false)
-            }
-            onComplete={() => {
-              setAuthState("redirecting");
-              router.push("/");
+            onShuttersClosed={() => {
+              setAuthVisible(false);
             }}
+            onComplete={() => {
+  console.log("CINEMATIC COMPLETE");
+  console.log("REDIRECTING TO HOME");
+
+  setAuthState("redirecting");
+
+  router.replace("/");
+}}
           />
         )}
       </AnimatePresence>
@@ -304,9 +335,7 @@ function AuthenticationContent() {
 
           <div
             className="relative z-50 cursor-default"
-            onClick={(e) =>
-              e.stopPropagation()
-            }
+            onClick={(e) => e.stopPropagation()}
           >
             <Navbar />
           </div>
@@ -368,9 +397,7 @@ function AuthenticationContent() {
 
             <div
               className="w-full flex justify-center lg:justify-start xl:justify-center relative cursor-default lg:-translate-x-10 xl:-translate-x-16 2xl:-translate-x-24 touch-auto"
-              onClick={(e) =>
-                e.stopPropagation()
-              }
+              onClick={(e) => e.stopPropagation()}
             >
               <AnimatePresence mode="wait">
                 {authMode === "signin" ? (
@@ -383,13 +410,9 @@ function AuthenticationContent() {
                     }
                   >
                     <SignInForm
-                      onSuccess={
-                        handleAuthSuccess
-                      }
+                      onSuccess={handleAuthSuccess}
                       onSwitchToSignup={() =>
-                        handleModeSwitch(
-                          "signup"
-                        )
+                        handleModeSwitch("signup")
                       }
                     />
                   </motion.div>
@@ -403,13 +426,9 @@ function AuthenticationContent() {
                     }
                   >
                     <CreateAccountForm
-                      onSuccess={
-                        handleAuthSuccess
-                      }
+                      onSuccess={handleAuthSuccess}
                       onSwitchToSignin={() =>
-                        handleModeSwitch(
-                          "signin"
-                        )
+                        handleModeSwitch("signin")
                       }
                     />
                   </motion.div>

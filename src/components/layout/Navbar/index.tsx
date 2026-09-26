@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, User } from "lucide-react";
 
 import { DesktopNavigation } from "./DesktopNavigation";
@@ -16,22 +16,20 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [scrolled, setScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // Central authentication state
   const { user } = useAuth();
 
   const { closeMenu } = useMegaMenu();
 
-  // Handle Navbar hover intent
   const { onMouseEnter, onMouseLeave } = useHoverIntent({
     enterDelay: 120,
     leaveDelay: 180,
   });
 
-  // Handle scroll
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -48,11 +46,23 @@ export default function Navbar() {
 
   const useDarkText = !isDarkHeroPage || scrolled;
 
-  // Get the logged-in user's display name
   const userName =
     user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
     user?.email?.split("@")[0] ||
     "Profile";
+
+  // ------------------------------------------
+  // PROFILE / LOGIN
+  // ------------------------------------------
+
+  const handleProfileClick = () => {
+    if (user) {
+      router.push("/customer/overview");
+    } else {
+      router.push("/login");
+    }
+  };
 
   return (
     <>
@@ -77,13 +87,15 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
-          {/* Left Zone: Brand Logo */}
+          {/* ------------------------------------------ */}
+          {/* LEFT ZONE - BRAND */}
+          {/* ------------------------------------------ */}
+
           <Link
             href="/"
             className="flex items-center gap-2.5 shrink-0"
             onMouseEnter={closeMenu}
           >
-            {/* YM Icon */}
             <div
               className="relative overflow-hidden shrink-0"
               style={{
@@ -109,7 +121,6 @@ export default function Navbar() {
               />
             </div>
 
-            {/* Brand Text */}
             <div className="flex flex-col leading-none">
               <span
                 className={`font-serif text-[15px] lg:text-[17px] font-bold tracking-tight transition-colors duration-300 ${
@@ -127,29 +138,45 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Center Zone: Discovery */}
+          {/* ------------------------------------------ */}
+          {/* CENTER ZONE - DISCOVERY */}
+          {/* ------------------------------------------ */}
+
           <div className="flex-1 flex justify-center">
-            <DesktopNavigation useDarkText={useDarkText} />
+            <DesktopNavigation
+              useDarkText={useDarkText}
+            />
           </div>
 
-          {/* Right Zone: Utility Actions */}
+          {/* ------------------------------------------ */}
+          {/* RIGHT ZONE */}
+          {/* ------------------------------------------ */}
+
           <div
             className="hidden lg:flex items-center justify-end gap-3 xl:gap-5 shrink-0"
             onMouseEnter={closeMenu}
           >
-            {/* Saved */}
-            <SavedAction useDarkText={useDarkText} />
+            {/* SAVED */}
 
-            {/* Divider */}
+            <SavedAction
+              useDarkText={useDarkText}
+            />
+
+            {/* DIVIDER */}
+
             <div
               className={`w-[1px] h-4 mx-1 ${
-                useDarkText ? "bg-neutral-200" : "bg-white/20"
+                useDarkText
+                  ? "bg-neutral-200"
+                  : "bg-white/20"
               }`}
             />
 
-            {/* Login / User Dashboard */}
-            <Link
-              href={user ? "/customer/overview" : "/login"}
+            {/* PROFILE / LOGIN */}
+
+            <button
+              type="button"
+              onClick={handleProfileClick}
               className={`flex items-center gap-2 text-xs xl:text-sm font-semibold transition-all duration-300 ${
                 useDarkText
                   ? "text-[#2D2D2D] hover:text-[#8B263E]"
@@ -167,13 +194,18 @@ export default function Navbar() {
               <span>
                 {user ? userName : "Login"}
               </span>
-            </Link>
+            </button>
           </div>
 
-          {/* Mobile Right Zone */}
+          {/* ------------------------------------------ */}
+          {/* MOBILE */}
+          {/* ------------------------------------------ */}
+
           <div className="flex lg:hidden items-center gap-4">
             <button
-              onClick={() => setIsMobileOpen(true)}
+              onClick={() =>
+                setIsMobileOpen(true)
+              }
               suppressHydrationWarning={true}
               className={`p-2 -mr-2 rounded-md transition-colors duration-300 ${
                 useDarkText
@@ -187,10 +219,15 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Full Screen Experience */}
+      {/* ------------------------------------------ */}
+      {/* MOBILE FULL SCREEN EXPERIENCE */}
+      {/* ------------------------------------------ */}
+
       <MobileExperience
         isOpen={isMobileOpen}
-        onClose={() => setIsMobileOpen(false)}
+        onClose={() =>
+          setIsMobileOpen(false)
+        }
       />
     </>
   );
