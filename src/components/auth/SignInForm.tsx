@@ -73,30 +73,46 @@ export default function SignInForm({
   // SOCIAL AUTH
   // --------------------------------------------------
 
-  const handleSocialAuth = async (
-    provider: "google" | "facebook" | "apple"
-  ) => {
-    try {
-      setError(null);
-      setIsLoading(true);
+const handleSocialAuth = async (
+  provider: "google" | "facebook" | "apple"
+) => {
+  try {
+    setError(null);
+    setIsLoading(true);
 
-      // Still mocked for now.
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
-      );
-
-      setIsLoading(false);
-      onSuccess("returning-user");
-    } catch (err) {
-      console.error(`${provider} authentication error:`, err);
-
-      setIsLoading(false);
-      setError(
-        `${provider} authentication is currently unavailable.`
-      );
+    if (provider === "apple") {
+      throw new Error("Apple authentication is not available yet.");
     }
-  };
 
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/login`,
+      },
+    });
+
+    if (error) {
+      console.error(
+        `${provider.toUpperCase()} LOGIN ERROR:`,
+        error
+      );
+      throw error;
+    }
+  } catch (err: unknown) {
+    console.error(
+      `${provider.toUpperCase()} SOCIAL LOGIN ERROR:`,
+      err
+    );
+
+    const message =
+      err instanceof Error
+        ? err.message
+        : `${provider} authentication failed.`;
+
+    setError(message);
+    setIsLoading(false);
+  }
+};
   // --------------------------------------------------
   // EMAIL + PASSWORD LOGIN
   // --------------------------------------------------
