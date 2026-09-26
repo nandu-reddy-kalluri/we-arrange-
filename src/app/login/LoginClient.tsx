@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import SignInForm from "@/components/auth/SignInForm";
 import CreateAccountForm from "@/components/auth/CreateAccountForm";
 import CinematicPortal from "@/components/auth/CinematicPortal";
-import Navbar from "@/components/layout/Navbar";
+import Navbar from "@/components/layout/Navbar/index";
 
 type AuthState = "idle" | "cinematic" | "redirecting";
 
