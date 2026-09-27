@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import Navbar from "./Navbar";
+import Navbar from "./Navbar/index";
 import { Footer } from "./Footer";
 
 export function GlobalLayoutWrapper({ children }: { children: React.ReactNode }) {

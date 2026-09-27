@@ -34,30 +34,80 @@ export default function CreateAccountForm({ onSuccess, onSwitchToSignin }: Creat
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    try {
-      // MOCKED FOR UI TESTING
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const error = null;
-      
-      if (error) throw error;
-      
-      setIsSuccess(true);
-      setTimeout(() => onSuccess("new-user", name), 400);
-    } catch (err: any) {
-      if (err.message?.includes("fetch")) {
-        // Fallback for missing config in dev
-        setIsSuccess(true);
-        setTimeout(() => onSuccess("new-user", name), 400);
-      } else {
-        setError(err.message || "Failed to create account.");
-        setIsLoading(false);
-      }
+ const handleRegister = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (isLoading) {
+    return;
+  }
+
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.trim();
+
+    if (!normalizedName) {
+      throw new Error("Please enter your full name.");
     }
-  };
+
+    if (!normalizedEmail) {
+      throw new Error("Please enter your email address.");
+    }
+
+    if (!password) {
+      throw new Error("Please enter a password.");
+    }
+
+    if (password.length < 6) {
+      throw new Error("Password must be at least 6 characters.");
+    }
+
+    const { data, error: authError } = await supabase.auth.signUp({
+      email: normalizedEmail,
+      password,
+      options: {
+        data: {
+          full_name: normalizedName,
+          phone: normalizedPhone
+            ? `+91${normalizedPhone}`
+            : null,
+        },
+      },
+    });
+
+    if (authError) {
+      console.error("SUPABASE SIGNUP ERROR:", authError);
+      throw authError;
+    }
+
+    if (!data.user) {
+      throw new Error("Account could not be created. Please try again.");
+    }
+
+    console.log("SUPABASE USER CREATED:", data.user.id);
+
+    setIsLoading(false);
+
+    // Account created successfully.
+    // Return to the existing Login screen.
+    // Do NOT start the cinematic animation here.
+    onSwitchToSignin();
+
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Failed to create account.";
+
+    console.error("REGISTER ERROR:", err);
+
+    setError(message);
+    setIsLoading(false);
+  }
+};
 
   const fadeVariants = {
     initial: { 
