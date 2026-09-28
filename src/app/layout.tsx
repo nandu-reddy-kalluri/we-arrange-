@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "@/styles/globals.css";
 import { GlobalLayoutWrapper } from "@/components/layout/GlobalLayoutWrapper";
+import { AuthProvider } from "@/context/AuthContext";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -45,10 +46,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${jakarta.variable}`} style={{ scrollBehavior: 'smooth' }} suppressHydrationWarning>
-      <body className="antialiased bg-[hsl(30,20%,98%)] font-sans text-[hsl(240,10%,15%)] min-h-screen flex flex-col justify-between relative" suppressHydrationWarning>
-        <div className="luxury-texture-overlay" />
-        <GlobalLayoutWrapper>{children}</GlobalLayoutWrapper>
-      </body>
+      <body>
+  <AuthProvider>
+    <GlobalLayoutWrapper>
+      {children}
+    </GlobalLayoutWrapper>
+  </AuthProvider>
+</body>
     </html>
   );
 }

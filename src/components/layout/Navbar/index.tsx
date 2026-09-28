@@ -1,6 +1,7 @@
+```tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -29,7 +30,6 @@ export default function Navbar() {
 
   const { closeMenu } = useMegaMenu();
 
-  // Handle Navbar hover intent
   const { onMouseEnter, onMouseLeave } = useHoverIntent({
     enterDelay: 120,
     leaveDelay: 180,
@@ -42,6 +42,8 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
+
+    handleScroll();
 
     window.addEventListener("scroll", handleScroll);
 
@@ -56,20 +58,21 @@ export default function Navbar() {
   useEffect(() => {
     let mounted = true;
 
-    // Get currently logged-in user
     const loadUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
 
       if (!mounted) return;
 
       if (!error) {
-        setUser(data.user ?? null);
+        setUser(user ?? null);
       }
     };
 
     loadUser();
 
-    // Listen for login/logout changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -96,27 +99,30 @@ export default function Navbar() {
 
     setIsLoggingOut(true);
 
-    const { error } = await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
 
-    if (error) {
-      console.error("Logout error:", error);
+      if (error) {
+        console.error("Logout error:", error);
+        return;
+      }
+
+      setUser(null);
+      setShowUserMenu(false);
+
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Unexpected logout error:", error);
+    } finally {
       setIsLoggingOut(false);
-      return;
     }
-
-    setUser(null);
-    setShowUserMenu(false);
-    setIsLoggingOut(false);
-
-    router.push("/");
-    router.refresh();
   };
 
   // -----------------------------------------
   // Navbar appearance
   // -----------------------------------------
-  const isDarkHeroPage = ["/"].includes(pathname);
-
+  const isDarkHeroPage = pathname === "/";
   const useDarkText = !isDarkHeroPage || scrolled;
 
   // -----------------------------------------
@@ -143,6 +149,17 @@ export default function Navbar() {
 
   const userName = getUserName();
 
+  // -----------------------------------------
+  // Profile / Login
+  // -----------------------------------------
+  const handleProfileClick = () => {
+    if (user) {
+      router.push("/customer/overview");
+    } else {
+      router.push("/login");
+    }
+  };
+
   return (
     <>
       <nav
@@ -166,8 +183,9 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* ----------------------------------------- */}
-          {/* Left Zone: Brand Logo */}
+          {/* LEFT ZONE - BRAND */}
           {/* ----------------------------------------- */}
+
           <Link
             href="/"
             className="flex items-center gap-2.5 shrink-0"
@@ -176,7 +194,10 @@ export default function Navbar() {
             {/* YM Icon */}
             <div
               className="relative overflow-hidden shrink-0"
-              style={{ width: "52px", height: "52px" }}
+              style={{
+                width: "52px",
+                height: "52px",
+              }}
             >
               <Image
                 src="/assets/you_marriage_logo_transparent.png"
@@ -188,7 +209,9 @@ export default function Navbar() {
                     ? ""
                     : "brightness-[1.5] sepia-[0.35] saturate-[1.4] drop-shadow-[0_0_8px_rgba(240,210,141,0.35)]"
                 }`}
-                style={{ height: "auto" }}
+                style={{
+                  height: "auto",
+                }}
                 unoptimized
                 priority
               />
@@ -213,21 +236,24 @@ export default function Navbar() {
           </Link>
 
           {/* ----------------------------------------- */}
-          {/* Center Zone: Discovery */}
+          {/* CENTER ZONE - DISCOVERY */}
           {/* ----------------------------------------- */}
+
           <div className="flex-1 flex justify-center">
             <DesktopNavigation useDarkText={useDarkText} />
           </div>
 
           {/* ----------------------------------------- */}
-          {/* Right Zone: Utility Actions - Desktop */}
+          {/* RIGHT ZONE - DESKTOP */}
           {/* ----------------------------------------- */}
+
           <div
             className="hidden lg:flex items-center justify-end gap-3 xl:gap-5 shrink-0"
             onMouseEnter={closeMenu}
           >
             <SavedAction useDarkText={useDarkText} />
 
+            {/* Divider */}
             <div
               className={`w-[1px] h-4 mx-1 ${
                 useDarkText ? "bg-neutral-200" : "bg-white/20"
@@ -237,8 +263,8 @@ export default function Navbar() {
             {/* ----------------------------------------- */}
             {/* LOGIN / USER MENU */}
             {/* ----------------------------------------- */}
+
             {!user ? (
-              // Not logged in
               <Link
                 href="/login"
                 className={`flex items-center gap-2 text-xs xl:text-sm font-semibold transition-all duration-300 ${
@@ -256,7 +282,6 @@ export default function Navbar() {
                 <span>Login</span>
               </Link>
             ) : (
-              // Logged in
               <div className="relative">
                 <button
                   type="button"
@@ -291,6 +316,7 @@ export default function Navbar() {
                     }`}
                     viewBox="0 0 20 20"
                     fill="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -337,12 +363,15 @@ export default function Navbar() {
           </div>
 
           {/* ----------------------------------------- */}
-          {/* Mobile Right Zone */}
+          {/* MOBILE */}
           {/* ----------------------------------------- */}
+
           <div className="flex lg:hidden items-center gap-4">
             <button
+              type="button"
               onClick={() => setIsMobileOpen(true)}
-              suppressHydrationWarning={true}
+              suppressHydrationWarning
+              aria-label="Open menu"
               className={`p-2 -mr-2 rounded-md transition-colors duration-300 ${
                 useDarkText
                   ? "text-[#2D2D2D] hover:text-[#8B263E]"
@@ -355,7 +384,10 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Full Screen Experience */}
+      {/* ----------------------------------------- */}
+      {/* MOBILE FULL SCREEN EXPERIENCE */}
+      {/* ----------------------------------------- */}
+
       <MobileExperience
         isOpen={isMobileOpen}
         onClose={() => setIsMobileOpen(false)}
@@ -363,3 +395,4 @@ export default function Navbar() {
     </>
   );
 }
+```

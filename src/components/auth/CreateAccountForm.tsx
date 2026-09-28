@@ -1,4 +1,4 @@
-
+```tsx
 "use client";
 
 import React, { useState } from "react";
@@ -34,7 +34,10 @@ export default function CreateAccountForm({
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // =====================================================
   // CREATE ACCOUNT USING SUPABASE
+  // =====================================================
+
   const handleRegister = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -50,8 +53,26 @@ export default function CreateAccountForm({
       const cleanEmail = email.trim().toLowerCase();
       const cleanPhone = phone.trim();
 
+      // -------------------------------
+      // VALIDATION
+      // -------------------------------
+
       if (!cleanName) {
-        throw new Error("Please enter your full name.");
+        throw new Error(
+          "Please enter your full name."
+        );
+      }
+
+      if (!cleanEmail) {
+        throw new Error(
+          "Please enter your email address."
+        );
+      }
+
+      if (!password) {
+        throw new Error(
+          "Please enter a password."
+        );
       }
 
       if (password.length < 8) {
@@ -60,20 +81,32 @@ export default function CreateAccountForm({
         );
       }
 
-      // Create a real user in Supabase Authentication
-      const { data, error: signupError } =
-        await supabase.auth.signUp({
-          email: cleanEmail,
-          password: password,
-          options: {
-            data: {
-              full_name: cleanName,
-              phone: cleanPhone || null,
-            },
+      // -------------------------------
+      // SUPABASE SIGN UP
+      // -------------------------------
+
+      const {
+        data,
+        error: signupError,
+      } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: {
+            full_name: cleanName,
+            phone: cleanPhone
+              ? `+91${cleanPhone}`
+              : null,
           },
-        });
+        },
+      });
 
       if (signupError) {
+        console.error(
+          "SUPABASE SIGNUP ERROR:",
+          signupError
+        );
+
         throw signupError;
       }
 
@@ -83,20 +116,35 @@ export default function CreateAccountForm({
         );
       }
 
-      // Supabase returns a session immediately when
-      // email confirmation is disabled.
+      console.log(
+        "SUPABASE USER CREATED:",
+        data.user.id
+      );
+
+      // -------------------------------
+      // SESSION CREATED
+      // -------------------------------
+
       if (data.session) {
         setIsSuccess(true);
+        setIsLoading(false);
 
-        // Continue to the existing successful-login flow.
-        onSuccess("new-user", cleanName);
+        onSuccess(
+          "new-user",
+          cleanName
+        );
+
         return;
       }
 
-      // If email confirmation is enabled, Supabase
-      // does not automatically create a login session.
+      // -------------------------------
+      // EMAIL CONFIRMATION ENABLED
+      // -------------------------------
+
+      setIsLoading(false);
+
       setError(
-        "Account created! Please verify your email using the link sent to your inbox, then sign in."
+        "Account created successfully! Please verify your email using the link sent to your inbox, then sign in."
       );
     } catch (err: unknown) {
       const message =
@@ -104,16 +152,35 @@ export default function CreateAccountForm({
           ? err.message
           : "Failed to create account. Please try again.";
 
+      console.error(
+        "REGISTER ERROR:",
+        err
+      );
+
+      const lowerMessage =
+        message.toLowerCase();
+
       if (
-        message.toLowerCase().includes("already registered") ||
-        message.toLowerCase().includes("already been registered") ||
-        message.toLowerCase().includes("user already exists")
+        lowerMessage.includes(
+          "already registered"
+        ) ||
+        lowerMessage.includes(
+          "already been registered"
+        ) ||
+        lowerMessage.includes(
+          "user already exists"
+        )
       ) {
         setError(
           "An account with this email already exists. Please sign in instead."
         );
       } else if (
-        message.toLowerCase().includes("password should be")
+        lowerMessage.includes(
+          "password should be"
+        ) ||
+        lowerMessage.includes(
+          "password must"
+        )
       ) {
         setError(
           "Please choose a stronger password with at least 8 characters."
@@ -121,27 +188,28 @@ export default function CreateAccountForm({
       } else {
         setError(message);
       }
-    } finally {
+
       setIsLoading(false);
     }
   };
 
-  // Social signup remains separate from email signup.
-  // Uses Supabase OAuth for providers configured in Supabase.
+  // =====================================================
+  // SOCIAL AUTH
+  // =====================================================
+
   const handleSocialAuth = async (
     provider: "google" | "facebook" | "apple"
   ) => {
+    if (isLoading) return;
+
     setError(null);
+    setIsLoading(true);
 
     try {
-      if (provider === "google") {
-        setError(
-          "Please use the Google login button on the Sign In screen for the configured Google login."
-        );
-        return;
-      }
-
-      const { error: oauthError } =
+      const {
+        data,
+        error: oauthError,
+      } =
         await supabase.auth.signInWithOAuth({
           provider,
           options: {
@@ -152,14 +220,33 @@ export default function CreateAccountForm({
       if (oauthError) {
         throw oauthError;
       }
+
+      console.log(
+        `${provider.toUpperCase()} OAUTH STARTED`,
+        data
+      );
+
+      // Supabase redirects the browser to the
+      // provider automatically.
     } catch (err: unknown) {
-      setError(
+      console.error(
+        `${provider.toUpperCase()} AUTH ERROR:`,
+        err
+      );
+
+      const message =
         err instanceof Error
           ? err.message
-          : `${provider} authentication failed.`
-      );
+          : `${provider} authentication failed.`;
+
+      setError(message);
+      setIsLoading(false);
     }
   };
+
+  // =====================================================
+  // FORM ANIMATION
+  // =====================================================
 
   const fadeVariants = {
     initial: {
@@ -170,10 +257,12 @@ export default function CreateAccountForm({
           ? 0
           : -10,
     },
+
     animate: {
       opacity: 1,
       x: 0,
     },
+
     exit: {
       opacity: 0,
       x:
@@ -182,20 +271,29 @@ export default function CreateAccountForm({
           ? 0
           : 10,
     },
+
     transition: {
       duration: 0.3,
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
     },
   };
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
     <div
       className="w-[86%] max-w-[325px] sm:w-full sm:max-w-[395px] md:max-w-[415px] lg:max-w-[425px] xl:max-w-[435px] mx-auto p-4 sm:p-5 lg:p-6 rounded-2xl bg-[#0C0B0A]/90 backdrop-blur-md border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.3)] flex flex-col justify-start relative overflow-hidden shrink-0 touch-pan-y"
       style={{
-        WebkitBackfaceVisibility: "hidden",
-        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility:
+          "hidden",
+        backfaceVisibility:
+          "hidden",
       }}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) =>
+        e.stopPropagation()
+      }
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -203,14 +301,23 @@ export default function CreateAccountForm({
           {...fadeVariants}
           className="flex flex-col"
         >
+          {/* =================================================
+              HEADER
+          ================================================= */}
+
           <div className="mb-3 lg:mb-4">
             <h2 className="font-serif text-[24px] lg:text-[28px] text-[#FDFBF7] font-semibold mb-0.5">
               CREATE ACCOUNT
             </h2>
+
             <p className="text-xs lg:text-sm text-[#FDFBF7]/70">
               Begin your beautiful journey.
             </p>
           </div>
+
+          {/* =================================================
+              ERROR MESSAGE
+          ================================================= */}
 
           {error && (
             <div className="mb-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center">
@@ -218,11 +325,16 @@ export default function CreateAccountForm({
             </div>
           )}
 
+          {/* =================================================
+              REGISTRATION FORM
+          ================================================= */}
+
           <form
             onSubmit={handleRegister}
             className="flex flex-col gap-2.5 lg:gap-3"
           >
             {/* Full Name */}
+
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <User className="h-4 w-4 text-[#FDFBF7]/50" />
@@ -231,7 +343,9 @@ export default function CreateAccountForm({
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) =>
+                  setName(e.target.value)
+                }
                 required
                 autoComplete="name"
                 placeholder="Full Name"
@@ -240,6 +354,7 @@ export default function CreateAccountForm({
             </div>
 
             {/* Email */}
+
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <Mail className="h-4 w-4 text-[#FDFBF7]/50" />
@@ -248,7 +363,9 @@ export default function CreateAccountForm({
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) =>
+                  setEmail(e.target.value)
+                }
                 required
                 autoComplete="email"
                 placeholder="Email Address"
@@ -256,7 +373,8 @@ export default function CreateAccountForm({
               />
             </div>
 
-            {/* Optional phone number - not used for phone authentication */}
+            {/* Phone */}
+
             <div className="relative flex">
               <div className="w-14 h-[46px] lg:h-[48px] bg-white/5 border border-white/10 border-r-0 rounded-l-xl flex items-center justify-center text-xs lg:text-sm text-[#FDFBF7]/70">
                 +91
@@ -266,7 +384,12 @@ export default function CreateAccountForm({
                 type="tel"
                 value={phone}
                 onChange={(e) =>
-                  setPhone(e.target.value.replace(/\D/g, ""))
+                  setPhone(
+                    e.target.value.replace(
+                      /\D/g,
+                      ""
+                    )
+                  )
                 }
                 autoComplete="tel-national"
                 placeholder="Mobile Number (Optional)"
@@ -275,15 +398,24 @@ export default function CreateAccountForm({
             </div>
 
             {/* Password */}
+
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <Lock className="h-4 w-4 text-[#FDFBF7]/50" />
               </div>
 
               <input
-                type={showPassword ? "text" : "password"}
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) =>
+                  setPassword(
+                    e.target.value
+                  )
+                }
                 required
                 minLength={8}
                 autoComplete="new-password"
@@ -294,7 +426,9 @@ export default function CreateAccountForm({
               <button
                 type="button"
                 onClick={() =>
-                  setShowPassword(!showPassword)
+                  setShowPassword(
+                    !showPassword
+                  )
                 }
                 className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#FDFBF7]/50 hover:text-[#FDFBF7] transition-colors"
                 aria-label={
@@ -312,9 +446,13 @@ export default function CreateAccountForm({
             </div>
 
             {/* Submit */}
+
             <button
               type="submit"
-              disabled={isLoading || isSuccess}
+              disabled={
+                isLoading ||
+                isSuccess
+              }
               className="w-full h-[46px] lg:h-[48px] mt-1 bg-[#C6934A] hover:bg-[#B3833E] text-[#111111] text-xs lg:text-sm font-semibold rounded-lg transition-colors disabled:opacity-70"
             >
               {isSuccess
@@ -324,6 +462,10 @@ export default function CreateAccountForm({
                 : "CREATE ACCOUNT →"}
             </button>
           </form>
+
+          {/* =================================================
+              SOCIAL LOGIN
+          ================================================= */}
 
           <div className="mt-2.5 lg:mt-3">
             <div className="relative flex items-center justify-center mb-2.5 lg:mb-3">
@@ -338,11 +480,17 @@ export default function CreateAccountForm({
 
             <div className="flex items-center justify-center gap-2.5 lg:gap-3">
               {/* Google */}
+
               <button
                 type="button"
-                onClick={() => handleSocialAuth("google")}
-                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors"
-                aria-label="Google sign in"
+                onClick={() =>
+                  handleSocialAuth(
+                    "google"
+                  )
+                }
+                disabled={isLoading}
+                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50"
+                aria-label="Continue with Google"
               >
                 <svg
                   width="17"
@@ -354,14 +502,17 @@ export default function CreateAccountForm({
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                     fill="#4285F4"
                   />
+
                   <path
                     d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
                     fill="#34A853"
                   />
+
                   <path
                     d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
                     fill="#FBBC05"
                   />
+
                   <path
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     fill="#EA4335"
@@ -370,11 +521,17 @@ export default function CreateAccountForm({
               </button>
 
               {/* Facebook */}
+
               <button
                 type="button"
-                onClick={() => handleSocialAuth("facebook")}
-                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors"
-                aria-label="Facebook sign in"
+                onClick={() =>
+                  handleSocialAuth(
+                    "facebook"
+                  )
+                }
+                disabled={isLoading}
+                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50"
+                aria-label="Continue with Facebook"
               >
                 <svg
                   width="17"
@@ -390,11 +547,17 @@ export default function CreateAccountForm({
               </button>
 
               {/* Apple */}
+
               <button
                 type="button"
-                onClick={() => handleSocialAuth("apple")}
-                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors text-white"
-                aria-label="Apple sign in"
+                onClick={() =>
+                  handleSocialAuth(
+                    "apple"
+                  )
+                }
+                disabled={isLoading}
+                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors text-white disabled:opacity-50"
+                aria-label="Continue with Apple"
               >
                 <svg
                   width="17"
@@ -407,13 +570,19 @@ export default function CreateAccountForm({
               </button>
             </div>
 
+            {/* =================================================
+                SWITCH TO SIGN IN
+            ================================================= */}
+
             <div className="mt-2.5 lg:mt-3 text-center">
               <span className="text-[11px] lg:text-xs text-[#FDFBF7]/50">
                 Already have an account?{" "}
               </span>
 
               <button
-                onClick={onSwitchToSignin}
+                onClick={
+                  onSwitchToSignin
+                }
                 type="button"
                 className="text-[11px] lg:text-xs text-[#C6934A] font-medium hover:text-[#E2B777] transition-colors py-0.5 px-1.5"
               >
@@ -426,3 +595,5 @@ export default function CreateAccountForm({
     </div>
   );
 }
+
+
