@@ -1,9 +1,23 @@
 "use client";
 
-import React, { Suspense, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, {
+  Suspense,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
+
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
+
+import {
+  AnimatePresence,
+  motion,
+} from "framer-motion";
 
 import SignInForm from "@/components/auth/SignInForm";
 import CreateAccountForm from "@/components/auth/CreateAccountForm";
@@ -19,14 +33,18 @@ function AuthenticationContent() {
   const searchParams = useSearchParams();
 
   const initialMode =
-    searchParams.get("mode") === "signup" ? "signup" : "signin";
+    searchParams.get("mode") === "signup"
+      ? "signup"
+      : "signin";
 
-  const [authMode, setAuthMode] = useState<"signin" | "signup">(
-    initialMode
-  );
+  const [authMode, setAuthMode] = useState<
+    "signin" | "signup"
+  >(initialMode);
 
   const [mounted, setMounted] = useState(false);
-  const [authState, setAuthState] = useState<AuthState>("idle");
+
+  const [authState, setAuthState] =
+    useState<AuthState>("idle");
 
   const [authData, setAuthData] = useState<{
     mode: "new-user" | "returning-user";
@@ -37,9 +55,12 @@ function AuthenticationContent() {
 
   const [authVisible, setAuthVisible] = useState(true);
 
-  // --------------------------------------------------
+  // Prevent duplicate authentication animations.
+  const redirectHandled = useRef(false);
+
+  // =====================================================
   // MOUNT + MOBILE SCROLL LOCK
-  // --------------------------------------------------
+  // =====================================================
 
   useEffect(() => {
     setMounted(true);
@@ -61,7 +82,10 @@ function AuthenticationContent() {
 
     lockScrollOnMobile();
 
-    window.addEventListener("resize", lockScrollOnMobile);
+    window.addEventListener(
+      "resize",
+      lockScrollOnMobile
+    );
 
     return () => {
       document.body.style.overflow = "";
@@ -75,9 +99,112 @@ function AuthenticationContent() {
     };
   }, []);
 
-  // --------------------------------------------------
+  // =====================================================
+  // SUPABASE AUTH SESSION HANDLING
+  // =====================================================
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    let isActive = true;
+
+    const handleAuthenticatedSession = (
+      userName?: string
+    ) => {
+      if (!isActive || redirectHandled.current) {
+        return;
+      }
+
+      redirectHandled.current = true;
+
+      setAuthData({
+        mode: "returning-user",
+        userName,
+      });
+
+      setAuthState("cinematic");
+    };
+
+    // --------------------------------------------------
+    // CHECK EXISTING SESSION
+    // --------------------------------------------------
+
+    const checkExistingSession = async () => {
+      try {
+        const {
+          data,
+          error,
+        } = await supabase.auth.getSession();
+
+        if (!isActive) return;
+
+        if (error) {
+          console.error(
+            "Supabase session check error:",
+            error
+          );
+          return;
+        }
+
+        if (data.session) {
+          const userName =
+            data.session.user.user_metadata?.full_name ||
+            data.session.user.user_metadata?.name ||
+            data.session.user.email?.split("@")[0];
+
+          handleAuthenticatedSession(userName);
+        }
+      } catch (error) {
+        console.error(
+          "Unexpected session check error:",
+          error
+        );
+      }
+    };
+
+    // --------------------------------------------------
+    // AUTH STATE LISTENER
+    // --------------------------------------------------
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!isActive) return;
+
+        if (
+          (event === "SIGNED_IN" ||
+            event === "INITIAL_SESSION") &&
+          session
+        ) {
+          const userName =
+            session.user.user_metadata?.full_name ||
+            session.user.user_metadata?.name ||
+            session.user.email?.split("@")[0];
+
+          // Run after auth callback completes.
+          setTimeout(() => {
+            if (isActive) {
+              handleAuthenticatedSession(
+                userName
+              );
+            }
+          }, 0);
+        }
+      }
+    );
+
+    checkExistingSession();
+
+    return () => {
+      isActive = false;
+      subscription.unsubscribe();
+    };
+  }, [mounted]);
+
+  // =====================================================
   // SYNC AUTH MODE WITH URL
-  // --------------------------------------------------
+  // =====================================================
 
   useEffect(() => {
     const currentMode =
@@ -90,9 +217,9 @@ function AuthenticationContent() {
     }
   }, [searchParams, authMode]);
 
-  // --------------------------------------------------
+  // =====================================================
   // GOOGLE OAUTH CALLBACK
-  // --------------------------------------------------
+  // =====================================================
 
   useEffect(() => {
     if (!mounted) return;
@@ -105,16 +232,20 @@ function AuthenticationContent() {
 
         const code = params.get("code");
 
-        // Normal /login visit
+        // Normal /login visit.
         if (!code) {
           return;
         }
 
         console.log("OAUTH CODE FOUND");
 
-        // Exchange OAuth code for Supabase session
-        const { error: exchangeError } =
-          await supabase.auth.exchangeCodeForSession(code);
+        // Exchange OAuth code for Supabase session.
+        const {
+          error: exchangeError,
+        } =
+          await supabase.auth.exchangeCodeForSession(
+            code
+          );
 
         if (exchangeError) {
           console.error(
@@ -126,14 +257,14 @@ function AuthenticationContent() {
 
         console.log("OAUTH SESSION CREATED");
 
-        // Remove OAuth code from URL
+        // Remove OAuth code from URL.
         window.history.replaceState(
           {},
           document.title,
           "/login"
         );
 
-        // Get logged-in user
+        // Get logged-in user.
         const {
           data: { user },
           error: userError,
@@ -148,7 +279,9 @@ function AuthenticationContent() {
         }
 
         if (!user) {
-          console.error("OAUTH USER NOT FOUND");
+          console.error(
+            "OAUTH USER NOT FOUND"
+          );
           return;
         }
 
@@ -168,6 +301,14 @@ function AuthenticationContent() {
           userName
         );
 
+        // Prevent the auth listener from
+        // triggering a second animation.
+        if (redirectHandled.current) {
+          return;
+        }
+
+        redirectHandled.current = true;
+
         setAuthData({
           mode: "returning-user",
           userName,
@@ -185,9 +326,9 @@ function AuthenticationContent() {
     handleOAuthCallback();
   }, [mounted]);
 
-  // --------------------------------------------------
+  // =====================================================
   // AUTH MODE SWITCH
-  // --------------------------------------------------
+  // =====================================================
 
   const handleModeSwitch = (
     newMode: "signin" | "signup"
@@ -199,31 +340,36 @@ function AuthenticationContent() {
         ? "/login?mode=signup"
         : "/login";
 
-    window.history.pushState(null, "", url);
+    window.history.pushState(
+      null,
+      "",
+      url
+    );
   };
 
-  // --------------------------------------------------
-  // NORMAL LOGIN / SIGNUP SUCCESS
-  // --------------------------------------------------
-const handleAuthSuccess = (
-  mode: "new-user" | "returning-user",
-  userName?: string
-) => {
-  console.log("AUTH SUCCESS");
-  console.log("AUTH MODE:", mode);
-  console.log("AUTH USER:", userName);
+  // =====================================================
+  // NORMAL AUTH SUCCESS
+  // =====================================================
 
-  setAuthData({
-    mode,
-    userName,
-  });
+  const handleAuthSuccess = (
+    mode: "new-user" | "returning-user",
+    userName?: string
+  ) => {
+    // Prevent the Supabase session listener
+    // from starting another animation.
+    redirectHandled.current = true;
 
-  setAuthState("cinematic");
-};
+    setAuthData({
+      mode,
+      userName,
+    });
 
-  // --------------------------------------------------
-  // CLOSE LOGIN
-  // --------------------------------------------------
+    setAuthState("cinematic");
+  };
+
+  // =====================================================
+  // CLOSE LOGIN PAGE
+  // =====================================================
 
   const handleClose = () => {
     if (
@@ -236,9 +382,9 @@ const handleAuthSuccess = (
     }
   };
 
-  // --------------------------------------------------
+  // =====================================================
   // FORM ANIMATION
-  // --------------------------------------------------
+  // =====================================================
 
   const fadeVariants = {
     initial: {
@@ -278,14 +424,18 @@ const handleAuthSuccess = (
     return null;
   }
 
+  // =====================================================
+  // MAIN UI
+  // =====================================================
+
   return (
     <div
       className="relative h-[100dvh] lg:min-h-[100svh] w-full bg-[#111] font-sans overflow-hidden lg:overflow-x-hidden flex flex-col cursor-pointer touch-none lg:touch-auto"
       onClick={handleClose}
     >
-      {/* --------------------------------------------------
-          CINEMATIC LOGIN ANIMATION
-      -------------------------------------------------- */}
+      {/* =================================================
+          CINEMATIC SUCCESS ANIMATION
+      ================================================= */}
 
       <AnimatePresence>
         {authState === "cinematic" && (
@@ -296,22 +446,18 @@ const handleAuthSuccess = (
               setAuthVisible(false);
             }}
             onComplete={() => {
-  console.log("CINEMATIC COMPLETE");
-  console.log("REDIRECTING TO HOME");
-
-  setAuthState("redirecting");
-
-  router.replace("/");
-}}
+              setAuthState("redirecting");
+              router.replace("/");
+            }}
           />
         )}
       </AnimatePresence>
 
       {authVisible && (
         <>
-          {/* --------------------------------------------------
+          {/* =================================================
               BACKGROUND
-          -------------------------------------------------- */}
+          ================================================= */}
 
           <div className="fixed inset-0 z-0 pointer-events-none">
             <Image
@@ -329,26 +475,28 @@ const handleAuthSuccess = (
             <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-black/30 to-black/60 z-[2]" />
           </div>
 
-          {/* --------------------------------------------------
+          {/* =================================================
               NAVBAR
-          -------------------------------------------------- */}
+          ================================================= */}
 
           <div
             className="relative z-50 cursor-default"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) =>
+              e.stopPropagation()
+            }
           >
             <Navbar />
           </div>
 
-          {/* --------------------------------------------------
-              CONTENT
-          -------------------------------------------------- */}
+          {/* =================================================
+              MAIN CONTENT
+          ================================================= */}
 
           <main className="relative z-10 w-full max-w-[1536px] mx-auto h-[calc(100dvh-70px)] lg:min-h-[100svh] pt-[72px] md:pt-[80px] pb-2 lg:pb-0 px-4 md:px-12 xl:px-16 flex flex-col lg:grid lg:grid-cols-[56%_44%] items-center justify-center gap-6 lg:gap-16 xl:gap-20 overflow-hidden lg:overflow-visible">
 
-            {/* --------------------------------------------------
-                LEFT SIDE
-            -------------------------------------------------- */}
+            {/* =================================================
+                LEFT SIDE CONTENT
+            ================================================= */}
 
             <div className="hidden lg:flex w-full text-white pt-6 lg:pt-0 justify-start lg:justify-center">
               <div className="w-full max-w-[500px] lg:max-w-[620px]">
@@ -391,13 +539,15 @@ const handleAuthSuccess = (
               </div>
             </div>
 
-            {/* --------------------------------------------------
+            {/* =================================================
                 RIGHT SIDE AUTH
-            -------------------------------------------------- */}
+            ================================================= */}
 
             <div
               className="w-full flex justify-center lg:justify-start xl:justify-center relative cursor-default lg:-translate-x-10 xl:-translate-x-16 2xl:-translate-x-24 touch-auto"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) =>
+                e.stopPropagation()
+              }
             >
               <AnimatePresence mode="wait">
                 {authMode === "signin" ? (
@@ -410,9 +560,13 @@ const handleAuthSuccess = (
                     }
                   >
                     <SignInForm
-                      onSuccess={handleAuthSuccess}
+                      onSuccess={
+                        handleAuthSuccess
+                      }
                       onSwitchToSignup={() =>
-                        handleModeSwitch("signup")
+                        handleModeSwitch(
+                          "signup"
+                        )
                       }
                     />
                   </motion.div>
@@ -426,9 +580,13 @@ const handleAuthSuccess = (
                     }
                   >
                     <CreateAccountForm
-                      onSuccess={handleAuthSuccess}
+                      onSuccess={
+                        handleAuthSuccess
+                      }
                       onSwitchToSignin={() =>
-                        handleModeSwitch("signin")
+                        handleModeSwitch(
+                          "signin"
+                        )
                       }
                     />
                   </motion.div>
@@ -441,6 +599,10 @@ const handleAuthSuccess = (
     </div>
   );
 }
+
+// =========================================================
+// LOGIN CLIENT WRAPPER
+// =========================================================
 
 export default function LoginClient() {
   return (

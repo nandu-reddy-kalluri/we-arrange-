@@ -1,7 +1,17 @@
+```tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+} from "react";
+
+import {
+  motion,
+  AnimatePresence,
+} from "framer-motion";
+
 import {
   Mail,
   Lock,
@@ -9,6 +19,7 @@ import {
   EyeOff,
   Check,
 } from "lucide-react";
+
 import { supabase } from "@/services/supabase/client";
 import OtpInput from "./OtpInput";
 
@@ -17,6 +28,7 @@ interface SignInFormProps {
     mode: "new-user" | "returning-user",
     userName?: string
   ) => void;
+
   onSwitchToSignup: () => void;
 }
 
@@ -35,22 +47,40 @@ export default function SignInForm({
   onSuccess,
   onSwitchToSignup,
 }: SignInFormProps) {
+  // =====================================================
+  // AUTH METHOD
+  // =====================================================
+
   const [method, setMethod] =
     useState<AuthMethod>("email");
+
+  // =====================================================
+  // EMAIL FLOW
+  // =====================================================
 
   const [emailFlow, setEmailFlow] =
     useState<EmailFlowState>("password");
 
+  // =====================================================
+  // MOBILE FLOW
+  // =====================================================
+
   const [mobileFlow, setMobileFlow] =
     useState<MobileFlowState>("request");
 
-  // Form State
+  // =====================================================
+  // FORM STATE
+  // =====================================================
+
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
 
-  // UI State
+  // =====================================================
+  // UI STATE
+  // =====================================================
+
   const [showPassword, setShowPassword] =
     useState(false);
 
@@ -66,81 +96,113 @@ export default function SignInForm({
   const [error, setError] =
     useState<string | null>(null);
 
-  // Timer State
+  const [successMessage, setSuccessMessage] =
+    useState<string | null>(null);
+
+  // =====================================================
+  // OTP TIMER
+  // =====================================================
+
   const [timer, setTimer] = useState(0);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout | undefined;
+  // =====================================================
+  // MOUNT STATE
+  // =====================================================
 
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer(
-          (currentTimer) => currentTimer - 1
-        );
-      }, 1000);
-    }
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
 
     return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
+      isMounted.current = false;
     };
+  }, []);
+
+  // =====================================================
+  // OTP COUNTDOWN
+  // =====================================================
+
+  useEffect(() => {
+    if (timer <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimer((current) =>
+        Math.max(current - 1, 0)
+      );
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [timer]);
 
-  // --------------------------------------------------
-  // SOCIAL AUTH
-  // --------------------------------------------------
+  // =====================================================
+  // RESET MESSAGES
+  // =====================================================
+
+  const clearMessages = () => {
+    setError(null);
+    setSuccessMessage(null);
+  };
+
+  // =====================================================
+  // SOCIAL LOGIN
+  // =====================================================
 
   const handleSocialAuth = async (
     provider: "google" | "facebook" | "apple"
   ) => {
+    if (isLoading) return;
+
+    clearMessages();
+    setIsLoading(true);
+
     try {
-      setError(null);
-      setIsLoading(true);
+      const options = {
+        redirectTo:
+          `${window.location.origin}/login`,
 
-      // Only Google is enabled for now
-      if (provider !== "google") {
-        throw new Error(
-          `${provider} authentication is not available yet.`
-        );
-      }
+        ...(provider === "google"
+          ? {
+              queryParams: {
+                prompt: "select_account",
+              },
+            }
+          : {}),
+      };
 
-      const { error } =
+      const { error: oauthError } =
         await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo:
-              `${window.location.origin}/login`,
-          },
+          provider,
+          options,
         });
 
-      if (error) {
-        console.error(
-          "GOOGLE LOGIN ERROR:",
-          error
-        );
-
-        throw error;
+      if (oauthError) {
+        throw oauthError;
       }
+
+      // Supabase redirects the browser to the
+      // selected OAuth provider.
     } catch (err: unknown) {
-      console.error(
-        "SOCIAL LOGIN ERROR:",
-        err
-      );
+      if (!isMounted.current) return;
 
       const message =
         err instanceof Error
           ? err.message
-          : "Social authentication failed.";
+          : `${provider} authentication is currently unavailable.`;
+
+      console.error(
+        "SOCIAL LOGIN ERROR:",
+        err
+      );
 
       setError(message);
       setIsLoading(false);
     }
   };
 
-  // --------------------------------------------------
+  // =====================================================
   // EMAIL + PASSWORD LOGIN
-  // --------------------------------------------------
+  // =====================================================
 
   const handlePasswordLogin = async (
     e: React.FormEvent
@@ -151,9 +213,9 @@ export default function SignInForm({
       return;
     }
 
+    clearMessages();
     setIsLoading(true);
     setIsSuccess(false);
-    setError(null);
 
     try {
       const normalizedEmail =
@@ -171,23 +233,16 @@ export default function SignInForm({
         );
       }
 
-      console.log(
-        "SUPABASE LOGIN ATTEMPT:",
-        normalizedEmail
-      );
-
-      const { data, error: authError } =
+      const {
+        data,
+        error: authError,
+      } =
         await supabase.auth.signInWithPassword({
           email: normalizedEmail,
           password,
         });
 
       if (authError) {
-        console.error(
-          "SUPABASE LOGIN ERROR:",
-          authError
-        );
-
         throw authError;
       }
 
@@ -197,14 +252,9 @@ export default function SignInForm({
         );
       }
 
-      console.log(
-        "SUPABASE USER LOGGED IN:",
-        data.user.id
-      );
-
-      // --------------------------------------------------
+      // =================================================
       // CONFIRM SESSION
-      // --------------------------------------------------
+      // =================================================
 
       const {
         data: { session },
@@ -212,11 +262,6 @@ export default function SignInForm({
       } = await supabase.auth.getSession();
 
       if (sessionError) {
-        console.error(
-          "SESSION CHECK ERROR:",
-          sessionError
-        );
-
         throw sessionError;
       }
 
@@ -226,44 +271,37 @@ export default function SignInForm({
         );
       }
 
-      console.log(
-        "SUPABASE SESSION CONFIRMED:",
-        session.user.id
-      );
-
-      // --------------------------------------------------
+      // =================================================
       // USER NAME
-      // --------------------------------------------------
+      // =================================================
 
       const userName =
         data.user.user_metadata?.full_name ||
         data.user.user_metadata?.name ||
-        normalizedEmail.split("@")[0];
+        data.user.email?.split("@")[0] ||
+        "User";
 
-      console.log(
-        "LOGGED IN USER NAME:",
-        userName
-      );
-
-      // --------------------------------------------------
-      // LOGIN SUCCESS
-      // --------------------------------------------------
+      if (!isMounted.current) return;
 
       setIsLoading(false);
       setIsSuccess(true);
 
+      // Small delay so the success state is visible.
       setTimeout(() => {
-        onSuccess(
-          "returning-user",
-          userName
-        );
+        if (isMounted.current) {
+          onSuccess(
+            "returning-user",
+            userName
+          );
+        }
       }, 400);
-
     } catch (err: unknown) {
+      if (!isMounted.current) return;
+
       const message =
         err instanceof Error
           ? err.message
-          : "Invalid login credentials.";
+          : "Invalid email or password.";
 
       console.error(
         "LOGIN ERROR:",
@@ -276,27 +314,109 @@ export default function SignInForm({
     }
   };
 
-  // --------------------------------------------------
-  // EMAIL OTP
-  // --------------------------------------------------
+  // =====================================================
+  // FORGOT PASSWORD
+  // =====================================================
 
-  const handleSendEmailOtp = async (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
+  const handleForgotPassword = async () => {
+    if (isLoading) return;
+
+    const cleanEmail =
+      email.trim().toLowerCase();
+
+    clearMessages();
+
+    if (!cleanEmail) {
+      setError(
+        "Please enter your email address above first."
+      );
+      return;
+    }
 
     setIsLoading(true);
-    setError(null);
 
     try {
-      // Mocked for now.
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
-      );
+      const { error: resetError } =
+        await supabase.auth.resetPasswordForEmail(
+          cleanEmail,
+          {
+            redirectTo:
+              `${window.location.origin}/reset-password`,
+          }
+        );
 
+      if (resetError) {
+        throw resetError;
+      }
+
+      if (!isMounted.current) return;
+
+      setSuccessMessage(
+        "If an account exists for this email, a password reset link has been sent. Please check your inbox and spam folder."
+      );
+    } catch (err: unknown) {
+      if (!isMounted.current) return;
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not send the password reset email. Please try again.";
+
+      setError(message);
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  // =====================================================
+  // SEND EMAIL OTP
+  // =====================================================
+
+  const handleSendEmailOtp = async (
+    e?: React.FormEvent
+  ) => {
+    e?.preventDefault();
+
+    if (isLoading) return;
+
+    clearMessages();
+
+    const cleanEmail =
+      email.trim().toLowerCase();
+
+    if (!cleanEmail) {
+      setError(
+        "Please enter your email address."
+      );
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error: otpError } =
+        await supabase.auth.signInWithOtp({
+          email: cleanEmail,
+          options: {
+            shouldCreateUser: false,
+          },
+        });
+
+      if (otpError) {
+        throw otpError;
+      }
+
+      if (!isMounted.current) return;
+
+      setEmail(cleanEmail);
+      setOtp("");
       setEmailFlow("otp-verify");
       setTimer(30);
     } catch (err: unknown) {
+      if (!isMounted.current) return;
+
       const message =
         err instanceof Error
           ? err.message
@@ -304,130 +424,230 @@ export default function SignInForm({
 
       setError(message);
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
   };
 
+  // =====================================================
+  // VERIFY EMAIL OTP
+  // =====================================================
+
   const handleVerifyEmailOtp = async () => {
-    if (otp.length < 6 || isLoading) {
+    if (
+      otp.length !== 6 ||
+      isLoading ||
+      isSuccess
+    ) {
       return;
     }
 
+    clearMessages();
     setIsLoading(true);
-    setError(null);
 
     try {
-      // Mocked for now.
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
-      );
+      const cleanEmail =
+        email.trim().toLowerCase();
 
-      setIsSuccess(true);
+      const {
+        data,
+        error: verifyError,
+      } =
+        await supabase.auth.verifyOtp({
+          email: cleanEmail,
+          token: otp,
+          type: "email",
+        });
+
+      if (verifyError) {
+        throw verifyError;
+      }
+
+      if (!data.user) {
+        throw new Error(
+          "Verification failed. Please try again."
+        );
+      }
+
+      if (!isMounted.current) return;
+
+      const userName =
+        data.user.user_metadata?.full_name ||
+        data.user.user_metadata?.name ||
+        data.user.email?.split("@")[0] ||
+        "User";
+
       setIsLoading(false);
+      setIsSuccess(true);
 
       setTimeout(() => {
-        onSuccess(
-          "returning-user",
-          email.trim().split("@")[0]
-        );
+        if (isMounted.current) {
+          onSuccess(
+            "returning-user",
+            userName
+          );
+        }
       }, 400);
-    } catch (err) {
-      console.error(
-        "EMAIL OTP ERROR:",
-        err
-      );
+    } catch (err: unknown) {
+      if (!isMounted.current) return;
 
-      setError(
-        "That code isn't correct. Please try again."
-      );
+      const message =
+        err instanceof Error
+          ? err.message
+          : "That code isn't correct. Please try again.";
 
+      setError(message);
       setIsLoading(false);
+      setIsSuccess(false);
     }
   };
 
-  // --------------------------------------------------
-  // MOBILE OTP
-  // --------------------------------------------------
+  // =====================================================
+  // SEND MOBILE OTP
+  // =====================================================
 
   const handleSendMobileOtp = async (
     e: React.FormEvent
   ) => {
     e.preventDefault();
 
-    setIsLoading(true);
-    setError(null);
+    if (isLoading) return;
 
-    try {
-      const formattedPhone =
-        phone.startsWith("+")
-          ? phone
-          : `+91${phone}`;
+    clearMessages();
 
-      console.log(
-        "MOBILE OTP REQUEST:",
-        formattedPhone
-      );
+    const cleanPhone =
+      phone.replace(/\D/g, "");
 
-      // Mocked for now.
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
-      );
-
-      setMobileFlow("verify");
-      setTimer(30);
-    } catch (err) {
-      console.error(
-        "MOBILE OTP ERROR:",
-        err
-      );
-
+    if (!cleanPhone) {
       setError(
-        "Mobile verification is currently unavailable. Please use email."
+        "Please enter your mobile number."
       );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyMobileOtp = async () => {
-    if (otp.length < 6 || isLoading) {
       return;
     }
 
+    if (cleanPhone.length !== 10) {
+      setError(
+        "Please enter a valid 10-digit mobile number."
+      );
+      return;
+    }
+
+    const formattedPhone =
+      `+91${cleanPhone}`;
+
     setIsLoading(true);
-    setError(null);
 
     try {
-      // Mocked for now.
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
-      );
+      const { error: otpError } =
+        await supabase.auth.signInWithOtp({
+          phone: formattedPhone,
+          options: {
+            shouldCreateUser: false,
+          },
+        });
 
-      setIsSuccess(true);
-      setIsLoading(false);
+      if (otpError) {
+        throw otpError;
+      }
 
-      setTimeout(() => {
-        onSuccess(
-          "returning-user"
-        );
-      }, 400);
-    } catch (err) {
-      console.error(
-        "MOBILE OTP ERROR:",
-        err
-      );
+      if (!isMounted.current) return;
 
-      setError(
-        "That code isn't correct. Please try again."
-      );
+      setPhone(cleanPhone);
+      setOtp("");
+      setMobileFlow("verify");
+      setTimer(30);
+    } catch (err: unknown) {
+      if (!isMounted.current) return;
 
-      setIsLoading(false);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not send mobile OTP.";
+
+      setError(message);
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
   };
 
-  // --------------------------------------------------
-  // ANIMATION VARIANTS
-  // --------------------------------------------------
+  // =====================================================
+  // VERIFY MOBILE OTP
+  // =====================================================
+
+  const handleVerifyMobileOtp = async () => {
+    if (
+      otp.length !== 6 ||
+      isLoading ||
+      isSuccess
+    ) {
+      return;
+    }
+
+    clearMessages();
+    setIsLoading(true);
+
+    try {
+      const formattedPhone =
+        `+91${phone}`;
+
+      const {
+        data,
+        error: verifyError,
+      } =
+        await supabase.auth.verifyOtp({
+          phone: formattedPhone,
+          token: otp,
+          type: "sms",
+        });
+
+      if (verifyError) {
+        throw verifyError;
+      }
+
+      if (!data.user) {
+        throw new Error(
+          "Verification failed. Please try again."
+        );
+      }
+
+      if (!isMounted.current) return;
+
+      const userName =
+        data.user.user_metadata?.full_name ||
+        data.user.user_metadata?.name ||
+        "User";
+
+      setIsLoading(false);
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        if (isMounted.current) {
+          onSuccess(
+            "returning-user",
+            userName
+          );
+        }
+      }, 400);
+    } catch (err: unknown) {
+      if (!isMounted.current) return;
+
+      const message =
+        err instanceof Error
+          ? err.message
+          : "That code isn't correct. Please try again.";
+
+      setError(message);
+      setIsLoading(false);
+      setIsSuccess(false);
+    }
+  };
+
+  // =====================================================
+  // ANIMATION
+  // =====================================================
 
   const fadeVariants = {
     initial: {
@@ -455,31 +675,41 @@ export default function SignInForm({
 
     transition: {
       duration: 0.3,
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
     },
   };
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   return (
     <div
       className="w-[86%] max-w-[325px] sm:w-full sm:max-w-[395px] md:max-w-[415px] lg:max-w-[425px] xl:max-w-[435px] mx-auto p-4 sm:p-5 lg:p-6 rounded-2xl bg-[#0C0B0A]/90 backdrop-blur-md border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.3)] flex flex-col justify-start relative overflow-hidden shrink-0 touch-pan-y"
       style={{
-        WebkitBackfaceVisibility: "hidden",
-        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility:
+          "hidden",
+        backfaceVisibility:
+          "hidden",
       }}
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) =>
+        e.stopPropagation()
+      }
     >
-      {/* METHOD SWITCHER */}
+      {/* =================================================
+          METHOD SWITCHER
+      ================================================= */}
 
       {emailFlow !== "otp-verify" &&
         mobileFlow !== "verify" && (
           <div className="flex bg-[#1a1a1a]/50 p-1 rounded-lg mb-3 lg:mb-4 border border-white/5">
-
             <button
+              type="button"
               onClick={() => {
                 setMethod("email");
-                setError(null);
+                clearMessages();
               }}
-              className={`flex-1 py-1.5 text-xs lg:text-sm font-semibold rounded-md transition-all duration-300 ease-out ${
+              className={`flex-1 py-1.5 text-xs lg:text-sm font-semibold rounded-md transition-all duration-300 ${
                 method === "email"
                   ? "bg-[#1a1a1a] text-[#C6934A] border border-[#C6934A]/30 shadow-sm"
                   : "text-[#FDFBF7]/50 hover:text-[#FDFBF7]"
@@ -489,11 +719,12 @@ export default function SignInForm({
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 setMethod("mobile");
-                setError(null);
+                clearMessages();
               }}
-              className={`flex-1 py-1.5 text-xs lg:text-sm font-semibold rounded-md transition-all duration-300 ease-out ${
+              className={`flex-1 py-1.5 text-xs lg:text-sm font-semibold rounded-md transition-all duration-300 ${
                 method === "mobile"
                   ? "bg-[#1a1a1a] text-[#C6934A] border border-[#C6934A]/30 shadow-sm"
                   : "text-[#FDFBF7]/50 hover:text-[#FDFBF7]"
@@ -504,7 +735,9 @@ export default function SignInForm({
           </div>
         )}
 
-      {/* ERROR */}
+      {/* =================================================
+          ERROR
+      ================================================= */}
 
       {error && (
         <div className="mb-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center">
@@ -512,10 +745,22 @@ export default function SignInForm({
         </div>
       )}
 
+      {/* =================================================
+          SUCCESS MESSAGE
+      ================================================= */}
+
+      {successMessage && (
+        <div className="mb-4 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs text-center">
+          {successMessage}
+        </div>
+      )}
+
       <div className="relative">
         <AnimatePresence mode="wait">
 
-          {/* EMAIL METHOD */}
+          {/* =================================================
+              EMAIL METHOD
+          ================================================= */}
 
           {method === "email" && (
             <motion.div
@@ -523,7 +768,9 @@ export default function SignInForm({
               {...fadeVariants}
             >
 
-              {/* EMAIL PASSWORD */}
+              {/* ===========================================
+                  PASSWORD LOGIN
+              =========================================== */}
 
               {emailFlow === "password" && (
                 <motion.div
@@ -542,7 +789,9 @@ export default function SignInForm({
                   </div>
 
                   <form
-                    onSubmit={handlePasswordLogin}
+                    onSubmit={
+                      handlePasswordLogin
+                    }
                     className="flex flex-col gap-2.5 lg:gap-3"
                   >
                     {/* EMAIL */}
@@ -555,12 +804,16 @@ export default function SignInForm({
                       <input
                         type="email"
                         value={email}
-                        onChange={(e) =>
-                          setEmail(e.target.value)
-                        }
+                        onChange={(e) => {
+                          setEmail(
+                            e.target.value
+                          );
+                          clearMessages();
+                        }}
                         required
+                        autoComplete="email"
                         placeholder="Email Address"
-                        className="w-full h-[46px] lg:h-[48px] pl-10 pr-4 bg-white/5 border border-white/10 rounded-xl text-xs lg:text-sm text-[#FDFBF7] focus:outline-none focus:border-[#C6934A]/50 focus:bg-white/10 transition-colors placeholder-[#FDFBF7]/30 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_1000px_#0C0B0A_inset_!important] [&:-webkit-autofill]:[-webkit-text-fill-color:#FDFBF7_!important] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s_!important]"
+                        className="w-full h-[46px] lg:h-[48px] pl-10 pr-4 bg-white/5 border border-white/10 rounded-xl text-xs lg:text-sm text-[#FDFBF7] focus:outline-none focus:border-[#C6934A]/50 focus:bg-white/10 transition-colors placeholder-[#FDFBF7]/30"
                       />
                     </div>
 
@@ -579,11 +832,14 @@ export default function SignInForm({
                         }
                         value={password}
                         onChange={(e) =>
-                          setPassword(e.target.value)
+                          setPassword(
+                            e.target.value
+                          )
                         }
                         required
+                        autoComplete="current-password"
                         placeholder="Password"
-                        className="w-full h-[46px] lg:h-[48px] pl-10 pr-11 bg-white/5 border border-white/10 rounded-xl text-xs lg:text-sm text-[#FDFBF7] focus:outline-none focus:border-[#C6934A]/50 focus:bg-white/10 transition-colors placeholder-[#FDFBF7]/30 [&:-webkit-autofill]:[-webkit-box-shadow:0_0_0_1000px_#0C0B0A_inset_!important] [&:-webkit-autofill]:[-webkit-text-fill-color:#FDFBF7_!important] [&:-webkit-autofill]:[transition:background-color_9999s_ease-in-out_0s_!important]"
+                        className="w-full h-[46px] lg:h-[48px] pl-10 pr-11 bg-white/5 border border-white/10 rounded-xl text-xs lg:text-sm text-[#FDFBF7] focus:outline-none focus:border-[#C6934A]/50 focus:bg-white/10 transition-colors placeholder-[#FDFBF7]/30"
                       />
 
                       <button
@@ -594,6 +850,11 @@ export default function SignInForm({
                           )
                         }
                         className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#FDFBF7]/50 hover:text-[#FDFBF7] transition-colors"
+                        aria-label={
+                          showPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -606,9 +867,7 @@ export default function SignInForm({
                     {/* REMEMBER / FORGOT */}
 
                     <div className="flex items-center justify-between mt-0.5 mb-0.5 px-0.5">
-
                       <label className="flex items-center gap-1.5 cursor-pointer group">
-
                         <div className="w-3.5 h-3.5 rounded border border-white/20 flex items-center justify-center group-hover:border-[#C6934A]/50 transition-colors bg-white/5">
                           <Check
                             className={`h-2.5 w-2.5 text-[#C6934A] ${
@@ -637,7 +896,11 @@ export default function SignInForm({
 
                       <button
                         type="button"
-                        className="text-[11px] lg:text-xs text-[#FDFBF7]/60 hover:text-[#FDFBF7] transition-colors"
+                        onClick={
+                          handleForgotPassword
+                        }
+                        disabled={isLoading}
+                        className="text-[11px] lg:text-xs text-[#FDFBF7]/60 hover:text-[#FDFBF7] transition-colors disabled:opacity-50"
                       >
                         Forgot Password?
                       </button>
@@ -648,7 +911,8 @@ export default function SignInForm({
                     <button
                       type="submit"
                       disabled={
-                        isLoading || isSuccess
+                        isLoading ||
+                        isSuccess
                       }
                       className="w-full h-[46px] lg:h-[48px] mt-1 bg-[#C6934A] hover:bg-[#B3833E] text-[#111111] text-xs lg:text-sm font-semibold rounded-lg transition-colors disabled:opacity-70"
                     >
@@ -663,11 +927,12 @@ export default function SignInForm({
 
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        clearMessages();
                         setEmailFlow(
                           "otp-request"
-                        )
-                      }
+                        );
+                      }}
                       className="text-[11px] lg:text-xs text-[#FDFBF7]/50 hover:text-[#FDFBF7] transition-colors mt-1"
                     >
                       Use email OTP instead
@@ -676,11 +941,13 @@ export default function SignInForm({
                 </motion.div>
               )}
 
-              {/* EMAIL OTP REQUEST */}
+              {/* ===========================================
+                  EMAIL OTP REQUEST
+              =========================================== */}
 
               {emailFlow === "otp-request" && (
                 <motion.div
-                  key="otp-req"
+                  key="otp-request"
                   {...fadeVariants}
                   className="flex flex-col"
                 >
@@ -695,7 +962,9 @@ export default function SignInForm({
                   </div>
 
                   <form
-                    onSubmit={handleSendEmailOtp}
+                    onSubmit={
+                      handleSendEmailOtp
+                    }
                     className="flex flex-col gap-2.5 lg:gap-3"
                   >
                     <div className="relative">
@@ -706,10 +975,14 @@ export default function SignInForm({
                       <input
                         type="email"
                         value={email}
-                        onChange={(e) =>
-                          setEmail(e.target.value)
-                        }
+                        onChange={(e) => {
+                          setEmail(
+                            e.target.value
+                          );
+                          clearMessages();
+                        }}
                         required
+                        autoComplete="email"
                         placeholder="Email Address"
                         className="w-full h-[46px] lg:h-[48px] pl-10 pr-4 bg-white/5 border border-white/10 rounded-xl text-xs lg:text-sm text-[#FDFBF7] focus:outline-none focus:border-[#C6934A]/50 focus:bg-white/10 transition-colors placeholder-[#FDFBF7]/30"
                       />
@@ -727,11 +1000,12 @@ export default function SignInForm({
 
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        clearMessages();
                         setEmailFlow(
                           "password"
-                        )
-                      }
+                        );
+                      }}
                       className="text-[11px] lg:text-xs text-[#FDFBF7]/50 hover:text-[#FDFBF7] transition-colors mt-1"
                     >
                       Sign in with password
@@ -740,11 +1014,13 @@ export default function SignInForm({
                 </motion.div>
               )}
 
-              {/* EMAIL OTP VERIFY */}
+              {/* ===========================================
+                  EMAIL OTP VERIFY
+              =========================================== */}
 
               {emailFlow === "otp-verify" && (
                 <motion.div
-                  key="otp-ver"
+                  key="otp-verify"
                   {...fadeVariants}
                   className="flex flex-col"
                 >
@@ -754,7 +1030,8 @@ export default function SignInForm({
                     </h2>
 
                     <p className="text-xs lg:text-sm text-[#FDFBF7]/70 leading-relaxed">
-                      We've sent a verification code to:
+                      We've sent a verification code
+                      to:
                       <br />
 
                       <span className="text-white font-medium">
@@ -764,7 +1041,6 @@ export default function SignInForm({
                   </div>
 
                   <div className="flex flex-col gap-3">
-
                     <OtpInput
                       value={otp}
                       onChange={setOtp}
@@ -772,6 +1048,7 @@ export default function SignInForm({
                     />
 
                     <button
+                      type="button"
                       onClick={
                         handleVerifyEmailOtp
                       }
@@ -790,10 +1067,10 @@ export default function SignInForm({
                     </button>
 
                     <div className="flex flex-col items-center gap-1.5 mt-0.5">
-
                       <button
-                        onClick={
-                          handleSendEmailOtp
+                        type="button"
+                        onClick={() =>
+                          handleSendEmailOtp()
                         }
                         disabled={
                           timer > 0 ||
@@ -807,12 +1084,14 @@ export default function SignInForm({
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => {
                           setEmailFlow(
                             "otp-request"
                           );
                           setOtp("");
                           setTimer(0);
+                          clearMessages();
                         }}
                         className="text-[11px] lg:text-xs text-[#C6934A] hover:text-[#E2B777] transition-colors"
                       >
@@ -825,7 +1104,9 @@ export default function SignInForm({
             </motion.div>
           )}
 
-          {/* MOBILE METHOD */}
+          {/* =================================================
+              MOBILE METHOD
+          ================================================= */}
 
           {method === "mobile" && (
             <motion.div
@@ -833,11 +1114,13 @@ export default function SignInForm({
               {...fadeVariants}
             >
 
-              {/* MOBILE OTP REQUEST */}
+              {/* ===========================================
+                  MOBILE OTP REQUEST
+              =========================================== */}
 
               {mobileFlow === "request" && (
                 <motion.div
-                  key="mob-req"
+                  key="mobile-request"
                   {...fadeVariants}
                   className="flex flex-col"
                 >
@@ -852,11 +1135,12 @@ export default function SignInForm({
                   </div>
 
                   <form
-                    onSubmit={handleSendMobileOtp}
+                    onSubmit={
+                      handleSendMobileOtp
+                    }
                     className="flex flex-col gap-2.5 lg:gap-3"
                   >
                     <div className="relative flex">
-
                       <div className="w-14 h-[46px] lg:h-[48px] bg-white/5 border border-white/10 border-r-0 rounded-l-xl flex items-center justify-center text-xs lg:text-sm text-[#FDFBF7]/70">
                         +91
                       </div>
@@ -864,15 +1148,18 @@ export default function SignInForm({
                       <input
                         type="tel"
                         value={phone}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setPhone(
                             e.target.value.replace(
                               /\D/g,
                               ""
                             )
-                          )
-                        }
+                          );
+                          clearMessages();
+                        }}
                         required
+                        maxLength={10}
+                        autoComplete="tel"
                         placeholder="Enter mobile number"
                         className="w-full h-[46px] lg:h-[48px] pl-3.5 pr-3.5 bg-white/5 border border-white/10 border-l-0 rounded-r-xl text-xs lg:text-sm text-[#FDFBF7] focus:outline-none focus:border-[#C6934A]/50 focus:bg-white/10 transition-colors placeholder-[#FDFBF7]/30"
                       />
@@ -891,11 +1178,13 @@ export default function SignInForm({
                 </motion.div>
               )}
 
-              {/* MOBILE OTP VERIFY */}
+              {/* ===========================================
+                  MOBILE OTP VERIFY
+              =========================================== */}
 
               {mobileFlow === "verify" && (
                 <motion.div
-                  key="mob-ver"
+                  key="mobile-verify"
                   {...fadeVariants}
                   className="flex flex-col"
                 >
@@ -905,7 +1194,8 @@ export default function SignInForm({
                     </h2>
 
                     <p className="text-xs lg:text-sm text-[#FDFBF7]/70 leading-relaxed">
-                      We've sent a verification code to:
+                      We've sent a verification code
+                      to:
                       <br />
 
                       <span className="text-white font-medium">
@@ -915,7 +1205,6 @@ export default function SignInForm({
                   </div>
 
                   <div className="flex flex-col gap-3">
-
                     <OtpInput
                       value={otp}
                       onChange={setOtp}
@@ -923,6 +1212,7 @@ export default function SignInForm({
                     />
 
                     <button
+                      type="button"
                       onClick={
                         handleVerifyMobileOtp
                       }
@@ -941,10 +1231,15 @@ export default function SignInForm({
                     </button>
 
                     <div className="flex flex-col items-center gap-1.5 mt-0.5">
-
                       <button
-                        onClick={
-                          handleSendMobileOtp
+                        type="button"
+                        onClick={() =>
+                          handleSendMobileOtp(
+                            {
+                              preventDefault:
+                                () => {},
+                            } as React.FormEvent
+                          )
                         }
                         disabled={
                           timer > 0 ||
@@ -958,12 +1253,14 @@ export default function SignInForm({
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => {
                           setMobileFlow(
                             "request"
                           );
                           setOtp("");
                           setTimer(0);
+                          clearMessages();
                         }}
                         className="text-[11px] lg:text-xs text-[#C6934A] hover:text-[#E2B777] transition-colors"
                       >
@@ -978,7 +1275,9 @@ export default function SignInForm({
         </AnimatePresence>
       </div>
 
-      {/* SOCIAL AUTH & REGISTRATION */}
+      {/* =================================================
+          SOCIAL AUTH + CREATE ACCOUNT
+      ================================================= */}
 
       {emailFlow !== "otp-verify" &&
         mobileFlow !== "verify" && (
@@ -988,9 +1287,7 @@ export default function SignInForm({
             transition={{ delay: 0.2 }}
             className="mt-2.5 lg:mt-3"
           >
-
             <div className="relative flex items-center justify-center mb-2.5 lg:mb-3">
-
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10" />
               </div>
@@ -1005,10 +1302,13 @@ export default function SignInForm({
               {/* GOOGLE */}
 
               <button
+                type="button"
                 onClick={() =>
                   handleSocialAuth("google")
                 }
-                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors"
+                disabled={isLoading}
+                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50"
+                aria-label="Continue with Google"
               >
                 <svg
                   width="17"
@@ -1041,10 +1341,15 @@ export default function SignInForm({
               {/* FACEBOOK */}
 
               <button
+                type="button"
                 onClick={() =>
-                  handleSocialAuth("facebook")
+                  handleSocialAuth(
+                    "facebook"
+                  )
                 }
-                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors"
+                disabled={isLoading}
+                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50"
+                aria-label="Continue with Facebook"
               >
                 <svg
                   width="17"
@@ -1053,7 +1358,7 @@ export default function SignInForm({
                   fill="none"
                 >
                   <path
-                    d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"
+                    d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76-9-9.95z"
                     fill="#1877F2"
                   />
                 </svg>
@@ -1062,10 +1367,15 @@ export default function SignInForm({
               {/* APPLE */}
 
               <button
+                type="button"
                 onClick={() =>
-                  handleSocialAuth("apple")
+                  handleSocialAuth(
+                    "apple"
+                  )
                 }
-                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors text-white"
+                disabled={isLoading}
+                className="w-13 h-10 lg:w-14 lg:h-11 bg-[#1A1A1A] hover:bg-[#252525] border border-white/5 rounded-lg flex items-center justify-center transition-colors text-white disabled:opacity-50"
+                aria-label="Continue with Apple"
               >
                 <svg
                   width="17"
@@ -1073,7 +1383,7 @@ export default function SignInForm({
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
-                  <path d="M17.05 13.31c-.02-2.58 2.11-3.83 2.2-3.88-1.2-1.75-3.06-1.99-3.73-2.02-1.57-.16-3.07.92-3.88.92-.8 0-2.04-.9-3.34-.88-1.7.02-3.26.99-4.14 2.52-1.79 3.1-.46 7.69 1.28 10.2 .85 1.23 1.86 2.61 3.19 2.56 1.28-.05 1.78-.82 3.32-.82 1.54 0 2.01.82 3.35.79 1.37-.03 2.23-1.24 3.08-2.48.98-1.43 1.39-2.82 1.41-2.9-.03-.01-2.7-1.04-2.74-4.01zM15.02 5.06c.71-.85 1.18-2.04 1.05-3.22-1.02.04-2.25.68-2.98 1.54-.58.68-1.15 1.89-1 3.06 1.14.09 2.22-.53 2.93-1.38.71-.85 1.18-2.04 1.05-3.22z" />
+                  <path d="M17.05 13.31c-.02-2.58 2.11-3.83 2.2-3.88-1.2-1.75-3.06-1.99-3.73-2.02-1.57-.16-3.07.92-3.88.92-.8 0-2.04-.9-3.34-.88-1.7.02-3.26.99-4.14 2.52-1.79 3.1-.46 7.69 1.28 10.2.85 1.23 1.86 2.61 3.19 2.56 1.28-.05 1.78-.82 3.32-.82 1.54 0 2.01.82 3.35.79 1.37-.03 2.23-1.24 3.08-2.48.98-1.43 1.39-2.82 1.41-2.9-.03-.01-2.7-1.04-2.74-4.01zM15.02 5.06c.71-.85 1.18-2.04 1.05-3.22-1.02.04-2.25.68-2.98 1.54-.58.68-1.15 1.89-1 3.06 1.14.09 2.22-.53 2.93-1.38.71-.85 1.18-2.04 1.05-3.22z" />
                 </svg>
               </button>
             </div>
@@ -1086,8 +1396,10 @@ export default function SignInForm({
               </span>
 
               <button
-                onClick={onSwitchToSignup}
                 type="button"
+                onClick={
+                  onSwitchToSignup
+                }
                 className="text-[11px] lg:text-xs text-[#C6934A] font-medium hover:text-[#E2B777] transition-colors py-0.5 px-1.5"
               >
                 Create account
@@ -1098,3 +1410,4 @@ export default function SignInForm({
     </div>
   );
 }
+```
