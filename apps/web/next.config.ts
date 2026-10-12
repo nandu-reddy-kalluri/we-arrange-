@@ -19,15 +19,25 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  transpilePackages: [
+    "@we-arrange/api-client",
+    "@we-arrange/auth",
+    "@we-arrange/database",
+    "@we-arrange/design-system",
+    "@we-arrange/service-booking",
+    "@we-arrange/service-customer",
+    "@we-arrange/service-vendor",
+    "@we-arrange/service-venue",
+    "@we-arrange/types",
+    "@we-arrange/ui",
+    "@we-arrange/utils",
+    "@we-arrange/validation",
+  ],
   async rewrites() {
     return [
       {
         source: "/customer/:path*",
         destination: `${CUSTOMER_APP_URL}/:path*`,
-      },
-      {
-        source: "/concierge-portal/:path*",
-        destination: `${CONCIERGE_APP_URL}/:path*`,
       },
       {
         source: "/vendor/:path*",

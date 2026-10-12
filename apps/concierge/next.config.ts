@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  transpilePackages: [
+    "@we-arrange/auth",
+    "@we-arrange/database",
+    "@we-arrange/design-system",
+    "@we-arrange/types",
+    "@we-arrange/ui",
+    "@we-arrange/utils",
+  ],
   images: {
     remotePatterns: [
       {
@@ -13,14 +21,6 @@ const nextConfig: NextConfig = {
         hostname: "image.wedmegood.com",
       },
     ],
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/concierge-portal/:path*",
-        destination: "/:path*",
-      },
-    ];
   },
 };
 

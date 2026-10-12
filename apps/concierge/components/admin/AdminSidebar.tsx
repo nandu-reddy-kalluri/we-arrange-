@@ -36,9 +36,15 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   const isActive = (href: string) => {
     if (href === "/concierge-portal") {
-      return pathname === "/concierge-portal";
+      return pathname === "/concierge-portal" || pathname === "/" || pathname === "";
     }
-    return pathname?.startsWith(href);
+    const strippedHref = href.replace("/concierge-portal", "");
+    return (
+      pathname === href ||
+      pathname === strippedHref ||
+      Boolean(pathname?.startsWith(href)) ||
+      Boolean(strippedHref && pathname?.startsWith(strippedHref))
+    );
   };
 
   return (

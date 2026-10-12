@@ -6,6 +6,15 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Never intercept static assets, chunks, or Next.js internals
+  if (
+    pathname.includes("/_next/") ||
+    pathname.startsWith("/api/") ||
+    /\.(?:js|jsx|ts|tsx|css|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|eot)$/i.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
   // Redirect legacy /admin routes to /concierge-portal
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const targetPath = pathname.replace(/^\/admin/, "/concierge-portal");
