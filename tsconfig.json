@@ -19,9 +19,35 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*", "./apps/web/*"],
+      "@we-arrange/ui": ["./packages/ui/src/index.ts"],
+      "@we-arrange/ui/*": ["./packages/ui/src/*"],
+      "@we-arrange/design-system": ["./packages/design-system/src/index.ts"],
+      "@we-arrange/design-system/*": ["./packages/design-system/src/*"],
+      "@we-arrange/auth": ["./packages/auth/src/index.ts"],
+      "@we-arrange/auth/*": ["./packages/auth/src/*"],
+      "@we-arrange/database": ["./packages/database/src/index.ts"],
+      "@we-arrange/database/*": ["./packages/database/src/*"],
+      "@we-arrange/api-client": ["./packages/api-client/src/index.ts"],
+      "@we-arrange/api-client/*": ["./packages/api-client/src/*"],
+      "@we-arrange/types": ["./packages/types/src/index.ts"],
+      "@we-arrange/types/*": ["./packages/types/src/*"],
+      "@we-arrange/validation": ["./packages/validation/src/index.ts"],
+      "@we-arrange/validation/*": ["./packages/validation/src/*"],
+      "@we-arrange/utils": ["./packages/utils/src/index.ts"],
+      "@we-arrange/utils/*": ["./packages/utils/src/*"],
+      "@we-arrange/config": ["./packages/config/tailwind.config.ts"],
+      "@we-arrange/service-venue": ["./services/venue/src/index.ts"],
+      "@we-arrange/service-vendor": ["./services/vendor/src/index.ts"],
+      "@we-arrange/service-customer": ["./services/customer/src/index.ts"],
+      "@we-arrange/service-booking": ["./services/booking/src/index.ts"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist", ".turbo"]
 }

@@ -21,7 +21,7 @@ const EXPERIENCES = [
     title: "Wedding Shortlist",
     description: "Save & compare favorites",
     icon: BookHeart,
-    href: "/saved",
+    href: "/customer/saved",
     gradient: "from-[#FDFBF7] to-[#FCEFEF]",
     borderColor: "border-[#EACCD2]/60",
     iconColor: "text-[#8B263E]"

@@ -1,0 +1,14 @@
+{
+  "name": "@we-arrange/service-venue",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@we-arrange/database": "workspace:*",
+    "@we-arrange/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@we-arrange/tsconfig": "workspace:*"
+  }
+}

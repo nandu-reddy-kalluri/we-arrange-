@@ -1,0 +1,41 @@
+{
+  "name": "customer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.0",
+    "@we-arrange/auth": "workspace:*",
+    "@we-arrange/database": "workspace:*",
+    "@we-arrange/design-system": "workspace:*",
+    "@we-arrange/service-customer": "workspace:*",
+    "@we-arrange/types": "workspace:*",
+    "@we-arrange/ui": "workspace:*",
+    "@we-arrange/utils": "workspace:*",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.3.0",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@we-arrange/config": "workspace:*",
+    "@we-arrange/eslint-config": "workspace:*",
+    "@we-arrange/tsconfig": "workspace:*",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.4.5"
+  }
+}

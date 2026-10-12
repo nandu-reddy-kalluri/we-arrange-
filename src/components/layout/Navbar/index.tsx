@@ -1,18 +1,16 @@
-```tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, User, LogOut } from "lucide-react";
+import { Menu, User, LogOut, LayoutDashboard, Heart } from "lucide-react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 
 import { DesktopNavigation } from "./DesktopNavigation";
 import { MobileExperience } from "./MobileExperience";
 import { useHoverIntent } from "./hooks/useHoverIntent";
 import { useMegaMenu } from "./hooks/useMegaMenu";
-import { SavedAction } from "./SavedAction";
 
 import { supabase } from "@/services/supabase/client";
 
@@ -251,14 +249,6 @@ export default function Navbar() {
             className="hidden lg:flex items-center justify-end gap-3 xl:gap-5 shrink-0"
             onMouseEnter={closeMenu}
           >
-            <SavedAction useDarkText={useDarkText} />
-
-            {/* Divider */}
-            <div
-              className={`w-[1px] h-4 mx-1 ${
-                useDarkText ? "bg-neutral-200" : "bg-white/20"
-              }`}
-            />
 
             {/* ----------------------------------------- */}
             {/* LOGIN / USER MENU */}
@@ -332,28 +322,48 @@ export default function Navbar() {
                     className="absolute right-0 top-full mt-3 w-56 bg-white rounded-xl shadow-xl border border-neutral-100 overflow-hidden"
                     onMouseLeave={() => setShowUserMenu(false)}
                   >
-                    <div className="px-4 py-3 border-b border-neutral-100">
+                    <div className="px-4 py-3 border-b border-neutral-100 bg-[#FAF9F6]">
                       <p className="text-sm font-semibold text-[#2D2D2D] truncate">
                         {userName}
                       </p>
 
                       {user.email && (
-                        <p className="text-xs text-neutral-500 mt-1 truncate">
+                        <p className="text-xs text-neutral-500 mt-0.5 truncate">
                           {user.email}
                         </p>
                       )}
+                    </div>
+
+                    <div className="py-1 border-b border-neutral-100">
+                      <Link
+                        href="/customer/overview"
+                        onClick={() => setShowUserMenu(false)}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#2D2D2D] hover:bg-[#8B263E]/5 hover:text-[#8B263E] transition-colors"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-[#8B263E]" />
+                        <span>My Dashboard</span>
+                      </Link>
+
+                      <Link
+                        href="/customer/saved"
+                        onClick={() => setShowUserMenu(false)}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-neutral-600 hover:bg-[#8B263E]/5 hover:text-[#8B263E] transition-colors"
+                      >
+                        <Heart className="w-4 h-4 text-[#8B263E]" />
+                        <span>Saved Shortlist</span>
+                      </Link>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleLogout}
                       disabled={isLoggingOut}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-[#8B263E] hover:bg-[#8B263E]/5 transition-colors disabled:opacity-50"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-[#8B263E] hover:bg-[#8B263E]/5 transition-colors disabled:opacity-50"
                     >
                       <LogOut className="w-4 h-4" />
 
                       <span>
-                        {isLoggingOut ? "Logging out..." : "Logout"}
+                        {isLoggingOut ? "Logging out..." : "Sign Out"}
                       </span>
                     </button>
                   </div>
@@ -391,8 +401,10 @@ export default function Navbar() {
       <MobileExperience
         isOpen={isMobileOpen}
         onClose={() => setIsMobileOpen(false)}
+        user={user}
+        userName={userName}
+        onLogout={handleLogout}
       />
     </>
   );
 }
-```

@@ -1,299 +1,236 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Home,
-  Settings,
   MapPin,
   Store,
   Image as ImageIcon,
   ArrowRight,
-  LogOut,
+  Heart,
+  Calendar,
+  Sparkles,
 } from "lucide-react";
-
 import { useAuth } from "@/context/AuthContext";
+import { useSavedStore } from "@/store/useSavedStore";
 
-export default function CustomerDashboard() {
-  const { user, loading, logout } = useAuth();
+export default function CustomerDashboardOverview() {
+  const { user } = useAuth();
+  const { savedVenueIds, savedVendorIds } = useSavedStore();
+  const [mounted, setMounted] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      window.location.href = "/";
-    } catch (error) {
-      console.error("LOGOUT ERROR:", error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
-        <p className="text-[#8B263E]">
-          Loading...
-        </p>
-      </main>
-    );
-  }
-
-  if (!user) {
-    return (
-      <main className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-serif text-[#2D2D2D]">
-            Please login first
-          </h1>
-
-          <Link
-            href="/login"
-            className="inline-block mt-5 px-6 py-3 rounded-full bg-[#8B263E] text-white"
-          >
-            Login
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const userName =
-    user.user_metadata?.full_name ||
-    user.user_metadata?.name ||
-    user.email?.split("@")[0] ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.user_metadata?.display_name ||
+    user?.email?.split("@")[0] ||
     "User";
 
+  const venueCount = mounted ? savedVenueIds.length : 0;
+  const vendorCount = mounted ? savedVendorIds.length : 0;
+  const totalSaved = venueCount + vendorCount;
+
   return (
-    <main className="min-h-screen bg-[#FAF9F6] pt-24">
-      <div className="flex min-h-[calc(100vh-96px)]">
-
-        {/* SIDEBAR */}
-
-        <aside className="w-64 border-r border-[#8B263E]/10 bg-white px-6 py-10 flex flex-col">
-
-          <div className="mb-12">
-            <p className="text-xs uppercase tracking-[0.25em] text-[#8B263E]">
-              My Account
-            </p>
-
-            <h2 className="mt-2 text-2xl font-serif text-[#2D2D2D]">
-              {userName}
-            </h2>
-
-            {user.email && (
-              <p className="mt-1 text-xs text-gray-400 truncate">
-                {user.email}
-              </p>
-            )}
-          </div>
-
-          <nav className="space-y-3">
-
-            <Link
-              href="/customer/overview"
-              className="flex items-center gap-3 rounded-xl bg-[#F5EEE7] px-4 py-3 text-sm font-semibold text-[#8B263E]"
-            >
-              <Home className="w-5 h-5" />
-              Home
-            </Link>
-
-            <Link
-              href="/customer/settings"
-              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#555] hover:bg-[#F5EEE7] hover:text-[#8B263E] transition"
-            >
-              <Settings className="w-5 h-5" />
-              Settings
-            </Link>
-
-          </nav>
-
-          <div className="mt-auto pt-12">
-
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 text-sm text-gray-500 hover:text-[#8B263E] transition"
-            >
-              <LogOut className="w-5 h-5" />
-              Logout
-            </button>
-
-          </div>
-        </aside>
-
-        {/* MAIN CONTENT */}
-
-        <section className="flex-1 px-8 lg:px-14 py-10">
-
-          {/* HEADER */}
-
-          <div className="mb-10">
-
-            <p className="text-xs uppercase tracking-[0.25em] text-[#8B263E]">
-              My Dashboard
-            </p>
-
-            <h1 className="mt-2 text-4xl lg:text-5xl font-serif text-[#2D2D2D]">
-              Welcome back, {userName}
-            </h1>
-
-            <p className="mt-3 text-gray-500">
-              Manage your wedding plans and saved discoveries.
-            </p>
-
-          </div>
-
-          {/* MY WEDDING */}
-
-          <div className="mb-10">
-
-            <h2 className="text-xl font-serif text-[#2D2D2D] mb-5">
-              MY WEDDING
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-              {/* VENUES */}
-
-              <Link
-                href="/venues"
-                className="group bg-white rounded-2xl border border-[#8B263E]/10 p-6 hover:shadow-lg transition"
-              >
-                <div className="flex items-center justify-between">
-
-                  <div className="w-12 h-12 rounded-xl bg-[#F5EEE7] flex items-center justify-center">
-                    <MapPin className="w-6 h-6 text-[#8B263E]" />
-                  </div>
-
-                  <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-[#8B263E] transition" />
-
-                </div>
-
-                <p className="mt-6 text-3xl font-serif text-[#2D2D2D]">
-                  0
-                </p>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  Venues
-                </p>
-
-              </Link>
-
-              {/* VENDORS */}
-
-              <Link
-                href="/vendors"
-                className="group bg-white rounded-2xl border border-[#8B263E]/10 p-6 hover:shadow-lg transition"
-              >
-                <div className="flex items-center justify-between">
-
-                  <div className="w-12 h-12 rounded-xl bg-[#F5EEE7] flex items-center justify-center">
-                    <Store className="w-6 h-6 text-[#8B263E]" />
-                  </div>
-
-                  <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-[#8B263E] transition" />
-
-                </div>
-
-                <p className="mt-6 text-3xl font-serif text-[#2D2D2D]">
-                  0
-                </p>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  Vendors
-                </p>
-
-              </Link>
-
-              {/* INSPIRATIONS */}
-
-              <Link
-                href="/inspirations"
-                className="group bg-white rounded-2xl border border-[#8B263E]/10 p-6 hover:shadow-lg transition"
-              >
-                <div className="flex items-center justify-between">
-
-                  <div className="w-12 h-12 rounded-xl bg-[#F5EEE7] flex items-center justify-center">
-                    <ImageIcon className="w-6 h-6 text-[#8B263E]" />
-                  </div>
-
-                  <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-[#8B263E] transition" />
-
-                </div>
-
-                <p className="mt-6 text-3xl font-serif text-[#2D2D2D]">
-                  0
-                </p>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  Inspirations
-                </p>
-
-              </Link>
-
-            </div>
-          </div>
-
-          {/* RECENTLY USED */}
-
-          <div className="mb-10">
-
-            <h2 className="text-xl font-serif text-[#2D2D2D] mb-5">
-              RECENTLY USED
-            </h2>
-
-            <div className="bg-white rounded-2xl border border-[#8B263E]/10 p-8">
-
-              <div className="flex flex-col items-center justify-center text-center py-8">
-
-                <div className="w-14 h-14 rounded-full bg-[#F5EEE7] flex items-center justify-center mb-4">
-                  <ImageIcon className="w-6 h-6 text-[#8B263E]" />
-                </div>
-
-                <h3 className="font-serif text-lg text-[#2D2D2D]">
-                  Nothing here yet
-                </h3>
-
-                <p className="mt-2 text-sm text-gray-500 max-w-md">
-                  Start exploring venues, vendors and wedding
-                  inspirations. Your recent activity will appear here.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* WEDDING ACTIVITY */}
-
-          <div>
-
-            <h2 className="text-xl font-serif text-[#2D2D2D] mb-5">
-              WEDDING ACTIVITY
-            </h2>
-
-            <div className="bg-white rounded-2xl border border-[#8B263E]/10 p-8">
-
-              <div className="flex flex-col items-center justify-center text-center py-8">
-
-                <div className="w-14 h-14 rounded-full bg-[#F5EEE7] flex items-center justify-center mb-4">
-                  <Home className="w-6 h-6 text-[#8B263E]" />
-                </div>
-
-                <h3 className="font-serif text-lg text-[#2D2D2D]">
-                  Your wedding journey starts here
-                </h3>
-
-                <p className="mt-2 text-sm text-gray-500 max-w-md">
-                  Save venues, explore vendors and collect
-                  inspirations to build your perfect wedding plan.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
+    <div>
+      {/* HEADER */}
+      <div className="mb-8 lg:mb-10">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8B263E]/10 text-[#8B263E] text-[10px] font-bold uppercase tracking-wider mb-2">
+          <Sparkles className="w-3 h-3" />
+          <span>Member Concierge</span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#2D2D2D] font-bold leading-tight">
+          Welcome back, {userName}
+        </h1>
+        <p className="mt-2 text-sm lg:text-base text-neutral-500">
+          Manage your wedding journey, curated shortlist, and verified recommendations in Hyderabad.
+        </p>
       </div>
-    </main>
+
+      {/* MY WEDDING CARDS */}
+      <div className="mb-10">
+        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-neutral-400 mb-4">
+          My Wedding Discoveries
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5">
+          {/* VENUES */}
+          <Link
+            href="/customer/saved"
+            className="group bg-white rounded-2xl border border-[#8B263E]/10 p-5 lg:p-6 hover:shadow-lg hover:border-[#8B263E]/20 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-11 h-11 rounded-xl bg-[#F5EEE7] flex items-center justify-center group-hover:scale-105 transition-transform">
+                <MapPin className="w-5 h-5 text-[#8B263E]" />
+              </div>
+              <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-[#8B263E] group-hover:translate-x-1 transition-all" />
+            </div>
+            <p className="mt-5 text-3xl font-serif text-[#2D2D2D] font-bold">
+              {venueCount}
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                Venues Saved
+              </p>
+              <span className="text-[11px] text-[#8B263E] font-medium group-hover:underline">
+                View Shortlist →
+              </span>
+            </div>
+          </Link>
+
+          {/* VENDORS */}
+          <Link
+            href="/customer/saved"
+            className="group bg-white rounded-2xl border border-[#8B263E]/10 p-5 lg:p-6 hover:shadow-lg hover:border-[#8B263E]/20 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-11 h-11 rounded-xl bg-[#F5EEE7] flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Store className="w-5 h-5 text-[#8B263E]" />
+              </div>
+              <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-[#8B263E] group-hover:translate-x-1 transition-all" />
+            </div>
+            <p className="mt-5 text-3xl font-serif text-[#2D2D2D] font-bold">
+              {vendorCount}
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                Vendors Saved
+              </p>
+              <span className="text-[11px] text-[#8B263E] font-medium group-hover:underline">
+                View Shortlist →
+              </span>
+            </div>
+          </Link>
+
+          {/* INSPIRATIONS */}
+          <Link
+            href="/inspiration"
+            className="group bg-white rounded-2xl border border-[#8B263E]/10 p-5 lg:p-6 hover:shadow-lg hover:border-[#8B263E]/20 transition-all duration-300"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-11 h-11 rounded-xl bg-[#F5EEE7] flex items-center justify-center group-hover:scale-105 transition-transform">
+                <ImageIcon className="w-5 h-5 text-[#8B263E]" />
+              </div>
+              <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-[#8B263E] group-hover:translate-x-1 transition-all" />
+            </div>
+            <p className="mt-5 text-3xl font-serif text-[#2D2D2D] font-bold">
+              100+
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                Themes & Stories
+              </p>
+              <span className="text-[11px] text-[#8B263E] font-medium group-hover:underline">
+                Explore →
+              </span>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* PLANNING TOOLS */}
+      <div className="mb-10">
+        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-neutral-400 mb-4">
+          Planning Tools
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link
+            href="/planning/budget"
+            className="p-4 bg-white rounded-xl border border-neutral-100 hover:border-[#8B263E]/20 hover:shadow-sm transition flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-lg bg-[#FAF9F6] flex items-center justify-center text-[#8B263E]">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#2D2D2D]">Budget Calculator</p>
+              <p className="text-xs text-neutral-400">Plan and track your expenses</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/planning/checklist"
+            className="p-4 bg-white rounded-xl border border-neutral-100 hover:border-[#8B263E]/20 hover:shadow-sm transition flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-lg bg-[#FAF9F6] flex items-center justify-center text-[#8B263E]">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#2D2D2D]">Wedding Checklist</p>
+              <p className="text-xs text-neutral-400">Step-by-step milestones</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/e-invites"
+            className="p-4 bg-white rounded-xl border border-neutral-100 hover:border-[#8B263E]/20 hover:shadow-sm transition flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-lg bg-[#FAF9F6] flex items-center justify-center text-[#8B263E]">
+              <ImageIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#2D2D2D]">Digital Invites</p>
+              <p className="text-xs text-neutral-400">Personalized e-invitations</p>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* RECENTLY SAVED ACTIVITY */}
+      <div className="mb-10">
+        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-neutral-400 mb-4">
+          Recently Saved Activity
+        </h2>
+
+        <div className="bg-white rounded-2xl border border-[#8B263E]/10 p-8">
+          {totalSaved > 0 ? (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="font-serif text-lg text-[#2D2D2D] font-bold">
+                  You have {totalSaved} item{totalSaved > 1 ? "s" : ""} saved in your shortlist
+                </h3>
+                <p className="text-xs text-neutral-500 mt-1">
+                  {venueCount} venue{venueCount === 1 ? "" : "s"} and {vendorCount} vendor{vendorCount === 1 ? "" : "s"} ready for quotation review.
+                </p>
+              </div>
+              <Link
+                href="/customer/saved"
+                className="px-6 py-2.5 rounded-full bg-[#8B263E] hover:bg-[#701E31] text-white text-xs font-semibold uppercase tracking-wider transition-colors shrink-0"
+              >
+                View Shortlist →
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center py-6">
+              <div className="w-12 h-12 rounded-full bg-[#F5EEE7] flex items-center justify-center mb-3">
+                <Heart className="w-5 h-5 text-[#8B263E]" />
+              </div>
+              <h3 className="font-serif text-base text-[#2D2D2D] font-semibold">
+                No saved items yet
+              </h3>
+              <p className="mt-1 text-xs text-neutral-500 max-w-sm">
+                Browse elite venues and vendors in Hyderabad and tap the heart icon to save them to your personal shortlist.
+              </p>
+              <div className="flex items-center gap-3 mt-4">
+                <Link
+                  href="/venues"
+                  className="px-4 py-2 rounded-full bg-[#8B263E] text-white text-xs font-semibold hover:bg-[#701E31] transition"
+                >
+                  Explore Venues
+                </Link>
+                <Link
+                  href="/vendors"
+                  className="px-4 py-2 rounded-full border border-neutral-200 text-neutral-700 text-xs font-semibold hover:border-[#8B263E] transition"
+                >
+                  Explore Vendors
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

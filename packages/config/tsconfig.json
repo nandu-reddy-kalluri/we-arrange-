@@ -1,0 +1,10 @@
+{
+  "extends": "@we-arrange/tsconfig/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@we-arrange/design-system": ["../design-system/src/index.ts"]
+    }
+  },
+  "include": ["*.ts"]
+}

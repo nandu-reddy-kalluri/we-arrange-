@@ -1,0 +1,10 @@
+{
+  "name": "@we-arrange/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./tailwind.config.ts",
+  "dependencies": {
+    "@we-arrange/design-system": "workspace:*"
+  }
+}

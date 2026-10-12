@@ -1,0 +1,16 @@
+{
+  "name": "@we-arrange/auth",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.0",
+    "react": "^19.0.0",
+    "@we-arrange/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@we-arrange/tsconfig": "workspace:*"
+  }
+}

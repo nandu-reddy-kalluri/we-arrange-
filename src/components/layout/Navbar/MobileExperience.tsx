@@ -4,18 +4,25 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart, ChevronRight, LogIn } from "lucide-react";
+import { X, Heart, ChevronRight, LogIn, User, LogOut, LayoutDashboard } from "lucide-react";
 import { FooterSocials } from "../Footer/FooterSocials";
 import { useSavedStore } from "@/store/useSavedStore";
 
 interface MobileExperienceProps {
   isOpen: boolean;
   onClose: () => void;
+  user?: any;
+  userName?: string;
+  onLogout?: () => void;
 }
 
-
-
-export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
+export function MobileExperience({
+  isOpen,
+  onClose,
+  user,
+  userName = "User",
+  onLogout,
+}: MobileExperienceProps) {
   const { savedVenueIds, savedVendorIds } = useSavedStore();
   const [isMounted, setIsMounted] = React.useState(false);
   React.useEffect(() => setIsMounted(true), []);
@@ -173,37 +180,86 @@ export function MobileExperience({ isOpen, onClose }: MobileExperienceProps) {
                 ))}
               </nav>
 
-              <div className="pt-6 pb-2 flex flex-col gap-3">
+              <div className="pt-6 pb-2 flex flex-col gap-2.5">
                 <div className="h-px bg-neutral-100 w-full mb-1" />
 
-                <Link
-                  href="/saved"
-                  onClick={onClose}
-                  className="flex items-center justify-between py-2.5 text-sm font-semibold text-neutral-700 hover:text-[#8B263E] transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Heart className="w-4 h-4 text-[#8B263E]" />
-                    <span>Saved</span>
-                    {savedCount > 0 && (
-                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-[#8B263E] text-white">
-                        {savedCount}
-                      </span>
-                    )}
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-neutral-300" />
-                </Link>
+                {user ? (
+                  <>
+                    <div className="px-3 py-2 bg-[#FAF9F6] rounded-xl border border-[#8B263E]/10 mb-1">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-[#8B263E]/10 border border-[#8B263E]/20 flex items-center justify-center text-[#8B263E] font-bold text-xs">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="text-xs font-bold text-[#2D2D2D] truncate">{userName}</p>
+                          {user.email && (
+                            <p className="text-[10px] text-neutral-500 truncate">{user.email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
-                <Link
-                  href="/login"
-                  onClick={onClose}
-                  className="flex items-center justify-between py-2.5 text-sm font-semibold text-neutral-700 hover:text-[#8B263E] transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <LogIn className="w-4 h-4 text-[#8B263E]" />
-                    <span>Login</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-neutral-300" />
-                </Link>
+                    <Link
+                      href="/customer/overview"
+                      onClick={onClose}
+                      className="flex items-center justify-between py-2 text-sm font-semibold text-[#8B263E] hover:text-[#701E31] transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <LayoutDashboard className="w-4 h-4 text-[#8B263E]" />
+                        <span>My Dashboard</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#8B263E]/50" />
+                    </Link>
+
+                    <Link
+                      href="/customer/saved"
+                      onClick={onClose}
+                      className="flex items-center justify-between py-2 text-sm font-semibold text-neutral-700 hover:text-[#8B263E] transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Heart className="w-4 h-4 text-[#8B263E]" />
+                        <span>Saved Shortlist</span>
+                        {savedCount > 0 && (
+                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-[#8B263E] text-white">
+                            {savedCount}
+                          </span>
+                        )}
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-neutral-300" />
+                    </Link>
+
+                    {onLogout && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onLogout();
+                          onClose();
+                        }}
+                        className="flex items-center justify-between py-2 text-sm font-semibold text-neutral-500 hover:text-[#8B263E] transition-colors text-left"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <LogOut className="w-4 h-4" />
+                          <span>Sign Out</span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-neutral-300" />
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={onClose}
+                      className="flex items-center justify-between py-2.5 text-sm font-semibold text-neutral-700 hover:text-[#8B263E] transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <LogIn className="w-4 h-4 text-[#8B263E]" />
+                        <span>Login</span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-neutral-300" />
+                    </Link>
+                  </>
+                )}
 
                 {/* Social icons */}
                 <div className="pt-4 flex justify-center">
