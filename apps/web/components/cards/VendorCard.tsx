@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Star, MapPin, ChevronLeft, ChevronRight, X, Heart, Trash2 } from "lucide-react";
 import { Vendor } from "@/mock-data/vendors";
@@ -17,43 +18,20 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
 
   const images = React.useMemo(() => {
     const list = Array.from(
-      new Set([vendor.imageUrl, vendor.logoUrl, "/images/editorial/vendor_photography.png", "/images/editorial/vendor_decoration.png", "/images/editorial/vendor_makeup.png", "/images/editorial/insp_bridal.png"].filter(Boolean))
+      new Set([vendor.imageUrl, vendor.logoUrl].filter(Boolean))
     ) as string[];
-    return list;
+    return list.length > 0 ? list : [vendor.imageUrl || "/images/editorial/hero_venue.png"];
   }, [vendor]);
 
   const [currentImgIndex, setCurrentImgIndex] = React.useState(0);
+  const [viewedIndices, setViewedIndices] = React.useState<number[]>([0]);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
   const isSwipingRef = React.useRef(false);
 
-  // Automatic image slider: every 3000ms (3 seconds) on mobile view only
   React.useEffect(() => {
-    if (images.length <= 1) return;
-
-    const isMobile = () => typeof window !== "undefined" && window.innerWidth < 768;
-    let interval: NodeJS.Timeout | null = null;
-
-    const updateSlider = () => {
-      if (interval) {
-        clearInterval(interval);
-        interval = null;
-      }
-      if (isMobile()) {
-        interval = setInterval(() => {
-          setCurrentImgIndex((prev) => (prev + 1) % images.length);
-        }, 3000);
-      }
-    };
-
-    updateSlider();
-    window.addEventListener("resize", updateSlider);
-
-    return () => {
-      if (interval) clearInterval(interval);
-      window.removeEventListener("resize", updateSlider);
-    };
-  }, [images.length]);
+    setViewedIndices((prev) => (prev.includes(currentImgIndex) ? prev : [...prev, currentImgIndex]));
+  }, [currentImgIndex]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     isSwipingRef.current = false;
@@ -99,17 +77,22 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {images.map((imgUrl, idx) => (
-            <img
-              key={imgUrl + idx}
-              src={imgUrl}
-              alt={vendor.name}
-              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-in-out group-hover:scale-105 ${
-                idx === currentImgIndex ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
-              }`}
-              loading="lazy"
-            />
-          ))}
+          {images.map((imgUrl, idx) => {
+            if (!viewedIndices.includes(idx)) return null;
+            return (
+              <Image
+                key={imgUrl + idx}
+                src={imgUrl}
+                alt={vendor.name}
+                fill
+                quality={75}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                className={`object-cover transition-opacity duration-500 ease-in-out group-hover:scale-105 ${
+                  idx === currentImgIndex ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
+                }`}
+              />
+            );
+          })}
 
           <div className="absolute top-3 left-3 md:top-4 md:left-4 bg-white/90 backdrop-blur-md px-2.5 py-1 md:px-3.5 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-bold text-[hsl(340,60%,15%)] uppercase tracking-wider shadow-sm z-10">
             {vendor.category}
@@ -138,7 +121,7 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
           {/* Mobile Subtle Image Indicator */}
           {images.length > 1 && (
             <div 
-              className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm z-10"
+              className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm z-10"
               onClick={(e) => e.stopPropagation()}
             >
               {images.length <= 5 ? (
@@ -150,14 +133,18 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
                       e.stopPropagation();
                       setCurrentImgIndex(idx);
                     }}
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${
-                      idx === currentImgIndex ? "bg-white scale-125" : "bg-white/50"
-                    }`}
+                    className="w-6 h-6 flex items-center justify-center p-0 focus:outline-none"
                     aria-label={`Go to slide ${idx + 1}`}
-                  />
+                  >
+                    <span
+                      className={`block w-1.5 h-1.5 rounded-full transition-all ${
+                        idx === currentImgIndex ? "bg-white scale-125" : "bg-white/50"
+                      }`}
+                    />
+                  </button>
                 ))
               ) : (
-                <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                <span className="text-[9px] font-black text-white uppercase tracking-widest px-1">
                   {currentImgIndex + 1} / {images.length}
                 </span>
               )}
@@ -205,7 +192,7 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
           {/* Mobile Pricing & Compact Actions */}
           <div className="md:hidden pt-3 border-t border-gray-50 flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider">
+              <span className="text-[9px] uppercase font-bold text-neutral-600 tracking-wider">
                 Starting Price
               </span>
               <span className="text-xs font-bold text-[#8B263E]">

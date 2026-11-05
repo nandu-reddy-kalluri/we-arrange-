@@ -41,3 +41,12 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Performance & benchmark audit traces
+audit-*.json
+baseline-*.json
+homepage-*.json
+post-gate-*.json
+*.devtoolslog.json
+*.trace.json
+
+

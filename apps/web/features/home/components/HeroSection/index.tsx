@@ -25,45 +25,24 @@ export default function HeroSection() {
           {/* Subtle dark backdrop protection gradient for hero text */}
           <div className="absolute -inset-6 bg-gradient-to-r from-black/60 via-black/35 to-transparent rounded-3xl blur-xl pointer-events-none -z-10" />
 
-          {/* ── Eyebrow label: line expands → text slides in ── */}
+          {/* ── Eyebrow label ── */}
           <div className="flex items-center gap-3 overflow-hidden">
-            {/* 3B: Animated divider line (scaleX 0 → 1) */}
-            <motion.span
+            <span
               className="block h-px bg-gradient-to-r from-[#C8A165] to-transparent origin-left"
               style={{ width: 32 }}
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.85, ease: "easeOut" }}
             />
-            {/* Eyebrow text slides in from left */}
-            <motion.span
-              className="font-sans text-[10px] sm:text-[11px] font-black uppercase text-[#C8A165] tracking-[0.25em]"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
-            >
+            <span className="font-sans text-[10px] sm:text-[11px] font-black uppercase text-[#C8A165] tracking-[0.25em]">
               DREAM • Hyderabad&apos;s Elite Wedding Concierge
-            </motion.span>
+            </span>
           </div>
 
-          {/* ── 3A: Headline — two lines staggered wipe-up reveal ── */}
+          {/* ── 3A: Headline ── */}
           <h1 className="font-serif text-white overflow-hidden leading-tight">
-            {/* Line 1 — wipe up at 1.0s */}
-            <motion.span
-              className="block overflow-hidden text-[34px] md:text-[56px] tracking-[-0.03em]"
-              initial={{ clipPath: "inset(0 0 100% 0)", opacity: 0, y: 40 }}
-              animate={{ clipPath: "inset(0 0 0% 0)",   opacity: 1, y: 0  }}
-              transition={{ duration: 0.9, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
-            >
+            <span className="block text-[34px] md:text-[56px] tracking-[-0.03em]">
               Your Wedding Story
-            </motion.span>
-
-            {/* Line 2 — wipe up at 1.25s (250ms stagger) */}
-            <motion.span
-              className="block overflow-hidden italic text-[28px] md:text-[36px] tracking-[-0.03em] -mt-1 md:-mt-2"
-              initial={{ clipPath: "inset(0 0 100% 0)", opacity: 0, y: 40 }}
-              animate={{ clipPath: "inset(0 0 0% 0)",   opacity: 1, y: 0  }}
-              transition={{ duration: 0.9, delay: 1.25, ease: [0.16, 1, 0.3, 1] }}
+            </span>
+            <span
+              className="block italic text-[28px] md:text-[36px] tracking-[-0.03em] -mt-1 md:-mt-2"
               style={{
                 background: "linear-gradient(105deg, #C8A165 0%, #F0D898 40%, #C8A165 70%, #A07840 100%)",
                 WebkitBackgroundClip: "text",
@@ -72,31 +51,21 @@ export default function HeroSection() {
               }}
             >
               Begins Here
-            </motion.span>
+            </span>
           </h1>
 
-          {/* ── 3C: Subheading — fades up at 1.5s ── */}
-          <motion.p
-            className={`${typography.heroSubtitle} text-white/95 font-medium drop-shadow-md max-w-md`}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
-          >
+          {/* ── 3C: Subheading ── */}
+          <p className={`${typography.heroSubtitle} text-white/95 font-medium drop-shadow-md max-w-md`}>
             Tell our concierge about your vision, and we will source the perfect
             venues and vendors.
-          </motion.p>
+          </p>
 
-          {/* ── 3C: Action CTAs — rises at 1.8s ── */}
-          <motion.div
-            className="w-full"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 1.8, ease: [0.16, 1, 0.3, 1] }}
-          >
+          {/* ── 3C: Action CTAs ── */}
+          <div className="w-full">
             <Suspense fallback={<div className="w-full sm:w-80 h-12 bg-white/10 animate-pulse rounded-xl" />}>
               <HeroForm />
             </Suspense>
-          </motion.div>
+          </div>
         </div>
 
         {/* ── Right Column: Floating Venue Card ── */}

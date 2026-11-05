@@ -13,9 +13,9 @@ export function VenuePreview() {
       <motion.div variants={previewImageFade} className="w-full aspect-[16/9] rounded-[20px] overflow-hidden relative group">
         <Image 
           src={photography.assignments.navVenue}
-          alt="Royal Palace"
+          alt="Royal Palace Wedding Venue"
           fill
-          unoptimized
+          sizes="(max-width: 768px) 100vw, 320px"
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
         />
         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 shadow-sm">
@@ -27,11 +27,11 @@ export function VenuePreview() {
       
       {/* Hard Facts instead of description */}
       <div className="px-1 flex flex-col gap-1.5 -mt-1">
-        <div className="flex items-center gap-2 text-[12px] font-medium text-[#6D6D6D]">
+        <div className="flex items-center gap-2 text-[12px] font-medium text-[#555555]">
           <span className="w-1 h-1 rounded-full bg-[#C5A880]" />
           300–1500 Guests
         </div>
-        <div className="flex items-center gap-2 text-[12px] font-medium text-[#6D6D6D]">
+        <div className="flex items-center gap-2 text-[12px] font-medium text-[#555555]">
           <span className="w-1 h-1 rounded-full bg-[#C5A880]" />
           Indoor & Outdoor Spaces
         </div>

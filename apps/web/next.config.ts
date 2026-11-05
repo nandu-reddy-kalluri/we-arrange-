@@ -7,7 +7,8 @@ const VENDOR_APP_URL = process.env.VENDOR_APP_URL || "http://localhost:3002";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
-    qualities: [70, 75, 90, 95, 100],
+    formats: ["image/avif", "image/webp"],
+    qualities: [60, 70, 75, 80, 85, 90, 95, 100],
     remotePatterns: [
       {
         protocol: "https",
@@ -18,6 +19,31 @@ const nextConfig: NextConfig = {
         hostname: "image.wedmegood.com",
       },
     ],
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
   },
   transpilePackages: [
     "@we-arrange/api-client",
@@ -33,12 +59,22 @@ const nextConfig: NextConfig = {
     "@we-arrange/utils",
     "@we-arrange/validation",
   ],
-  async rewrites() {
+  async redirects() {
     return [
       {
-        source: "/customer/:path*",
-        destination: `${CUSTOMER_APP_URL}/:path*`,
+        source: "/dashboard",
+        destination: "/customer/overview",
+        permanent: false,
       },
+      {
+        source: "/customer",
+        destination: "/customer/overview",
+        permanent: false,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
       {
         source: "/vendor/:path*",
         destination: `${VENDOR_APP_URL}/:path*`,

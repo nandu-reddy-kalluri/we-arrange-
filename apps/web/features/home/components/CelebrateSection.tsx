@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
 
 const dustParticles = [
   { left: 60.7, top: 84.4, duration: 9.2, delay: 1.5 },
@@ -171,7 +172,7 @@ export function CelebrateSection() {
                 className="absolute w-[200px] h-[280px] md:w-[240px] md:h-[320px] rounded-[24px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] opacity-40 border border-white/20"
                 style={{ transform: "translateZ(-80px) translateX(-60px) translateY(-20px) rotateZ(-12deg) scale(0.85)" }}
               >
-                <img src="/images/editorial/venue_3.png" alt="Invite" className="w-full h-full object-cover blur-[4px]" />
+                <Image src="/images/editorial/venue_3.png" alt="Invite" fill quality={75} sizes="(max-width: 768px) 200px, 240px" className="object-cover blur-[4px]" />
               </div>
 
               {/* Back Glass Panel 2: Color Mood Board */}
@@ -179,7 +180,7 @@ export function CelebrateSection() {
                 className="absolute w-[220px] h-[300px] md:w-[260px] md:h-[340px] rounded-[24px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] opacity-60 border border-white/20"
                 style={{ transform: "translateZ(-40px) translateX(60px) translateY(20px) rotateZ(-4deg) scale(0.9)" }}
               >
-                <img src="/images/editorial/venue_2.png" alt="Moodboard" className="w-full h-full object-cover blur-[2px]" />
+                <Image src="/images/editorial/venue_2.png" alt="Moodboard" fill quality={75} sizes="(max-width: 768px) 220px, 260px" className="object-cover blur-[2px]" />
               </div>
 
               {/* MAIN WEDDING MEMORY CAPSULE */}
@@ -194,7 +195,7 @@ export function CelebrateSection() {
                   transition={{ duration: 7, repeat: Infinity, ease: "linear", delay: 1 }}
                 />
                 
-                <img src="/images/editorial/venue_1.png" alt="Memory" className="w-full h-full object-cover rounded-[24px]" />
+                <Image src="/images/editorial/venue_1.png" alt="Memory" fill quality={75} sizes="(max-width: 768px) 280px, 320px" className="object-cover rounded-[24px]" />
               </div>
 
             </motion.div>

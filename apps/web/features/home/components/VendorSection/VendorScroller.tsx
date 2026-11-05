@@ -72,7 +72,7 @@ export function VendorScroller({ categories }: { categories: VendorCategory[] })
                         src={category.imageUrl}
                         alt={category.name}
                         fill
-                        unoptimized
+                        quality={75}
                         sizes="(max-width: 768px) 112px, 144px"
                         className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                       />

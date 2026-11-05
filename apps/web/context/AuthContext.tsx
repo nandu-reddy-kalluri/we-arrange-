@@ -32,71 +32,35 @@ export function AuthProvider({
   useEffect(() => {
     let mounted = true;
 
-    // ------------------------------------------
-    // AUTH STATE LISTENER
-    // ------------------------------------------
+    let initialHandled = false;
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      initialHandled = true;
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-        console.log(
-          "AUTH STATE:",
-          event,
-          session?.user?.email
-        );
-
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    // ------------------------------------------
-    // INITIAL SESSION
-    // ------------------------------------------
-
-    const loadSession = async () => {
+    // Fallback only if onAuthStateChange hasn't resolved within 200ms
+    const timer = setTimeout(async () => {
+      if (!mounted || initialHandled) return;
       try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error(
-            "AUTH SESSION ERROR:",
-            error
-          );
-        }
-
-        if (!mounted) return;
-
-        console.log(
-          "INITIAL SESSION:",
-          session?.user?.email
-        );
-
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted || initialHandled) return;
         setUser(session?.user ?? null);
-        setLoading(false);
-      } catch (error) {
-        console.error(
-          "AUTH LOAD ERROR:",
-          error
-        );
-
+      } catch {
         if (!mounted) return;
-
         setUser(null);
-        setLoading(false);
+      } finally {
+        if (mounted) setLoading(false);
       }
-    };
-
-    loadSession();
+    }, 200);
 
     return () => {
       mounted = false;
+      clearTimeout(timer);
       subscription.unsubscribe();
     };
   }, []);

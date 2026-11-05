@@ -37,7 +37,7 @@ export default function DigitalSuiteSection() {
                 src="/images/editorial/digital_invitation.png"
                 alt="Digital Suite"
                 fill
-                unoptimized
+                quality={75}
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover opacity-60 mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
              />

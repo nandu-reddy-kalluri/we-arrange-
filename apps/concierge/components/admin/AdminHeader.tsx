@@ -27,10 +27,10 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
     }
     try {
       await fetch("/api/admin/auth/logout", { method: "POST" });
-      router.push("/concierge-portal/login");
+      router.push("/login");
       router.refresh();
     } catch {
-      router.push("/concierge-portal/login");
+      router.push("/login");
     } finally {
       setIsLoggingOut(false);
     }

@@ -1,16 +1,17 @@
 import React from "react";
+import dynamic from "next/dynamic";
 import HeroSection from "@/features/home/components/HeroSection";
-import { ConciergeJourney } from "@/features/home/components/ConciergeJourney";
 import VenueSection from "@/features/home/components/VenueSection";
 import VendorSection from "@/features/home/components/VendorSection";
-
 import { MobileQuickSearchChips } from "@/features/home/components/MobileQuickSearchChips";
 import { TrustStrip } from "@/features/home/components/TrustStrip";
 import { ClientScrollRail } from "@/components/layout/ClientScrollRail";
 import { FloatingConciergeButton } from "@/components/layout/FloatingConciergeButton";
-import DigitalSuiteSection from "@/features/home/components/DigitalSuiteSection";
-import { CelebrateSection } from "@/features/home/components/CelebrateSection";
 import { MobileHomeExperience } from "@/features/home/components/MobileHomeExperience";
+
+const ConciergeJourney = dynamic(() => import("@/features/home/components/ConciergeJourney").then((m) => m.ConciergeJourney));
+const DigitalSuiteSection = dynamic(() => import("@/features/home/components/DigitalSuiteSection"));
+const CelebrateSection = dynamic(() => import("@/features/home/components/CelebrateSection").then((m) => m.CelebrateSection));
 
 export const metadata = {
   title: "YouMarriageWeArrange | Hyderabad's Premium Wedding Concierge",
@@ -53,16 +54,9 @@ export default function HomePage() {
         <FloatingConciergeButton />
       </div>
 
-      {/* --- MOBILE EXPERIENCE (SIMPLIFIED) --- */}
+      {/* --- MOBILE EXPERIENCE --- */}
       <div className="block md:hidden">
         <MobileHomeExperience />
-        {/* We keep SEO structural content in DOM for crawlers by hiding visually but accessible to screen readers/crawlers */}
-        <div className="sr-only">
-          <h2>Featured Venues</h2>
-          <VenueSection />
-          <h2>Featured Vendors</h2>
-          <VendorSection />
-        </div>
       </div>
     </main>
   );

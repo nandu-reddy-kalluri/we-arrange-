@@ -8,6 +8,7 @@ export const theme = {
     primaryHover: "#6e1c2f",
     accent: {
       gold: "#C5A880", // Champagne Gold (Accents / Borders)
+      goldAccessible: "#855F2E", // Accessible Bronze Gold for Text on light backgrounds (WCAG AA >= 4.5:1)
       goldLight: "rgba(197, 168, 128, 0.2)",
     },
     background: {

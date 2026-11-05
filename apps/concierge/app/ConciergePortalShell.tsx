@@ -41,7 +41,7 @@ export function ConciergePortalShell({
       // Invalidate any lingering server-side cookie and redirect to login
       fetch("/api/admin/auth/logout", { method: "POST" }).finally(() => {
         setIsVerifyingSession(false);
-        router.replace("/concierge-portal/login");
+        router.replace("/login");
       });
       return;
     }

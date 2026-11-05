@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Monitor, Smartphone, Globe, CloudLightning } from "lucide-react";
+import Image from "next/image";
 
 export default function WebsiteSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -84,8 +85,16 @@ export default function WebsiteSection() {
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               </div>
               {/* Website content */}
-              <div className="w-full flex-grow p-4 flex flex-col justify-between relative bg-cover bg-center" style={{ backgroundImage: `url('/images/editorial/venue_1.png')` }}>
-                <div className="absolute inset-0 bg-black/45 z-0" />
+              <div className="w-full flex-grow p-4 flex flex-col justify-between relative overflow-hidden">
+                <Image
+                  src="/images/editorial/venue_1.png"
+                  alt="Wedding Website Preview"
+                  fill
+                  quality={75}
+                  sizes="(max-width: 768px) 300px, 500px"
+                  className="object-cover -z-10"
+                />
+                <div className="absolute inset-0 bg-black/45 -z-10" />
                 <div className="z-10 text-left pt-2">
                   <span className="font-serif text-[10px] text-accent-gold tracking-widest block uppercase">Join Our Joy</span>
                   <h4 className="font-serif text-base sm:text-xl font-bold text-white mt-1 leading-tight">Anjali & Karan</h4>

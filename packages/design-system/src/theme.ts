@@ -17,6 +17,7 @@ export const colors = {
   accent: {
     gold: "#C5A880",
     goldDark: "#9E8158",
+    goldAccessible: "#855F2E",
     goldLight: "#F0E7DB",
   },
   surface: {

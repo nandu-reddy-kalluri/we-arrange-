@@ -72,7 +72,7 @@ export default function AdminSettingsPage() {
       setConfirmPassword("");
 
       setTimeout(() => {
-        router.push("/concierge-portal/login?reason=password_changed");
+        router.push("/login?reason=password_changed");
         router.refresh();
       }, 1200);
     } catch {
@@ -85,7 +85,7 @@ export default function AdminSettingsPage() {
   const handleLogout = async () => {
     sessionStorage.removeItem("ymwa_admin_tab_authenticated");
     await fetch("/api/admin/auth/logout", { method: "POST" });
-    router.push("/concierge-portal/login");
+    router.push("/login");
     router.refresh();
   };
 

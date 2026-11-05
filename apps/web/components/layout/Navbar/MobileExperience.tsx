@@ -96,17 +96,15 @@ export function MobileExperience({
                 <div className="relative overflow-hidden shrink-0" style={{ width: '46px', height: '46px' }}>
                   <Image
                     src="/assets/you_marriage_logo_transparent.png"
-                    alt=""
+                    alt="You Marriage We Arrange logo"
                     width={46}
-                    height={60}
-                    className="absolute top-0 left-0 w-full"
-                    style={{ height: 'auto' }}
-                    unoptimized
+                    height={46}
+                    className="absolute top-0 left-0 w-full h-full object-contain"
                   />
                 </div>
                 {/* Brand Text */}
                 <div className="flex flex-col leading-none">
-                  <span className="font-serif text-[14px] font-bold tracking-tight text-[#C5A880]">
+                  <span className="font-serif text-[14px] font-bold tracking-tight text-[#855F2E]">
                     YOU MARRIAGE
                   </span>
                   <span className="font-sans text-[8px] font-black uppercase tracking-[0.22em] text-[#8B263E] mt-0.5">
@@ -118,7 +116,7 @@ export function MobileExperience({
               <button
                 onClick={onClose}
                 aria-label="Close menu"
-                className="p-2 -mr-2 text-neutral-400 hover:text-neutral-900 transition-colors"
+                className="p-2.5 -mr-2 text-neutral-400 hover:text-neutral-900 transition-colors flex items-center justify-center min-w-[44px] min-h-[44px]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -138,7 +136,7 @@ export function MobileExperience({
                           onClose();
                         }
                       }}
-                      className="flex items-center justify-between py-4 text-[#1A0810] hover:text-[#8B263E] transition-colors"
+                      className="flex items-center justify-between py-3.5 min-h-[48px] text-[#1A0810] hover:text-[#8B263E] transition-colors"
                     >
                       <span className="font-serif text-lg font-bold">
                         {item.label}
@@ -154,11 +152,11 @@ export function MobileExperience({
                           exit={{ height: 0, opacity: 0 }}
                           className="overflow-hidden"
                         >
-                          <div className="pb-4 pl-4 flex flex-col gap-3">
+                          <div className="pb-4 pl-4 flex flex-col gap-1">
                             <Link
                               href={item.href}
                               onClick={onClose}
-                              className="text-sm font-semibold text-neutral-700 hover:text-[#8B263E]"
+                              className="text-sm font-semibold text-neutral-700 hover:text-[#8B263E] min-h-[44px] flex items-center"
                             >
                               All {item.label}
                             </Link>
@@ -167,7 +165,7 @@ export function MobileExperience({
                                 key={subItem.label}
                                 href={subItem.href}
                                 onClick={onClose}
-                                className="text-sm text-neutral-600 hover:text-[#8B263E]"
+                                className="text-sm text-neutral-600 hover:text-[#8B263E] min-h-[44px] flex items-center"
                               >
                                 {subItem.label}
                               </Link>

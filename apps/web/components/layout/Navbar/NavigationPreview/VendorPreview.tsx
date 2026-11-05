@@ -19,14 +19,14 @@ export function VendorPreview() {
       <motion.div variants={previewImageFade} className="flex justify-center -space-x-4 py-2">
         {MOCK_VENDORS.map((src, i) => (
           <div key={i} className={`relative w-20 h-20 rounded-full border-4 border-[#FBF9F6] shadow-sm overflow-hidden z-[${3-i}]`}>
-            <Image src={src} alt="Vendor" fill unoptimized className="object-cover" />
+            <Image src={src} alt="Featured Vendor" fill sizes="80px" className="object-cover" />
           </div>
         ))}
       </motion.div>
       
       <PreviewHeader label="Concierge Verified" heading="Trusted Partners" />
       
-      <div className="px-1 -mt-1 text-[13px] font-medium text-[#6D6D6D] leading-relaxed">
+      <div className="px-1 -mt-1 text-[13px] font-medium text-[#555555] leading-relaxed">
         Photography, decor, and makeup artists selected for exceptional quality.
       </div>
       

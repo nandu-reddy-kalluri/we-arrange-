@@ -48,7 +48,7 @@ export function Footer() {
               <span className="font-serif text-2xl font-bold text-[#F0D28D] tracking-tight leading-none">
                 YouMarriage
               </span>
-              <span className="font-sans text-[9px] font-black text-[#8B263E] tracking-[0.4em] uppercase mt-1">
+              <span className="font-sans text-[9px] font-black text-[#F0D28D] tracking-[0.4em] uppercase mt-1">
                 WE ARRANGE
               </span>
               <p className="font-serif italic text-xs text-[#C89B3C]/90 max-w-xs mt-2">
@@ -84,7 +84,7 @@ export function Footer() {
             </div>
 
             {/* Legal Links & Copyright */}
-            <div className="flex flex-col items-center gap-1.5 pt-3 text-[9px] font-medium text-white/30 tracking-wider">
+            <div className="flex flex-col items-center gap-1.5 pt-3 text-[9px] font-medium text-white/70 tracking-wider">
               <span>© {currentYear} YouMarriage We Arrange</span>
             </div>
           </div>

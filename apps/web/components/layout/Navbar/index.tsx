@@ -199,18 +199,14 @@ export default function Navbar() {
             >
               <Image
                 src="/assets/you_marriage_logo_transparent.png"
-                alt="You Marriage We Arrange"
+                alt="You Marriage We Arrange logo"
                 width={52}
-                height={68}
-                className={`absolute top-0 left-0 w-full transition-all duration-300 ${
+                height={52}
+                className={`absolute top-0 left-0 w-full h-full object-contain transition-all duration-300 ${
                   useDarkText
                     ? ""
                     : "brightness-[1.5] sepia-[0.35] saturate-[1.4] drop-shadow-[0_0_8px_rgba(240,210,141,0.35)]"
                 }`}
-                style={{
-                  height: "auto",
-                }}
-                unoptimized
                 priority
               />
             </div>
@@ -220,7 +216,7 @@ export default function Navbar() {
               <span
                 className={`font-serif text-[15px] lg:text-[17px] font-bold tracking-tight transition-colors duration-300 ${
                   useDarkText
-                    ? "text-[#C5A880]"
+                    ? "text-[#855F2E]"
                     : "text-[#F0D28D] drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]"
                 }`}
               >

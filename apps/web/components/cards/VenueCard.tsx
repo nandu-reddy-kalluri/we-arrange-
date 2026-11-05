@@ -18,27 +18,18 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
 
   const images = React.useMemo(() => {
     const list = Array.from(new Set([venue.imageUrl, ...(venue.gallery || [])].filter(Boolean)));
-    if (list.length <= 1) {
-      return [venue.imageUrl, "/images/editorial/insp_bridal.png", "/images/editorial/vendor_decoration.png"];
-    }
-    return list;
+    return list.length > 0 ? list : [venue.imageUrl];
   }, [venue]);
 
   const [currentImgIndex, setCurrentImgIndex] = React.useState(0);
+  const [viewedIndices, setViewedIndices] = React.useState<number[]>([0]);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
   const isSwipingRef = React.useRef(false);
 
-  // Automatic image slider: every 3000ms (3 seconds) with continuous loop
   React.useEffect(() => {
-    if (images.length <= 1) return;
-
-    const interval = setInterval(() => {
-      setCurrentImgIndex((prev) => (prev + 1) % images.length);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [images.length]);
+    setViewedIndices((prev) => (prev.includes(currentImgIndex) ? prev : [...prev, currentImgIndex]));
+  }, [currentImgIndex]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     isSwipingRef.current = false;
@@ -84,19 +75,22 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {images.map((imgUrl, idx) => (
-            <Image
-              key={imgUrl + idx}
-              src={imgUrl}
-              alt={venue.name}
-              fill
-              unoptimized
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-              className={`object-cover transition-opacity duration-500 ease-in-out group-hover:scale-105 ${
-                idx === currentImgIndex ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
-              }`}
-            />
-          ))}
+          {images.map((imgUrl, idx) => {
+            if (!viewedIndices.includes(idx)) return null;
+            return (
+              <Image
+                key={imgUrl + idx}
+                src={imgUrl}
+                alt={venue.name}
+                fill
+                quality={75}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                className={`object-cover transition-opacity duration-500 ease-in-out group-hover:scale-105 ${
+                  idx === currentImgIndex ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
+                }`}
+              />
+            );
+          })}
           <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300 pointer-events-none" />
           
           {venue.isVerified && (
@@ -129,7 +123,7 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
           {/* Image Indicator Dots */}
           {images.length > 1 && (
             <div 
-              className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm z-10"
+              className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm z-10"
               onClick={(e) => e.stopPropagation()}
             >
               {images.length <= 5 ? (
@@ -141,14 +135,18 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
                       e.stopPropagation();
                       setCurrentImgIndex(idx);
                     }}
-                    className={`w-1.5 h-1.5 rounded-full transition-all ${
-                      idx === currentImgIndex ? "bg-white scale-125" : "bg-white/50"
-                    }`}
+                    className="w-6 h-6 flex items-center justify-center p-0 focus:outline-none"
                     aria-label={`Go to slide ${idx + 1}`}
-                  />
+                  >
+                    <span
+                      className={`block w-1.5 h-1.5 rounded-full transition-all ${
+                        idx === currentImgIndex ? "bg-white scale-125" : "bg-white/50"
+                      }`}
+                    />
+                  </button>
                 ))
               ) : (
-                <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                <span className="text-[9px] font-black text-white uppercase tracking-widest px-1">
                   {currentImgIndex + 1} / {images.length}
                 </span>
               )}

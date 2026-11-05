@@ -76,7 +76,7 @@ export function VenueCarousel({ venues }: { venues: Venue[] }) {
                 className="w-10 h-10 rounded-full border-2 border-white overflow-hidden shadow-sm relative -ml-3 first:ml-0"
                 style={{ zIndex: 10 - i }}
               >
-                <Image src={`/images/editorial/venue_${i}.png`} alt="Venue Preview" fill unoptimized className="object-cover" />
+                <Image src={`/images/editorial/venue_${i}.png`} alt="Venue Preview" fill sizes="40px" quality={75} className="object-cover" />
               </div>
             ))}
             <div className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-[#8B263E] to-[#6e1c2f] text-white flex items-center justify-center text-[10px] font-black tracking-tighter shadow-sm relative -ml-3 z-0">

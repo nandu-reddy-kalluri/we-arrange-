@@ -1,9 +1,6 @@
-"use client";
-
-import React, { useRef } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, MapPin, Camera, Sparkles, Scissors, Utensils, Brush, Check } from "lucide-react";
 import VenueCard from "@/components/cards/VenueCard";
 import { featuredVenues } from "@/mock-data/venues";
@@ -13,18 +10,6 @@ import { mockVendors } from "@/mock-data/vendors";
 const featuredVendors = mockVendors.filter(v => v.isFeatured);
 
 export function MobileHomeExperience() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Subtle hero parallax
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
-
-  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
-  const heroY = useTransform(scrollYProgress, [0, 0.2], [0, 20]);
-
   const categories = [
     { id: "venues", label: "Venues", icon: MapPin, href: "/venues" },
     { id: "photography", label: "Photography", icon: Camera, href: "/vendors/photography" },
@@ -35,27 +20,25 @@ export function MobileHomeExperience() {
   ];
 
   return (
-    <div ref={containerRef} className="flex flex-col bg-[#FBF9F6] min-h-screen pb-6 overflow-x-hidden">
+    <div className="flex flex-col bg-[#FBF9F6] min-h-screen pb-6 overflow-x-hidden">
       
-      {/* 1. HERO SECTION (Cinematic Parallax) */}
-      <motion.section 
+      {/* 1. HERO SECTION (Native Fast Paint) */}
+      <section 
         className="px-4 pt-4 pb-6 flex flex-col items-center text-center relative z-10"
-        style={{ opacity: heroOpacity, y: heroY }}
       >
-        <motion.div 
+        <div 
           className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 shadow-md border border-neutral-100"
-          style={{ scale: heroScale }}
         >
           <Image
             src="/images/editorial/hero_venue.png"
             alt="Beautiful Indian wedding venue in Hyderabad"
             fill
             priority
-            quality={90}
+            quality={80}
             sizes="100vw"
             className="object-cover"
           />
-        </motion.div>
+        </div>
         
         <h1 className="font-serif text-[28px] font-bold text-neutral-900 leading-tight mb-3 px-2">
           Find the right places<br />and people for your wedding.
@@ -65,43 +48,31 @@ export function MobileHomeExperience() {
         </p>
 
         <Link 
-          href="#concierge-journey"
+          href="/venues"
           className="w-full py-4 rounded-full text-[11px] font-bold uppercase tracking-widest text-white bg-[#8B263E] shadow-[0_8px_20px_rgba(139,38,62,0.25)] active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
         >
           Start Planning <ArrowRight className="w-4 h-4" />
         </Link>
-      </motion.section>
+      </section>
 
       {/* Subtle visual connector instead of a massive empty gap */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-[#C5A880]/30 to-transparent my-4" />
 
       {/* 2. CATEGORIES GRID */}
       <section className="px-4 py-6 relative z-20 bg-[#FBF9F6]">
-        <motion.h2 
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C5A880] text-center mb-5"
-        >
+        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B263E] text-center mb-5">
           What are you looking for?
-        </motion.h2>
+        </h2>
         
         <div className="grid grid-cols-2 gap-3">
-          {categories.map((cat, idx) => {
+          {categories.map((cat) => {
             const Icon = cat.icon;
             return (
               <Link href={cat.href} key={cat.id}>
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-20px" }}
-                  transition={{ delay: idx * 0.05, duration: 0.4 }}
-                  whileTap={{ scale: 0.96 }}
-                  className="flex flex-col items-center justify-center p-4 rounded-xl bg-white border border-[#C5A880]/20 shadow-[0_2px_10px_rgba(0,0,0,0.02)] gap-2 touch-manipulation"
-                >
+                <div className="flex flex-col items-center justify-center p-4 rounded-xl bg-white border border-[#C5A880]/20 shadow-[0_2px_10px_rgba(0,0,0,0.02)] gap-2 touch-manipulation active:scale-[0.96] transition-transform">
                   <Icon className="w-5 h-5 text-[#8B263E]" strokeWidth={1.5} />
                   <span className="font-sans text-[11px] font-bold text-neutral-800 tracking-wide">{cat.label}</span>
-                </motion.div>
+                </div>
               </Link>
             );
           })}
@@ -111,7 +82,7 @@ export function MobileHomeExperience() {
       {/* 3. HORIZONTAL FEATURED VENUES */}
       <section className="py-8 bg-white border-y border-neutral-100">
         <div className="px-4 flex flex-col mb-5">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C5A880] mb-1">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B263E] mb-1">
             Popular in Hyderabad
           </h2>
           <div className="flex items-center justify-between">
@@ -135,7 +106,7 @@ export function MobileHomeExperience() {
       {/* 5. HORIZONTAL POPULAR VENDORS */}
       <section className="py-8 bg-[#FBF9F6]">
         <div className="px-4 flex flex-col mb-5">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C5A880] mb-1">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B263E] mb-1">
             Top Professionals
           </h2>
           <div className="flex items-center justify-between">

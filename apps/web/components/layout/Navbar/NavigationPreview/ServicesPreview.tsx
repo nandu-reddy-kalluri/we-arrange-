@@ -27,7 +27,7 @@ export function ServicesPreview() {
             </div>
             <div className="flex flex-col">
               <span className="font-serif text-[15px] font-bold text-[#2D2D2D]">{item.step}</span>
-              <span className="text-[11px] font-medium text-[#6D6D6D]">{item.desc}</span>
+              <span className="text-[11px] font-medium text-[#555555]">{item.desc}</span>
             </div>
           </div>
         ))}

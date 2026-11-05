@@ -37,6 +37,42 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_IN",
   },
+  alternates: {
+    canonical: "https://www.youmarriagewearrange.com",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "YouMarriageWeArrange — Premium Wedding Concierge | Hyderabad",
+    description: "Hyderabad's premier wedding concierge service. Sourcing, negotiating, and curating quotes from elite wedding venues and vendors.",
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.youmarriagewearrange.com/#website",
+      "url": "https://www.youmarriagewearrange.com",
+      "name": "YouMarriageWeArrange",
+      "description": "Hyderabad's Premier Wedding Venue Concierge",
+      "inLanguage": "en-IN"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.youmarriagewearrange.com/#organization",
+      "name": "YouMarriageWeArrange",
+      "url": "https://www.youmarriagewearrange.com",
+      "logo": "https://www.youmarriagewearrange.com/images/editorial/hero_venue.png",
+      "areaServed": {
+        "@type": "City",
+        "name": "Hyderabad",
+        "addressRegion": "Telangana",
+        "addressCountry": "IN"
+      },
+      "serviceType": "Wedding Concierge & Venue Booking"
+    }
+  ]
 };
 
 export default function RootLayout({
@@ -46,13 +82,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${jakarta.variable}`} style={{ scrollBehavior: 'smooth' }} suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body>
-  <AuthProvider>
-    <GlobalLayoutWrapper>
-      {children}
-    </GlobalLayoutWrapper>
-  </AuthProvider>
-</body>
+        <AuthProvider>
+          <GlobalLayoutWrapper>
+            {children}
+          </GlobalLayoutWrapper>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

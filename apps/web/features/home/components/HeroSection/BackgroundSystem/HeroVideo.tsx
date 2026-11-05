@@ -20,7 +20,7 @@ export function HeroVideo({ isReducedMotion }: BackgroundLayerProps) {
           priority
           className="object-cover object-center"
           sizes="100vw"
-          quality={95}
+          quality={80}
         />
       </div>
 

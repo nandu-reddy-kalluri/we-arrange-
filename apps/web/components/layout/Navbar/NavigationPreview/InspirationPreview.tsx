@@ -16,9 +16,9 @@ export function InspirationPreview() {
         <div className="relative w-full aspect-[4/5] rounded-[16px] overflow-hidden group">
           <Image 
             src={photography.assignments.navInspirationFront}
-            alt="Editorial Wedding"
+            alt="Editorial Wedding Inspiration"
             fill
-            unoptimized
+            sizes="160px"
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           />
         </div>
@@ -27,7 +27,7 @@ export function InspirationPreview() {
             src={photography.assignments.navInspirationBack}
             alt="Bridal Details"
             fill
-            unoptimized
+            sizes="160px"
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           />
         </div>
