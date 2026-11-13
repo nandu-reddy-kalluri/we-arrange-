@@ -6,5 +6,8 @@
   "main": "./tailwind.config.ts",
   "dependencies": {
     "@we-arrange/design-system": "workspace:*"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.4"
   }
 }
