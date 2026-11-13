@@ -1,69 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
-import { resetAdminPasswordWithToken } from "@/lib/adminAuth";
+import { NextRequest } from "next/server";
+import { resetPasswordSchema } from "@we-arrange/validation";
+import { ADMIN_SESSION_COOKIE, completePasswordReset } from "@/lib/adminAuth";
+import { fail, ok, parseJsonBody } from "@/services/http/response";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { resetToken, newPassword, confirmPassword } = body;
-
-    if (!resetToken) {
-      return NextResponse.json(
-        { error: "Reset session token is missing." },
-        { status: 400 }
-      );
-    }
-
-    if (!newPassword || !confirmPassword) {
-      return NextResponse.json(
-        { error: "New password and confirmation are required." },
-        { status: 400 }
-      );
-    }
-
-    if (newPassword !== confirmPassword) {
-      return NextResponse.json(
-        { error: "New password and confirmation do not match." },
-        { status: 400 }
-      );
-    }
-
-    if (newPassword.trim().length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters long." },
-        { status: 400 }
-      );
-    }
-
-    const result = resetAdminPasswordWithToken(resetToken, newPassword);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 400 }
-      );
-    }
-
-    const response = NextResponse.json({
-      success: true,
-      message: "Admin password reset successfully. Please log in with your new password.",
+    const body = await parseJsonBody(request, resetPasswordSchema);
+    await completePasswordReset({
+      newPassword: body.newPassword,
+      code: body.code,
     });
 
-    // Invalidate session cookie so login is required
+    const response = ok({
+      success: true,
+      message: "Password updated via Supabase Auth.",
+    });
+
     response.cookies.set({
-      name: "ymwa_admin_session",
+      name: ADMIN_SESSION_COOKIE,
       value: "",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 0,
     });
 
     return response;
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to reset password." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return fail(err, "Failed to reset admin password.");
   }
 }

@@ -1,43 +1,44 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyResetOtp } from "@/lib/adminAuth";
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import { resolveAuthenticatedContext } from "@/services/auth";
+import { createSupabaseServerClient } from "@/services/supabase/server";
+import { AppError, fail, ok, parseJsonBody } from "@/services/http/response";
+
+const verifyRecoveryOtpSchema = z.object({
+  email: z.string().trim().email(),
+  otp: z.string().trim().min(6).max(12),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, otp } = body;
-
-    if (!email || !email.trim()) {
-      return NextResponse.json(
-        { error: "Email is required." },
-        { status: 400 }
-      );
-    }
-
-    if (!otp || !otp.trim()) {
-      return NextResponse.json(
-        { error: "Verification OTP code is required." },
-        { status: 400 }
-      );
-    }
-
-    const result = verifyResetOtp(email, otp);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "OTP verified successfully.",
-      resetToken: result.resetToken,
+    const body = await parseJsonBody(request, verifyRecoveryOtpSchema);
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: body.email.toLowerCase().trim(),
+      token: body.otp,
+      type: "recovery",
     });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to verify OTP." },
-      { status: 500 }
-    );
+
+    if (error || !data.user) {
+      throw new AppError("VALIDATION_ERROR", 400, "Invalid or expired recovery OTP.");
+    }
+
+    const ctx = await resolveAuthenticatedContext(supabase);
+    if (!ctx.isConciergeOrAdmin) {
+      await supabase.auth.signOut().catch(() => undefined);
+      throw new AppError(
+        "FORBIDDEN",
+        403,
+        "Recovery OTP account is not authorized as Administrator or Concierge."
+      );
+    }
+
+    return ok({
+      success: true,
+      message: "Recovery code verified via Supabase Auth.",
+      userId: data.user.id,
+    });
+  } catch (err) {
+    return fail(err, "Failed to verify recovery OTP.");
   }
 }

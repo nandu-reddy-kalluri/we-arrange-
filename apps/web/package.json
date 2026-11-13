@@ -12,6 +12,7 @@
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^5.5.7",
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.43.0",
     "@we-arrange/api-client": "workspace:*",
     "@we-arrange/auth": "workspace:*",

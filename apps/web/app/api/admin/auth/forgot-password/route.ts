@@ -1,36 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requestPasswordResetOtp } from "@/lib/adminAuth";
+import { NextRequest } from "next/server";
+import { forgotPasswordSchema } from "@we-arrange/validation";
+import { sendPasswordResetEmail } from "@/services/auth";
+import { fail, ok, parseJsonBody } from "@/services/http/response";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email } = body;
-
-    if (!email || !email.trim()) {
-      return NextResponse.json(
-        { error: "Registered admin email is required." },
-        { status: 400 }
-      );
-    }
-
-    const result = requestPasswordResetOtp(email);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error, cooldownRemaining: result.cooldownRemaining },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({
+    const body = await parseJsonBody(request, forgotPasswordSchema);
+    await sendPasswordResetEmail(body.email, body.redirectTo);
+    return ok({
       success: true,
-      message: "Verification OTP sent to registered admin email.",
-      cooldownSeconds: 60,
+      message: "Password recovery email dispatched via Supabase Auth.",
     });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to process forgot password request." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return fail(err, "Failed to process forgot password request.");
   }
 }

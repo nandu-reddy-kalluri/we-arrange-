@@ -1,20 +1,25 @@
-import { NextResponse } from "next/server";
-import { ADMIN_SESSION_COOKIE } from "@/lib/adminAuth";
+import { ADMIN_SESSION_COOKIE, logoutSession } from "@/lib/adminAuth";
+import { fail, ok } from "@/services/http/response";
 
 export async function POST() {
-  const response = NextResponse.json({
-    success: true,
-    message: "Admin session ended.",
-  });
+  try {
+    await logoutSession();
+    const response = ok({
+      success: true,
+      message: "Admin session ended.",
+    });
 
-  response.cookies.set({
-    name: ADMIN_SESSION_COOKIE,
-    value: "",
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
+    response.cookies.set({
+      name: ADMIN_SESSION_COOKIE,
+      value: "",
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
 
-  return response;
+    return response;
+  } catch (err) {
+    return fail(err, "Failed to end admin session.");
+  }
 }
