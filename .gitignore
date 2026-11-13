@@ -29,6 +29,10 @@ cloudflared*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.backup
+.env.*.backup
+.env.production
+.env.staging
 
 # Debug logs
 *.log
@@ -48,5 +52,22 @@ homepage-*.json
 post-gate-*.json
 *.devtoolslog.json
 *.trace.json
+
+# Database & migration backups
+*.bak
+*.stale.bak
+*.backup
+
+# Supabase CLI local state
+.supabase/
+supabase/.temp/
+supabase/.branches/
+
+# Test coverage
+coverage/
+*.lcov
+
+# IDE & editor metadata
+.idea/
 
 
