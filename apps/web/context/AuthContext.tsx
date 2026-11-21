@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { apiClient, registerAccessTokenProvider } from "@we-arrange/api-client";
 import { supabase } from "@/services/supabase/client";
 
 type AuthContextType = {
@@ -21,6 +22,15 @@ const AuthContext = createContext<AuthContextType | undefined>(
 );
 
 
+const getSessionAccessToken = async () => {
+  try {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export function AuthProvider({
   children,
 }: {
@@ -29,19 +39,34 @@ export function AuthProvider({
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  if (typeof window !== "undefined") {
+    registerAccessTokenProvider(getSessionAccessToken);
+  }
+
   useEffect(() => {
     let mounted = true;
+    let unsubscribe: (() => void) | undefined;
+
+    registerAccessTokenProvider(getSessionAccessToken);
 
     let initialHandled = false;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
+    try {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!mounted) return;
+        initialHandled = true;
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
+      unsubscribe = () => subscription.unsubscribe();
+    } catch (error) {
+      console.error("AUTH LISTENER ERROR:", error);
       initialHandled = true;
-      setUser(session?.user ?? null);
+      setUser(null);
       setLoading(false);
-    });
+    }
 
     // Fallback only if onAuthStateChange hasn't resolved within 200ms
     const timer = setTimeout(async () => {
@@ -61,7 +86,7 @@ export function AuthProvider({
     return () => {
       mounted = false;
       clearTimeout(timer);
-      subscription.unsubscribe();
+      unsubscribe?.();
     };
   }, []);
 
@@ -73,6 +98,7 @@ export function AuthProvider({
     try {
       const { error } =
         await supabase.auth.signOut();
+      await apiClient.logout().catch(() => undefined);
 
       if (error) {
         console.error(

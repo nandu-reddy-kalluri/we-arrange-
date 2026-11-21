@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "eInvite Templates Gallery — Royal, Floral and Minimal Themes",
+  description: "Browse luxury digital wedding card and video invitation templates tailored for Indian weddings.",
+  alternates: {
+    canonical: "https://www.youmarriagewearrange.com/wedding-studio/einvites/templates",
+  },
+};
+
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";

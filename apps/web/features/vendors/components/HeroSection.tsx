@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import Image from "next/image";
 import { Search, MapPin, Grid, Sparkles, ChevronDown, Check, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { vendorCategories } from "@/mock-data/vendors";
@@ -30,16 +29,11 @@ const POPULAR_VENDOR_SUGGESTIONS = [
   { title: "Bridal Makeup Artists", category: "makeup", type: "Category" },
   { title: "Mehendi Artists", category: "mehendi", type: "Category" },
   { title: "Wedding Catering", category: "catering", type: "Category" },
-  { title: "Rishi & Karan Photography", category: "photography", type: "Verified Vendor" },
-  { title: "The Royal Decor Co.", category: "decor", type: "Verified Vendor" },
-  { title: "Glamour by Shreya", category: "makeup", type: "Verified Vendor" },
-  { title: "Henna by Ayesha", category: "mehendi", type: "Verified Vendor" },
-  { title: "Spice & Saffron Caterers", category: "catering", type: "Verified Vendor" },
-  { title: "House of Vows", category: "photography", type: "Verified Vendor" },
-  { title: "Pre-Wedding Photoshoot", category: "photography", type: "Service" },
+  { title: "Candid Photography", category: "photography", type: "Service" },
   { title: "Luxury Floral Mandap", category: "decor", type: "Service" },
-  { title: "HD Airbrush Bridal Makeup", category: "makeup", type: "Service" },
-  { title: "Royal Feast Catering", category: "catering", type: "Service" },
+  { title: "HD Bridal Makeup", category: "makeup", type: "Service" },
+  { title: "Bridal Mehendi Design", category: "mehendi", type: "Service" },
+  { title: "South Indian Wedding Catering", category: "catering", type: "Service" },
 ];
 
 export function HeroSection({

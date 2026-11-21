@@ -22,29 +22,23 @@ interface AdminSidebarProps {
 }
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/concierge-portal", icon: LayoutDashboard },
-  { label: "Analytics", href: "/concierge-portal/analytics", icon: BarChart3 },
-  { label: "Pages Content", href: "/concierge-portal/pages", icon: FileText },
-  { label: "Venues", href: "/concierge-portal/venues", icon: Building2 },
-  { label: "Vendors", href: "/concierge-portal/vendors", icon: Users },
-  { label: "Leads & Concierge", href: "/concierge-portal/leads", icon: MessageSquareQuote },
-  { label: "Settings", href: "/concierge-portal/settings", icon: Settings },
+  { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Analytics", href: "/analytics", icon: BarChart3 },
+  { label: "Pages Content", href: "/pages", icon: FileText },
+  { label: "Venues", href: "/venues", icon: Building2 },
+  { label: "Vendors", href: "/vendors", icon: Users },
+  { label: "Leads & Concierge", href: "/leads", icon: MessageSquareQuote },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    if (href === "/concierge-portal") {
-      return pathname === "/concierge-portal" || pathname === "/" || pathname === "";
+    if (href === "/") {
+      return pathname === "/" || pathname === "" || pathname === "/concierge-portal";
     }
-    const strippedHref = href.replace("/concierge-portal", "");
-    return (
-      pathname === href ||
-      pathname === strippedHref ||
-      Boolean(pathname?.startsWith(href)) ||
-      Boolean(strippedHref && pathname?.startsWith(strippedHref))
-    );
+    return pathname === href || Boolean(pathname?.startsWith(href));
   };
 
   return (
@@ -67,7 +61,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
         <div>
           <div className="h-16 flex items-center justify-between px-6 border-b border-[#E5E0D8] bg-[#FAF9F6]">
             <Link
-              href="/concierge-portal"
+              href="/"
               className="flex items-center gap-2.5 group outline-none"
             >
               <div className="w-8 h-8 rounded-lg bg-[#8B263E] flex items-center justify-center text-white font-serif font-bold text-sm shadow-sm group-hover:bg-[#721f33] transition-colors">

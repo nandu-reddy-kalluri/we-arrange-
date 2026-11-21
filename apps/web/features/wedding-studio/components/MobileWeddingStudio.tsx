@@ -42,9 +42,11 @@ export function MobileWeddingStudio() {
       <section className="px-5 pb-12">
         <div className="relative w-full aspect-[4/5] rounded-[24px] overflow-hidden shadow-lg border border-gray-100">
           <Image
-            src="/images/editorial/insp_bridal.png" // using a reliable mockup or generic image
+            src="https://makeup-images.youmarriagewearrange.com/the-makeup-mafia/The_Makeup_Mafia_4.webp"
             alt="Wedding Studio Templates"
             fill
+            quality={75}
+            sizes="100vw"
             className="object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

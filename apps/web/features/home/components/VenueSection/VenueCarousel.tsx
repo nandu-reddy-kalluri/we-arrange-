@@ -9,9 +9,23 @@ import { useAnalytics } from "@/lib/analytics/hooks";
 import Image from "next/image";
 import { Star, ChevronRight } from "lucide-react";
 
-export function VenueCarousel({ venues }: { venues: Venue[] }) {
+export function VenueCarousel({
+  venues,
+  totalCount,
+}: {
+  venues: Venue[];
+  totalCount?: number;
+}) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const { trackVenueClick } = useAnalytics();
+  const previewThumbs = venues
+    .map((v) => v.imageUrl)
+    .filter((u): u is string => Boolean(u && !u.endsWith(".svg")))
+    .slice(0, 3);
+  const totalBadge =
+    typeof totalCount === "number" && totalCount > 0
+      ? `${Math.floor(totalCount / 100) * 100}+`
+      : "1,100+";
 
   return (
     <motion.div 
@@ -70,17 +84,17 @@ export function VenueCarousel({ venues }: { venues: Venue[] }) {
 
           {/* Stacked Avatars / Preview Thumbnails */}
           <div className="relative z-10 flex items-center justify-center mb-5 h-10 drop-shadow-sm group-hover:-translate-y-1 transition-transform duration-500">
-            {[1, 2, 3].map((i) => (
+            {previewThumbs.map((thumbUrl, i) => (
               <div
-                key={i}
+                key={`${thumbUrl}-${i}`}
                 className="w-10 h-10 rounded-full border-2 border-white overflow-hidden shadow-sm relative -ml-3 first:ml-0"
                 style={{ zIndex: 10 - i }}
               >
-                <Image src={`/images/editorial/venue_${i}.png`} alt="Venue Preview" fill sizes="40px" quality={75} className="object-cover" />
+                <Image src={thumbUrl} alt="Venue Preview" fill sizes="40px" quality={75} className="object-cover" />
               </div>
             ))}
-            <div className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-[#8B263E] to-[#6e1c2f] text-white flex items-center justify-center text-[10px] font-black tracking-tighter shadow-sm relative -ml-3 z-0">
-              200+
+            <div className="w-10 h-10 rounded-full border-2 border-white bg-gradient-to-br from-[#8B263E] to-[#6e1c2f] text-white flex items-center justify-center text-[10px] font-black tracking-tighter shadow-sm relative -ml-3 z-0 px-1.5">
+              {totalBadge}
             </div>
           </div>
           

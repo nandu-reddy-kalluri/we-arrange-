@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Venue } from "@/mock-data/venues";
 import { useSavedStore } from "@/store/useSavedStore";
+import { DEFAULT_VENUE_IMAGE } from "@/services/catalog/catalogMappers";
 
 export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?: () => void }) {
   const router = useRouter();
@@ -18,11 +19,13 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
 
   const images = React.useMemo(() => {
     const list = Array.from(new Set([venue.imageUrl, ...(venue.gallery || [])].filter(Boolean)));
-    return list.length > 0 ? list : [venue.imageUrl];
+    return list.length > 0 ? list : [DEFAULT_VENUE_IMAGE];
   }, [venue]);
 
   const [currentImgIndex, setCurrentImgIndex] = React.useState(0);
   const [viewedIndices, setViewedIndices] = React.useState<number[]>([0]);
+  const [brokenUrls, setBrokenUrls] = React.useState<Record<string, boolean>>({});
+  const [loadedMap, setLoadedMap] = React.useState<Record<string, boolean>>({});
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
   const isSwipingRef = React.useRef(false);
@@ -71,22 +74,36 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
       >
         {/* Image Container with Automatic 1s Slider and Touch Swipe */}
         <div 
-          className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden select-none"
+          className="relative w-full aspect-[4/3] bg-gradient-to-r from-stone-100 via-stone-50 to-stone-100 overflow-hidden select-none"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
+          {/* Fluent shimmer skeleton while image is loading */}
+          {!loadedMap[images[currentImgIndex]] && (
+            <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-[#F7F4EE] to-stone-100 animate-pulse z-0 pointer-events-none" />
+          )}
           {images.map((imgUrl, idx) => {
             if (!viewedIndices.includes(idx)) return null;
+            const resolvedSrc = brokenUrls[imgUrl] ? DEFAULT_VENUE_IMAGE : imgUrl;
+            const isCurrent = idx === currentImgIndex;
+            const isLoaded = loadedMap[imgUrl];
             return (
               <Image
                 key={imgUrl + idx}
-                src={imgUrl}
+                src={resolvedSrc}
                 alt={venue.name}
                 fill
+                unoptimized={resolvedSrc.endsWith(".svg")}
                 quality={75}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                className={`object-cover transition-opacity duration-500 ease-in-out group-hover:scale-105 ${
-                  idx === currentImgIndex ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
+                onLoad={() => setLoadedMap((prev) => ({ ...prev, [imgUrl]: true }))}
+                onError={() => setBrokenUrls((prev) => ({ ...prev, [imgUrl]: true }))}
+                className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
+                  isCurrent
+                    ? isLoaded
+                      ? "opacity-100 blur-0 scale-100 z-0"
+                      : "opacity-0 blur-[4px] scale-[1.02] z-0"
+                    : "opacity-0 pointer-events-none"
                 }`}
               />
             );
@@ -167,11 +184,15 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
           </div>
 
           <div className="flex flex-col gap-1 md:gap-1.5">
-            <div className="flex items-center gap-1.5 text-xs md:text-[13px] font-medium text-neutral-700">
-              <Star className="w-3.5 h-3.5 text-neutral-900 fill-neutral-900 shrink-0" />
-              <span className="font-bold">{venue.rating}</span>
-              <span className="text-neutral-500 font-normal">({venue.reviewCount})</span>
-            </div>
+            {venue.rating > 0 && (
+              <div className="flex items-center gap-1.5 text-xs md:text-[13px] font-medium text-neutral-700">
+                <Star className="w-3.5 h-3.5 text-neutral-900 fill-neutral-900 shrink-0" />
+                <span className="font-bold">{venue.rating.toFixed(1)}</span>
+                {venue.reviewCount > 0 && (
+                  <span className="text-neutral-500 font-normal">({venue.reviewCount})</span>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-1.5 text-xs md:text-[13px] text-neutral-600 line-clamp-1">
               <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -196,20 +217,22 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
           {/* Mobile Actions */}
           <div className="md:hidden pt-3 mt-1 border-t border-gray-100 flex items-center justify-between gap-2">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
-                window.location.href = "tel:+919876543210";
+                router.push(`/venues/${venue.slug}`);
               }}
               className="flex-1 py-2.5 rounded-lg text-[10px] font-bold text-center bg-neutral-100 text-neutral-800 hover:bg-neutral-200 transition-colors whitespace-nowrap"
             >
-              Call
+              Details
             </button>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
-                alert(`Quote requested for ${venue.name}`);
+                router.push(`/venues/${venue.slug}#contact`);
               }}
               className="flex-1 py-2.5 rounded-lg text-[10px] font-bold text-center bg-[#8B263E]/10 text-[#8B263E] hover:bg-[#8B263E] hover:text-white transition-colors whitespace-nowrap"
             >
@@ -261,10 +284,15 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
             onTouchEnd={handleTouchEnd}
           >
             <Image
-              src={images[currentImgIndex] || venue.imageUrl}
+              src={
+                brokenUrls[images[currentImgIndex] || ""]
+                  ? DEFAULT_VENUE_IMAGE
+                  : images[currentImgIndex] || venue.imageUrl || DEFAULT_VENUE_IMAGE
+              }
               alt={venue.name}
               fill
-              unoptimized
+              sizes="(max-width: 1024px) 100vw, 90vw"
+              quality={85}
               className="object-contain"
             />
           </div>

@@ -71,6 +71,8 @@ export function InspirationDetailModal({ item, onClose }: InspirationDetailModal
                 src={item.imageUrl}
                 alt={item.title}
                 fill
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                quality={85}
                 className="object-cover"
               />
               <div className="absolute top-4 left-4 flex gap-2">
@@ -164,6 +166,8 @@ export function InspirationDetailModal({ item, onClose }: InspirationDetailModal
                 src={item.imageUrl}
                 alt={item.title}
                 fill
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                quality={85}
                 className="object-cover"
               />
             </div>

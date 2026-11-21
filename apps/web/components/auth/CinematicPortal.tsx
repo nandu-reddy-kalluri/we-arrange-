@@ -20,19 +20,19 @@ const PLATFORM_PILLARS = [
   {
     id: "venues",
     title: "Curated Venues",
-    count: "200+ Spaces",
+    count: "1,100+ Spaces",
     tags: "Palaces · Resorts · Lawns",
     icon: Building2,
-    image: "/images/editorial/venue_1.png",
+    image: "https://venue-images.youmarriagewearrange.com/taj-falaknuma-palace-492086/image-1.webp",
     accent: "#C8A165",
   },
   {
     id: "vendors",
     title: "Verified Vendors",
-    count: "500+ Curators",
+    count: "2,900+ Curators",
     tags: "Photo · Decor · Makeup",
     icon: Camera,
-    image: "/images/editorial/vendor_photography.png",
+    image: "https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp",
     accent: "#8B263E",
   },
   {
@@ -41,7 +41,7 @@ const PLATFORM_PILLARS = [
     count: "1000+ Concepts",
     tags: "Themes · Real Stories",
     icon: Palette,
-    image: "/images/editorial/insp_bridal.png",
+    image: "https://makeup-images.youmarriagewearrange.com/the-makeup-mafia/The_Makeup_Mafia_4.webp",
     accent: "#C8A165",
   },
   {
@@ -50,7 +50,7 @@ const PLATFORM_PILLARS = [
     count: "Digital Suite",
     tags: "eInvites · RSVP · Web",
     icon: Mail,
-    image: "/images/editorial/vendor_catering.png",
+    image: "https://decorator-images.youmarriagewearrange.com/episode-events-1333773/image-1.webp",
     accent: "#8B263E",
   },
 ];

@@ -2,24 +2,41 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Heart, MapPin, CheckCircle, ChevronLeft, ChevronRight, X, Star, Trophy, Zap, Check, ChevronDown, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Vendor, vendorCategories } from "@/mock-data/vendors";
+import { getVendorFallbackImage } from "@/services/catalog/catalogMappers";
 import { FilterState } from "./VendorFilters";
 import { useSavedStore } from "@/store/useSavedStore";
 
 interface FeaturedVendorsProps {
   vendors: Vendor[];
+  totalCount?: number;
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   onResetFilters: () => void;
   isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
 
+const handleVendorImgError =
+  (category?: string) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = getVendorFallbackImage(category);
+  };
+
 const formatPrice = (lakhs: number) => {
+  if (!Number.isFinite(lakhs) || lakhs <= 0) {
+    return "Price on Request";
+  }
   const rupees = lakhs * 100000;
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -99,13 +116,11 @@ function ToolbarSortSelect({
 
   const options = [
     { label: "Recommended", value: "popularity" },
-    { label: "Popularity", value: "most-reviewed" },
-    { label: "Highest Rated", value: "top-rated" },
     { label: "Most Reviewed", value: "most-reviewed" },
+    { label: "Highest Rated", value: "top-rated" },
     { label: "Price Low → High", value: "low-to-high" },
     { label: "Price High → Low", value: "high-to-low" },
     { label: "Newest", value: "newest" },
-    { label: "Fastest Response", value: "fastest-response" },
   ];
 
   const selectedOption = options.find((o) => o.value === value) || options[0];
@@ -151,10 +166,16 @@ function ToolbarSortSelect({
 
 export function FeaturedVendors({
   vendors,
+  totalCount,
   filters,
   setFilters,
   onResetFilters,
   isLoading = false,
+  error = null,
+  onRetry,
+  page = 1,
+  totalPages = 1,
+  onPageChange,
   searchQuery,
   setSearchQuery,
 }: FeaturedVendorsProps) {
@@ -206,8 +227,8 @@ export function FeaturedVendors({
     if (filters.rating) {
       chips.push({ label: `${filters.rating}★ & Above`, key: "rating", resetValue: "" });
     }
-    if (filters.minPrice !== 0.5 || filters.maxPrice !== 10) {
-      chips.push({ label: `₹${filters.minPrice}L–₹${filters.maxPrice}L`, key: "minPrice", resetValue: 0.5 });
+    if (filters.minPrice !== 0 || filters.maxPrice !== 10) {
+      chips.push({ label: `₹${filters.minPrice}L–₹${filters.maxPrice}L`, key: "minPrice", resetValue: 0 });
     }
     if (filters.experience) {
       chips.push({ label: `${filters.experience}+ Yrs Exp`, key: "experience", resetValue: "" });
@@ -226,7 +247,7 @@ export function FeaturedVendors({
 
   const handleRemoveChip = (key: keyof FilterState, resetValue: FilterState[keyof FilterState]) => {
     if (key === "minPrice") {
-      setFilters((prev) => ({ ...prev, minPrice: 0.5, maxPrice: 10 }));
+      setFilters((prev) => ({ ...prev, minPrice: 0, maxPrice: 10 }));
     } else {
       setFilters((prev) => ({ ...prev, [key]: resetValue }));
     }
@@ -291,10 +312,12 @@ export function FeaturedVendors({
         {/* Simple text info */}
         <div>
           <span className="text-[11px] font-extrabold text-neutral-charcoal">
-            {vendors.length} Premium Wedding Vendors
+            {totalCount && totalCount > 0 && vendors.length > 0
+              ? `Showing ${(page - 1) * 20 + 1}–${(page - 1) * 20 + vendors.length} of ${totalCount.toLocaleString("en-IN")} Wedding Vendors`
+              : `${(totalCount ?? vendors.length).toLocaleString("en-IN")} Wedding Vendors`}
           </span>
           <span className="text-[9px] text-[#C5A880] font-bold block mt-0.5 uppercase tracking-wider">
-            Updated Today • Hyderabad
+            {filters.city ? `Live Directory • ${filters.city}` : "Live Directory • All Cities"}
           </span>
         </div>
 
@@ -368,6 +391,20 @@ export function FeaturedVendors({
       )}
 
       {/* 5. Listing Grid / List layout cards */}
+      {error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800 flex flex-wrap items-center justify-between gap-3">
+          <span>{error}</span>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="px-4 py-1.5 rounded-full bg-red-700 text-white text-xs font-bold uppercase tracking-wider hover:bg-red-800 transition-colors cursor-pointer"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      )}
       {isLoading ? (
         <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" : "flex flex-col gap-4"}>
           {[...Array(6)].map((_, i) => (
@@ -401,7 +438,7 @@ export function FeaturedVendors({
                   Browse All Vendors
                 </button>
                 <button
-                  onClick={() => alert("Concierge chat opened")}
+                  onClick={() => router.push("/customer/bookings")}
                   className="px-6 py-2.5 rounded-full bg-[#8B263E] hover:bg-[#6e1c2f] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-md cursor-pointer"
                 >
                   Ask Our Concierge
@@ -426,11 +463,14 @@ export function FeaturedVendors({
                     >
                       {/* Image */}
                       <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100 shrink-0 rounded-t-[22px]">
-                        <img
-                          src={vendor.imageUrl}
+                        <Image
+                          src={vendor.imageUrl || getVendorFallbackImage(vendor.category)}
                           alt={vendor.name}
-                          className="h-full w-full object-cover transition-transform duration-750 ease-out group-hover:scale-105"
-                          loading="lazy"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
+                          quality={75}
+                          className="object-cover transition-transform duration-750 ease-out group-hover:scale-105"
+                          onError={handleVendorImgError(vendor.category)}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         
@@ -467,11 +507,19 @@ export function FeaturedVendors({
 
                           {/* Ratings and reviews inline */}
                           <div className="flex items-center justify-between mt-1 text-[11px] font-bold">
-                            <div className="flex items-center gap-1 text-neutral-charcoal">
-                              <span className="text-[#C5A880]">★</span>
-                              <span>{vendor.rating.toFixed(1)}</span>
-                              <span className="text-gray-400 font-normal">({vendor.reviewsCount} Reviews)</span>
-                            </div>
+                            {vendor.rating > 0 ? (
+                              <div className="flex items-center gap-1 text-neutral-charcoal">
+                                <span className="text-[#C5A880]">★</span>
+                                <span>{vendor.rating.toFixed(1)}</span>
+                                {vendor.reviewsCount > 0 && (
+                                  <span className="text-gray-400 font-normal">({vendor.reviewsCount} Reviews)</span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] uppercase tracking-wider text-neutral-muted capitalize">
+                                {vendor.category}
+                              </span>
+                            )}
 
                             <div className="flex items-center gap-0.5 text-neutral-muted font-bold">
                               <MapPin className="w-3 h-3 text-[#C5A880] shrink-0" />
@@ -526,13 +574,14 @@ export function FeaturedVendors({
                           
                           <div className="flex w-full xs:w-auto gap-2">
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                alert(`Consultation inquiries initiated for ${vendor.name}`);
+                                router.push(`/vendors/${vendor.slug}#contact`);
                               }}
                               className="w-full xs:w-auto h-9 px-4 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
                             >
-                              Book
+                              Enquire
                             </button>
                           </div>
                         </div>
@@ -553,10 +602,14 @@ export function FeaturedVendors({
                   >
                     {/* Left image part */}
                     <div className="relative h-[180px] w-full sm:w-[240px] rounded-[18px] overflow-hidden shrink-0 bg-gray-150">
-                      <img
-                        src={vendor.imageUrl}
+                      <Image
+                        src={vendor.imageUrl || getVendorFallbackImage(vendor.category)}
                         alt={vendor.name}
-                        className="w-full h-full object-cover transition-transform duration-750 ease-out group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 640px) 100vw, 240px"
+                        quality={75}
+                        className="object-cover transition-transform duration-750 ease-out group-hover:scale-105"
+                        onError={handleVendorImgError(vendor.category)}
                       />
                       <div className="absolute top-2 left-2 bg-white/30 backdrop-blur-md border border-white/20 px-2 py-0.5 rounded-full text-[8px] font-black uppercase text-white tracking-widest">
                         {vendor.category}
@@ -588,8 +641,17 @@ export function FeaturedVendors({
                         </div>
 
                         <div className="flex items-center gap-4 text-[11px] font-bold mt-1 text-neutral-muted">
-                          <span className="text-neutral-charcoal">★ {vendor.rating.toFixed(1)} <span className="text-gray-400 font-normal">({vendor.reviewsCount} Reviews)</span></span>
-                          <span>•</span>
+                          {vendor.rating > 0 && (
+                            <>
+                              <span className="text-neutral-charcoal">
+                                ★ {vendor.rating.toFixed(1)}
+                                {vendor.reviewsCount > 0 && (
+                                  <span className="text-gray-400 font-normal"> ({vendor.reviewsCount} Reviews)</span>
+                                )}
+                              </span>
+                              <span>•</span>
+                            </>
+                          )}
                           <span className="flex items-center gap-0.5"><MapPin className="w-3.5 h-3.5 text-[#C5A880]" /> {vendor.city}</span>
                         </div>
 
@@ -640,13 +702,14 @@ export function FeaturedVendors({
 
                         <div className="flex w-full xs:w-auto gap-2">
                           <button
+                            type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              alert(`Consultation inquiries initiated for ${vendor.name}`);
+                              router.push(`/vendors/${vendor.slug}#contact`);
                             }}
                             className="w-full xs:w-auto h-9 px-4 rounded-full text-[9px] font-black uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(139,38,62,0.25)] transition-all duration-300 cursor-pointer"
                           >
-                            Book
+                            Enquire
                           </button>
                         </div>
                       </div>
@@ -654,6 +717,32 @@ export function FeaturedVendors({
                   </motion.div>
                 );
               })}
+            </div>
+          )}
+
+          {totalPages > 1 && onPageChange && (
+            <div className="flex items-center justify-center gap-3 pt-6">
+              <button
+                type="button"
+                onClick={() => onPageChange(Math.max(1, page - 1))}
+                disabled={page <= 1}
+                className="inline-flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white text-xs font-bold text-neutral-charcoal disabled:opacity-40 hover:border-[#C5A880] cursor-pointer disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                Previous
+              </button>
+              <span className="text-xs font-semibold text-neutral-600 px-2">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+                disabled={page >= totalPages}
+                className="inline-flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white text-xs font-bold text-neutral-charcoal disabled:opacity-40 hover:border-[#C5A880] cursor-pointer disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           )}
         </>

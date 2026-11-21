@@ -29,16 +29,19 @@ export function RealWeddingCard({ wedding, index = 0 }: RealWeddingCardProps) {
         className="group flex flex-col bg-white rounded-[20px] border border-[#E8D8BC]/30 shadow-sm overflow-hidden cursor-pointer hover:-translate-y-[6px] hover:shadow-[0_20px_40px_rgba(200,161,101,0.15)] transition-all duration-300 h-full"
       >
         {/* Image Container 16:10 */}
-        <div className="relative w-full aspect-[16/10] overflow-hidden bg-neutral-100">
+        <div className="relative w-full aspect-[16/10] overflow-hidden bg-stone-100">
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-[#F7F4EE] to-stone-100 animate-pulse z-0 pointer-events-none" />
+          )}
           <Image
             src={wedding.heroImage}
             alt={wedding.title}
             fill
-            unoptimized
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            quality={75}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
             onLoad={() => setImageLoaded(true)}
-            className={`object-cover transition-all duration-500 ease-out group-hover:scale-[1.05] ${
-              imageLoaded ? "opacity-100" : "opacity-0"
+            className={`object-cover transition-all duration-700 ease-out group-hover:scale-[1.05] ${
+              imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-[4px] scale-[1.02]"
             }`}
             loading="lazy"
           />

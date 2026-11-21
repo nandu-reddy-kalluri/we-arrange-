@@ -11,16 +11,21 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import { useAuth } from "@we-arrange/auth";
+import { CustomerOverviewNotifications } from "@we-arrange/ui";
 import { useSavedStore } from "../../store/useSavedStore";
 
 export default function CustomerOverviewClient() {
   const { user } = useAuth();
-  const { savedVenueIds, savedVendorIds } = useSavedStore();
+  const { savedVenueIds, savedVendorIds, syncWithServer, isSynced } = useSavedStore();
+  const [liveBookingsCount, setLiveBookingsCount] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (user && !isSynced) {
+      void syncWithServer();
+    }
+  }, [user, isSynced, syncWithServer]);
 
   const userName =
     user?.user_metadata?.full_name ||
@@ -116,7 +121,7 @@ export default function CustomerOverviewClient() {
               <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-[#8B263E] group-hover:translate-x-1 transition-all" aria-hidden="true" />
             </div>
             <p className="mt-5 text-3xl font-serif text-[#2D2D2D] font-bold">
-              0
+              {liveBookingsCount}
             </p>
             <div className="flex items-center justify-between mt-1">
               <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
@@ -168,6 +173,15 @@ export default function CustomerOverviewClient() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* LIVE METRICS & NOTIFICATIONS */}
+      <div className="mb-10">
+        <CustomerOverviewNotifications
+          onSummaryLoaded={(s) => setLiveBookingsCount(s.bookingsCount)}
+          bookingsHref="/bookings"
+          settingsHref="/settings"
+        />
       </div>
     </div>
   );

@@ -23,10 +23,11 @@ export interface ApiErrorBody {
 export function ok<T>(
   data: T,
   meta?: PaginationMeta | Record<string, unknown>,
-  status = 200
+  status = 200,
+  headers?: HeadersInit
 ) {
   const body: ApiSuccessBody<T> = meta ? { ok: true, data, meta } : { ok: true, data };
-  return NextResponse.json(body, { status });
+  return NextResponse.json(body, { status, headers });
 }
 
 export function created<T>(data: T) {

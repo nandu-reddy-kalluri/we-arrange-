@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UserRole } from "@we-arrange/types";
-import { createServiceRoleClient } from "@we-arrange/database/clients";
+import { createBearerSupabaseClient, createServiceRoleClient } from "@we-arrange/database/clients";
 import { AppError, mapDatabaseError } from "@we-arrange/database/errors";
 import type { Database } from "@we-arrange/database/types";
 import { createSupabaseServerClient } from "@/services/supabase/server";
@@ -29,8 +29,27 @@ export async function resolveAuthenticatedContext(
   existingSupabase?: SupabaseClient<Database>,
   existingAdminClient?: SupabaseClient<Database>
 ): Promise<AuthenticatedContext> {
-  const supabase = existingSupabase ?? (await createSupabaseServerClient());
-  const { data: authData, error: authError } = await supabase.auth.getUser();
+  let supabase = existingSupabase ?? (await createSupabaseServerClient());
+  let { data: authData, error: authError } = await supabase.auth.getUser();
+
+  if ((authError || !authData?.user) && !existingSupabase) {
+    let authHeader: string | null = null;
+    try {
+      const { headers } = await import("next/headers");
+      authHeader = (await headers()).get("authorization");
+    } catch {
+      authHeader = null;
+    }
+    if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+      const jwt = authHeader.slice(7).trim();
+      if (jwt) {
+        ({ data: authData, error: authError } = await supabase.auth.getUser(jwt));
+        if (!authError && authData?.user) {
+          supabase = createBearerSupabaseClient(jwt);
+        }
+      }
+    }
+  }
 
   if (authError || !authData?.user) {
     throw new AppError("UNAUTHENTICATED", 401, "Authentication required.");
@@ -64,8 +83,11 @@ export async function resolveAuthenticatedContext(
     if (roleError) {
       throw mapDatabaseError(roleError, "Failed to resolve assigned role.");
     }
-    if (roleRow && roleRow.status !== "Inactive") {
-      resolvedRole = normalizeUserRole(roleRow.role_name);
+    const isRoleActive = !roleRow?.status || roleRow.status === "Active";
+    if (roleRow && isRoleActive) {
+      const candidateRole = normalizeUserRole(roleRow.role_name);
+      // Never elevate to admin via public.roles without an active public.admins row
+      resolvedRole = candidateRole === "admin" ? "customer" : candidateRole;
     }
   }
 
@@ -80,9 +102,15 @@ export async function resolveAuthenticatedContext(
     throw mapDatabaseError(adminError, "Failed to verify administrator status.");
   }
 
-  const isActiveAdmin = Boolean(adminRow && adminRow.status === "active");
+  const isActiveUser = Boolean(dbUser && dbUser.status === "Active");
+  const isActiveAdmin = Boolean(isActiveUser && adminRow && adminRow.status === "active");
+  const hasNonActiveAdminRecord = Boolean(adminRow && adminRow.status !== "active");
+
   if (isActiveAdmin) {
     resolvedRole = "admin";
+  } else if (!isActiveUser || (hasNonActiveAdminRecord && resolvedRole === "concierge")) {
+    // Revoked/pending/inactive admin records or missing public.users rows must not gain staff access
+    resolvedRole = "customer";
   }
 
   let vendorId: number | null = null;
@@ -103,7 +131,7 @@ export async function resolveAuthenticatedContext(
     role: resolvedRole,
     roleId: dbUser?.role_id ?? null,
     isActiveAdmin,
-    isConciergeOrAdmin: isActiveAdmin || resolvedRole === "admin" || resolvedRole === "concierge",
+    isConciergeOrAdmin: isActiveAdmin || (!hasNonActiveAdminRecord && resolvedRole === "concierge"),
     vendorId,
     supabase,
   };
@@ -152,7 +180,7 @@ export async function requireActiveAdmin(
   existingAdminClient?: SupabaseClient<Database>
 ): Promise<AuthenticatedContext> {
   const ctx = await resolveAuthenticatedContext(existingSupabase, existingAdminClient);
-  if (!ctx.isActiveAdmin && ctx.role !== "admin") {
+  if (!ctx.isActiveAdmin) {
     throw new AppError("FORBIDDEN", 403, "Active Administrator privileges are required.");
   }
   return ctx;

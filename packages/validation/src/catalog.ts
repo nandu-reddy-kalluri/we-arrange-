@@ -14,9 +14,17 @@ export const venueQuerySchema = paginationQuerySchema.extend({
   areaId: positiveIntIdSchema.optional(),
   typeId: positiveIntIdSchema.optional(),
   type: z.string().trim().max(80).optional(),
-  space: z.enum(["Indoor", "Outdoor", "Poolside", "Rooftop", "Garden"]).optional(),
+  space: z
+    .enum(["Indoor", "Outdoor", "Indoor & Outdoor", "IndoorOutdoor", "Poolside", "Rooftop", "Garden"])
+    .optional(),
   minCapacity: z.coerce.number().int().min(0).optional(),
   maxCapacity: z.coerce.number().int().min(1).optional(),
+  minPlatePrice: z.coerce.number().min(0).optional(),
+  maxPlatePrice: z.coerce.number().min(0).optional(),
+  priceOnRequestOnly: z
+    .union([z.boolean(), z.enum(["true", "false"])])
+    .transform((v) => (v === true || v === "true" ? true : undefined))
+    .optional(),
   q: z.string().trim().max(160).optional(),
   sortBy: catalogSortBySchema.optional(),
   sortOrder: sortDirectionSchema.optional(),
@@ -109,8 +117,9 @@ export const vendorQuerySchema = paginationQuerySchema.extend({
     .union([z.boolean(), z.enum(["true", "false"])])
     .transform((v) => (v === true || v === "true" ? true : undefined))
     .optional(),
+  minRating: z.coerce.number().min(0).max(5).optional(),
   q: z.string().trim().max(160).optional(),
-  sortBy: z.enum(["relevance", "rating", "newest"]).default("relevance").optional(),
+  sortBy: z.enum(["relevance", "rating", "reviews", "newest"]).default("relevance").optional(),
   sortOrder: sortDirectionSchema.optional(),
 });
 
@@ -201,7 +210,18 @@ export const unifiedSearchQuerySchema = paginationQuerySchema.extend({
   locality: z.string().trim().max(120).optional(),
   category: z.string().trim().max(80).optional(),
   type: z.string().trim().max(80).optional(),
+  space: z
+    .enum(["Indoor", "Outdoor", "Indoor & Outdoor", "IndoorOutdoor", "Poolside", "Rooftop", "Garden"])
+    .optional(),
   minCapacity: z.coerce.number().int().min(0).optional(),
+  maxCapacity: z.coerce.number().int().min(1).optional(),
+  minPlatePrice: z.coerce.number().min(0).optional(),
+  maxPlatePrice: z.coerce.number().min(0).optional(),
+  priceOnRequestOnly: z
+    .union([z.boolean(), z.enum(["true", "false"])])
+    .transform((v) => (v === true || v === "true" ? true : undefined))
+    .optional(),
+  minRating: z.coerce.number().min(0).max(5).optional(),
   verifiedOnly: z
     .union([z.boolean(), z.enum(["true", "false"])])
     .transform((v) => v === true || v === "true")

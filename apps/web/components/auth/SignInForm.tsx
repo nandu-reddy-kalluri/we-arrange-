@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Check } from "lucide-react";
+import { apiClient } from "@we-arrange/api-client";
 import { supabase } from "@/services/supabase/client";
 import OtpInput from "./OtpInput";
 
 interface SignInFormProps {
-  onSuccess: (mode: "new-user" | "returning-user", userName?: string) => void;
+  onSuccess: (mode: "new-user" | "returning-user", userName?: string, redirectUrl?: string) => void;
   onSwitchToSignup: () => void;
 }
 
@@ -116,6 +117,18 @@ export default function SignInForm({ onSuccess, onSwitchToSignup }: SignInFormPr
         throw new Error("Please enter your password.");
       }
 
+      const loginRes = await apiClient.post<{
+        user?: { fullName?: string };
+        redirectUrl?: string;
+      }>("/api/auth/login", {
+        email: normalizedEmail,
+        password,
+      });
+
+      if (!loginRes.ok) {
+        throw new Error(loginRes.error || "Invalid email or password.");
+      }
+
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password,
@@ -126,7 +139,8 @@ export default function SignInForm({ onSuccess, onSwitchToSignup }: SignInFormPr
         throw new Error("Login failed. Please check your credentials.");
       }
 
-      const userName = getUserName(data.user);
+      const userName = loginRes.data?.user?.fullName || getUserName(data.user);
+      const targetUrl = loginRes.data?.redirectUrl;
 
       if (!isMounted.current) return;
       setIsLoading(false);
@@ -134,7 +148,7 @@ export default function SignInForm({ onSuccess, onSwitchToSignup }: SignInFormPr
 
       setTimeout(() => {
         if (isMounted.current) {
-          onSuccess("returning-user", userName);
+          onSuccess("returning-user", userName, targetUrl);
         }
       }, 400);
     } catch (err: unknown) {
@@ -409,13 +423,13 @@ export default function SignInForm({ onSuccess, onSwitchToSignup }: SignInFormPr
 
       {/* FEEDBACK MESSAGES */}
       {error && (
-        <div className="mb-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center leading-relaxed">
+        <div role="alert" className="mb-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center leading-relaxed">
           {error}
         </div>
       )}
 
       {successMessage && (
-        <div className="mb-4 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs text-center leading-relaxed">
+        <div role="status" className="mb-4 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs text-center leading-relaxed">
           {successMessage}
         </div>
       )}
@@ -822,6 +836,19 @@ export default function SignInForm({ onSuccess, onSwitchToSignup }: SignInFormPr
             >
               Create account
             </button>
+          </div>
+
+          <div className="mt-3.5 pt-3 border-t border-white/10 text-center">
+            <p className="text-[11px] lg:text-xs text-[#FDFBF7]/60 mb-2">
+              Are you a wedding vendor?
+            </p>
+            <a
+              href="/partner/login"
+              className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#C6934A]/15 via-[#C6934A]/25 to-[#C6934A]/15 hover:from-[#C6934A]/25 hover:via-[#C6934A]/35 hover:to-[#C6934A]/25 border border-[#C6934A]/40 text-[#FDFBF7] text-xs font-semibold tracking-wide transition-all shadow-sm group"
+            >
+              <span>Vendor Portal: Please click here to log in</span>
+              <span className="text-[#C6934A] group-hover:translate-x-0.5 transition-transform">→</span>
+            </a>
           </div>
         </motion.div>
       )}

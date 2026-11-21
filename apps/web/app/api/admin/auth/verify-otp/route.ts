@@ -23,9 +23,15 @@ export async function POST(request: NextRequest) {
       throw new AppError("VALIDATION_ERROR", 400, "Invalid or expired recovery OTP.");
     }
 
-    const ctx = await resolveAuthenticatedContext(supabase);
+    let ctx;
+    try {
+      ctx = await resolveAuthenticatedContext(supabase);
+    } catch (resolveErr) {
+      await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+      throw resolveErr;
+    }
     if (!ctx.isConciergeOrAdmin) {
-      await supabase.auth.signOut().catch(() => undefined);
+      await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
       throw new AppError(
         "FORBIDDEN",
         403,

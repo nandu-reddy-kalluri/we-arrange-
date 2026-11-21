@@ -34,8 +34,9 @@ export function InspirationDetailPageClient({ item, relatedItems }: InspirationD
           src={item.heroImage}
           alt={item.title}
           fill
-          unoptimized
           priority
+          sizes="100vw"
+          quality={85}
           className="object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -148,7 +149,8 @@ export function InspirationDetailPageClient({ item, relatedItems }: InspirationD
                         alt={`${item.title} inspiration photo ${index + 1}`}
                         width={600}
                         height={800}
-                        unoptimized
+                        quality={75}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />

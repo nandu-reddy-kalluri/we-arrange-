@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@we-arrange/auth";
 import {
   Menu,
   ExternalLink,
@@ -18,7 +18,36 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [profile, setProfile] = useState<{ fullName?: string; role?: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/concierge/auth/verify", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (!cancelled && json?.authenticated && json.user) {
+          setProfile({
+            fullName: json.user.fullName,
+            role: json.user.role,
+          });
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const displayName = profile?.fullName || user?.email || "Concierge Team";
+  const displayRole = profile?.role === "admin" ? "Administrator" : "Concierge Specialist";
+  const initials = displayName
+    .split(/[\s@]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "CS";
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -26,7 +55,8 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
       sessionStorage.removeItem("ymwa_admin_tab_authenticated");
     }
     try {
-      await fetch("/api/admin/auth/logout", { method: "POST" });
+      await fetch("/api/concierge/auth/logout", { method: "POST" });
+      await logout().catch(() => undefined);
       router.push("/login");
       router.refresh();
     } catch {
@@ -68,27 +98,31 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
         </div>
 
         {/* View Live Site button */}
-        <Link
-          href="/"
+        <a
+          href={(
+            process.env.NEXT_PUBLIC_SITE_URL ||
+            process.env.NEXT_PUBLIC_MARKETPLACE_URL ||
+            "http://localhost:3000"
+          ).replace(/\/+$/, "")}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-neutral-700 bg-[#FBF9F6] hover:bg-[#FAF5ED] hover:text-[#8B263E] border border-[#E5E0D8] transition-all"
         >
           <span>View Live Site</span>
           <ExternalLink className="w-3.5 h-3.5" />
-        </Link>
+        </a>
 
-        {/* Admin Profile Pill */}
+        {/* Concierge Profile Pill */}
         <div className="hidden sm:flex items-center gap-2 pl-1">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#8B263E] to-[#C8A165] flex items-center justify-center text-white text-xs font-bold shadow-sm">
-            AD
+            {initials}
           </div>
           <div className="hidden xl:flex flex-col text-left leading-none">
             <span className="text-xs font-bold text-neutral-800">
-              Chief Concierge
+              {displayName}
             </span>
             <span className="text-[10px] text-neutral-400">
-              Administrator
+              {displayRole}
             </span>
           </div>
         </div>

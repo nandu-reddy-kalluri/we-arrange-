@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, User, LogOut, LayoutDashboard, Heart } from "lucide-react";
+import { Menu, User, LogOut, LayoutDashboard } from "lucide-react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 
 import { DesktopNavigation } from "./DesktopNavigation";
@@ -12,7 +12,10 @@ import { MobileExperience } from "./MobileExperience";
 import { useHoverIntent } from "./hooks/useHoverIntent";
 import { useMegaMenu } from "./hooks/useMegaMenu";
 
+import { apiClient } from "@we-arrange/api-client";
 import { supabase } from "@/services/supabase/client";
+
+const userRoleCache = new Map<string, string>();
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -23,6 +26,7 @@ export default function Navbar() {
 
   // Logged-in user
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [dashboardHref, setDashboardHref] = useState<string>("/customer/overview");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -89,6 +93,40 @@ export default function Navbar() {
     };
   }, []);
 
+  // Resolve role-specific dashboard destination from trusted DB-backed /api/auth/me (cached in-memory per session)
+  useEffect(() => {
+    if (!user) {
+      setDashboardHref("/customer/overview");
+      return;
+    }
+    const cachedDest = userRoleCache.get(user.id);
+    if (cachedDest) {
+      setDashboardHref(cachedDest);
+      return;
+    }
+    let active = true;
+    void apiClient
+      .get<{ role?: string; isActiveAdmin?: boolean }>("/api/auth/me", { retryOn401: false })
+      .then((res) => {
+        if (!active || !res.ok || !res.data) return;
+        const role = res.data.role;
+        let dest = "/customer/overview";
+        if (role === "admin" || res.data.isActiveAdmin) {
+          dest = "/admin";
+        } else if (role === "concierge") {
+          dest = "/concierge-portal";
+        } else if (role === "vendor") {
+          dest = "/vendor";
+        }
+        userRoleCache.set(user.id, dest);
+        setDashboardHref(dest);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
+
   // -----------------------------------------
   // Logout
   // -----------------------------------------
@@ -99,13 +137,16 @@ export default function Navbar() {
 
     try {
       const { error } = await supabase.auth.signOut();
+      await apiClient.logout().catch(() => undefined);
 
       if (error) {
         console.error("Logout error:", error);
         return;
       }
 
+      userRoleCache.clear();
       setUser(null);
+      setDashboardHref("/customer/overview");
       setShowUserMenu(false);
 
       router.push("/");
@@ -152,7 +193,7 @@ export default function Navbar() {
   // -----------------------------------------
   const handleProfileClick = () => {
     if (user) {
-      router.push("/customer/overview");
+      router.push(dashboardHref);
     } else {
       router.push("/login");
     }
@@ -186,6 +227,7 @@ export default function Navbar() {
 
           <Link
             href="/"
+            prefetch={true}
             className="flex items-center gap-2.5 shrink-0"
             onMouseEnter={closeMenu}
           >
@@ -253,6 +295,7 @@ export default function Navbar() {
             {!user ? (
               <Link
                 href="/login"
+                prefetch={true}
                 className={`flex items-center gap-2 text-xs xl:text-sm font-semibold transition-all duration-300 ${
                   useDarkText
                     ? "text-[#2D2D2D] hover:text-[#8B263E]"
@@ -332,21 +375,13 @@ export default function Navbar() {
 
                     <div className="py-1 border-b border-neutral-100">
                       <Link
-                        href="/customer/overview"
+                        href={dashboardHref}
+                        prefetch={true}
                         onClick={() => setShowUserMenu(false)}
                         className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-[#2D2D2D] hover:bg-[#8B263E]/5 hover:text-[#8B263E] transition-colors"
                       >
                         <LayoutDashboard className="w-4 h-4 text-[#8B263E]" />
                         <span>My Dashboard</span>
-                      </Link>
-
-                      <Link
-                        href="/customer/saved"
-                        onClick={() => setShowUserMenu(false)}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-neutral-600 hover:bg-[#8B263E]/5 hover:text-[#8B263E] transition-colors"
-                      >
-                        <Heart className="w-4 h-4 text-[#8B263E]" />
-                        <span>Saved Shortlist</span>
                       </Link>
                     </div>
 
@@ -399,6 +434,7 @@ export default function Navbar() {
         onClose={() => setIsMobileOpen(false)}
         user={user}
         userName={userName}
+        dashboardHref={dashboardHref}
         onLogout={handleLogout}
       />
     </>

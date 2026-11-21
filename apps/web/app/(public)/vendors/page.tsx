@@ -6,10 +6,25 @@ export const metadata = {
   description: "Explore our curated collection of Hyderabad's elite wedding decorators, photographers, makeup artists, and caterers.",
 };
 
-export default function VendorsPage() {
+const CATEGORY_ALIAS: Record<string, string> = {
+  photographers: "photography",
+  "bridal-makeup": "makeup",
+  decorators: "decor",
+  "decor-florists": "decor",
+};
+
+export default async function VendorsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ category?: string }>;
+}) {
+  const sp = searchParams ? await searchParams : {};
+  const rawCategory = typeof sp.category === "string" ? sp.category.toLowerCase().trim() : "";
+  const defaultCategory = CATEGORY_ALIAS[rawCategory] ?? rawCategory;
+
   return (
     <Suspense fallback={<PageLoader />}>
-      <VendorsDirectoryClient />
+      <VendorsDirectoryClient defaultCategory={defaultCategory} />
     </Suspense>
   );
 }

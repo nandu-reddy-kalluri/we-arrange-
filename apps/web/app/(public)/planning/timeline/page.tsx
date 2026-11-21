@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Day-of Wedding Timeline and Event Schedule",
+  description: "Build detailed hour-by-hour schedules for your Mehendi, Sangeet, Muhurtham ceremony, and Reception.",
+  alternates: {
+    canonical: "https://www.youmarriagewearrange.com/planning/timeline",
+  },
+};
+
 import { ComingSoon } from "@/components/layout/ComingSoon";
 
 export default function TimelinePage() {

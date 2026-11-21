@@ -6,21 +6,23 @@
 -- Depends on: Migration 01 (grants), Migration 03 (public catalog & CMS RLS).
 -- Compatible with: Migration 09 (shares `private` schema cleanly).
 -- Security Corrections Applied:
---   1. Adds `private.is_vendor_owner(bigint)` and `private.is_review_owner(bigint)`
---      SECURITY DEFINER helpers (`SET search_path = ''`, bound strictly to
---      `(select auth.uid())`, EXECUTE restricted to `authenticated`) so ownership
---      RLS policies never require exposing `vendors.user_id` or `reviews.user_id`
---      via column-level `SELECT` grants.
---   2. Replaces `blog_comments` `FOR ALL` with explicit SELECT / INSERT / UPDATE / DELETE
---      policies requiring `status = 'Pending'::public.status_enum` and a
---      `Published` parent blog on INSERT/UPDATE. Tightens `blog_likes` INSERT
---      to require a `Published` parent blog.
---   3. Removes `"Authenticated users view active coupons"` and revokes direct
+--   1. Adds `private.is_vendor_owner(bigint)`, `private.is_review_owner(bigint)`,
+--      and `private.is_pending_review_owner(bigint)` SECURITY DEFINER helpers
+--      (`SET search_path = ''`, bound strictly to `(select auth.uid())`, EXECUTE
+--      restricted to `authenticated`) so ownership RLS policies never require
+--      exposing `vendors.user_id` or `reviews.user_id` via column-level `SELECT` grants.
+--   2. Replaces authenticated table-level SELECT on `public.users` with explicit
+--      column-level SELECT grants for safe non-sensitive columns only.
+--   3. Revokes `UPDATE (status)` on `public.reviews` from `authenticated`. Review
+--      moderation is performed strictly server-side by `service_role`.
+--   4. Scopes `review_images` INSERT/DELETE strictly to owner's Pending reviews.
+--   5. Scopes `review_votes` INSERT/UPDATE to eligible published/approved reviews
+--      and valid vote types ('helpful', 'unhelpful').
+--   6. Enforces published blog status on `blog_likes` and `blog_comments`.
+--   7. Enforces lowercase `report_status_enum` ('pending') and valid target on reports.
+--   8. Removes `"Authenticated users view active coupons"` and revokes direct
 --      client `SELECT` on `public.coupons` to prevent coupon enumeration.
---   4. Grants only the minimum RLS-bounded columns missing from M01 for backend
---      compatibility: `UPDATE (status)` on `public.reviews` (locked to `'Pending'`
---      by RLS WITH CHECK) and `UPDATE (vote_type)` on `public.review_votes`
---      (locked to `(select auth.uid()) = user_id`). Keeps `user_id` hidden.
+--   9. Grants `UPDATE (vote_type)` on `public.review_votes` to authenticated.
 -- ============================================================================
 
 -- 0. Private security-definer ownership helpers (never grant to PUBLIC or anon)
@@ -62,15 +64,52 @@ AS $$
     );
 $$;
 
+CREATE OR REPLACE FUNCTION private.is_pending_review_owner(target_review_id bigint)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT (select auth.uid()) IS NOT NULL
+    AND target_review_id IS NOT NULL
+    AND EXISTS (
+      SELECT 1
+      FROM public.reviews r
+      WHERE r.review_id = target_review_id
+        AND r.user_id = (select auth.uid())
+        AND r.status = 'Pending'::public.status_enum
+    );
+$$;
+
 REVOKE ALL ON FUNCTION private.is_vendor_owner(bigint) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION private.is_vendor_owner(bigint) TO authenticated;
 
 REVOKE ALL ON FUNCTION private.is_review_owner(bigint) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION private.is_review_owner(bigint) TO authenticated;
 
+REVOKE ALL ON FUNCTION private.is_pending_review_owner(bigint) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION private.is_pending_review_owner(bigint) TO authenticated;
+
 -- Minimum RLS-bounded grant alignment (keeps `user_id` hidden from public SELECT)
--- reviews.status UPDATE is locked to `'Pending'` via policy WITH CHECK below.
-GRANT UPDATE (status) ON public.reviews TO authenticated;
+-- Review moderation is performed strictly server-side by service_role.
+-- Do NOT allow authenticated users to update review status.
+REVOKE UPDATE (status) ON public.reviews FROM anon, authenticated;
+
+-- Revoke table-level SELECT on public.users from anon and authenticated, and
+-- grant column-level SELECT only on explicitly approved non-sensitive columns.
+REVOKE SELECT ON TABLE public.users FROM anon, authenticated;
+GRANT SELECT (
+  user_id,
+  role_id,
+  full_name,
+  email,
+  phone,
+  status,
+  created_at,
+  updated_at
+) ON TABLE public.users TO authenticated;
+
 -- review_votes.vote_type UPDATE is locked to own rows via policy USING/WITH CHECK below.
 GRANT UPDATE (vote_type) ON public.review_votes TO authenticated;
 -- Prevent direct client table enumeration of coupon codes & discount rules.
@@ -234,8 +273,14 @@ CREATE POLICY "Users create own pending reviews"
 DROP POLICY IF EXISTS "Users update own pending reviews" ON public.reviews;
 CREATE POLICY "Users update own pending reviews"
   ON public.reviews FOR UPDATE TO authenticated
-  USING (private.is_review_owner(review_id) AND status = 'Pending'::public.status_enum)
-  WITH CHECK (private.is_review_owner(review_id) AND status = 'Pending'::public.status_enum);
+  USING (private.is_pending_review_owner(review_id))
+  WITH CHECK (
+    private.is_pending_review_owner(review_id)
+    AND status = 'Pending'::public.status_enum
+  );
+
+-- Vendors cannot directly modify review status or content
+DROP POLICY IF EXISTS "Vendors moderate reviews on own listings" ON public.reviews;
 
 DROP POLICY IF EXISTS "Users delete own reviews" ON public.reviews;
 CREATE POLICY "Users delete own reviews"
@@ -243,16 +288,60 @@ CREATE POLICY "Users delete own reviews"
   USING (private.is_review_owner(review_id));
 
 DROP POLICY IF EXISTS "Users manage images on own reviews" ON public.review_images;
-CREATE POLICY "Users manage images on own reviews"
-  ON public.review_images FOR ALL TO authenticated
-  USING (private.is_review_owner(review_id))
-  WITH CHECK (private.is_review_owner(review_id));
+DROP POLICY IF EXISTS "Users view images on own reviews" ON public.review_images;
+CREATE POLICY "Users view images on own reviews"
+  ON public.review_images FOR SELECT TO authenticated
+  USING (private.is_review_owner(review_id));
+
+DROP POLICY IF EXISTS "Users insert images on own pending reviews" ON public.review_images;
+CREATE POLICY "Users insert images on own pending reviews"
+  ON public.review_images FOR INSERT TO authenticated
+  WITH CHECK (private.is_pending_review_owner(review_id));
+
+DROP POLICY IF EXISTS "Users delete images on own pending reviews" ON public.review_images;
+CREATE POLICY "Users delete images on own pending reviews"
+  ON public.review_images FOR DELETE TO authenticated
+  USING (private.is_pending_review_owner(review_id));
 
 DROP POLICY IF EXISTS "Users manage own review votes" ON public.review_votes;
-CREATE POLICY "Users manage own review votes"
-  ON public.review_votes FOR ALL TO authenticated
+DROP POLICY IF EXISTS "Users view own review votes" ON public.review_votes;
+CREATE POLICY "Users view own review votes"
+  ON public.review_votes FOR SELECT TO authenticated
+  USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "Users create own review votes on published reviews" ON public.review_votes;
+CREATE POLICY "Users create own review votes on published reviews"
+  ON public.review_votes FOR INSERT TO authenticated
+  WITH CHECK (
+    (select auth.uid()) = user_id
+    AND vote_type IN ('helpful', 'unhelpful')
+    AND EXISTS (
+      SELECT 1
+      FROM public.reviews r
+      WHERE r.review_id = review_votes.review_id
+        AND r.status IN ('Active'::public.status_enum, 'Published'::public.status_enum, 'Approved'::public.status_enum)
+    )
+  );
+
+DROP POLICY IF EXISTS "Users update own review votes on published reviews" ON public.review_votes;
+CREATE POLICY "Users update own review votes on published reviews"
+  ON public.review_votes FOR UPDATE TO authenticated
   USING ((select auth.uid()) = user_id)
-  WITH CHECK ((select auth.uid()) = user_id);
+  WITH CHECK (
+    (select auth.uid()) = user_id
+    AND vote_type IN ('helpful', 'unhelpful')
+    AND EXISTS (
+      SELECT 1
+      FROM public.reviews r
+      WHERE r.review_id = review_votes.review_id
+        AND r.status IN ('Active'::public.status_enum, 'Published'::public.status_enum, 'Approved'::public.status_enum)
+    )
+  );
+
+DROP POLICY IF EXISTS "Users delete own review votes" ON public.review_votes;
+CREATE POLICY "Users delete own review votes"
+  ON public.review_votes FOR DELETE TO authenticated
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "Users manage own blog comments" ON public.blog_comments;
 DROP POLICY IF EXISTS "Users view own blog comments regardless of status" ON public.blog_comments;
@@ -324,9 +413,14 @@ CREATE POLICY "Users view own reports"
   USING ((select auth.uid()) = reporter_id);
 
 DROP POLICY IF EXISTS "Users submit own reports" ON public.reports;
-CREATE POLICY "Users submit own reports"
+DROP POLICY IF EXISTS "Users create reports" ON public.reports;
+CREATE POLICY "Users create reports"
   ON public.reports FOR INSERT TO authenticated
-  WITH CHECK ((select auth.uid()) = reporter_id);
+  WITH CHECK (
+    (select auth.uid()) = reporter_id
+    AND status = 'pending'::public.report_status_enum
+    AND (venue_id IS NOT NULL OR vendor_id IS NOT NULL OR review_id IS NOT NULL OR blog_id IS NOT NULL OR reported_user_id IS NOT NULL)
+  );
 
 -- 6. Invites (customer-owned; guest RSVP handled via validated server API)
 DROP POLICY IF EXISTS "Users manage own invites" ON public.invites;

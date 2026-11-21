@@ -9,6 +9,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { apiClient } from "@we-arrange/api-client";
 import { supabase } from "@/services/supabase/client";
 
 interface CreateAccountFormProps {
@@ -32,6 +33,7 @@ export default function CreateAccountForm({
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // =====================================================
   // CREATE ACCOUNT USING SUPABASE
@@ -46,6 +48,7 @@ export default function CreateAccountForm({
 
     setIsLoading(true);
     setError(null);
+    setNotice(null);
 
     try {
       const cleanName = name.trim();
@@ -81,59 +84,41 @@ export default function CreateAccountForm({
       }
 
       // -------------------------------
-      // SUPABASE SIGN UP
+      // BACKEND REGISTRATION + SUPABASE SIGN UP
       // -------------------------------
 
-      const {
-        data,
-        error: signupError,
-      } = await supabase.auth.signUp({
+      const formattedPhone = cleanPhone
+        ? cleanPhone.startsWith("+")
+          ? cleanPhone
+          : `+91${cleanPhone.replace(/^91/, "")}`
+        : undefined;
+
+      const regRes = await apiClient.post<{
+        userId: string;
+        requiresEmailConfirmation: boolean;
+      }>("/api/auth/register", {
+        accountType: "customer",
+        fullName: cleanName,
         email: cleanEmail,
+        ...(formattedPhone ? { phone: formattedPhone } : {}),
         password,
-        options: {
-          data: {
-            full_name: cleanName,
-            phone: cleanPhone
-              ? `+91${cleanPhone}`
-              : null,
-          },
-        },
       });
 
-      if (signupError) {
-        console.error(
-          "SUPABASE SIGNUP ERROR:",
-          signupError
-        );
-
-        throw signupError;
+      if (!regRes.ok || !regRes.data) {
+        throw new Error(regRes.error || "Account creation failed. Please try again.");
       }
 
-      if (!data.user) {
-        throw new Error(
-          "Account creation failed. Please try again."
-        );
-      }
-
-      console.log(
-        "SUPABASE USER CREATED:",
-        data.user.id
-      );
-
-      // -------------------------------
-      // SESSION CREATED
-      // -------------------------------
-
-      if (data.session) {
-        setIsSuccess(true);
-        setIsLoading(false);
-
-        onSuccess(
-          "new-user",
-          cleanName
-        );
-
-        return;
+      if (!regRes.data.requiresEmailConfirmation) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+        if (!signInError) {
+          setIsSuccess(true);
+          setIsLoading(false);
+          onSuccess("new-user", cleanName);
+          return;
+        }
       }
 
       // -------------------------------
@@ -142,7 +127,7 @@ export default function CreateAccountForm({
 
       setIsLoading(false);
 
-      setError(
+      setNotice(
         "Account created successfully! Please verify your email using the link sent to your inbox, then sign in."
       );
     } catch (err: unknown) {
@@ -319,8 +304,14 @@ export default function CreateAccountForm({
           ================================================= */}
 
           {error && (
-            <div className="mb-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center">
+            <div role="alert" className="mb-4 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs text-center">
               {error}
+            </div>
+          )}
+
+          {notice && (
+            <div role="status" className="mb-4 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-300 text-xs text-center">
+              {notice}
             </div>
           )}
 
@@ -587,6 +578,19 @@ export default function CreateAccountForm({
               >
                 Sign in
               </button>
+            </div>
+
+            <div className="mt-3.5 pt-3 border-t border-white/10 text-center">
+              <p className="text-[11px] lg:text-xs text-[#FDFBF7]/60 mb-2">
+                Are you a wedding vendor?
+              </p>
+              <a
+                href="/partner/login"
+                className="inline-flex items-center justify-center gap-2 w-full py-2 px-4 rounded-xl bg-gradient-to-r from-[#C6934A]/15 via-[#C6934A]/25 to-[#C6934A]/15 hover:from-[#C6934A]/25 hover:via-[#C6934A]/35 hover:to-[#C6934A]/25 border border-[#C6934A]/40 text-[#FDFBF7] text-xs font-semibold tracking-wide transition-all shadow-sm group"
+              >
+                <span>Vendor Portal: Please click here to log in</span>
+                <span className="text-[#C6934A] group-hover:translate-x-0.5 transition-transform">→</span>
+              </a>
             </div>
           </div>
         </motion.div>

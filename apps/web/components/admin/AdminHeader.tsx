@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/services/supabase/client";
 import {
   Menu,
   ExternalLink,
@@ -26,7 +27,8 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
       sessionStorage.removeItem("ymwa_admin_tab_authenticated");
     }
     try {
-      await fetch("/api/admin/auth/logout", { method: "POST" });
+      await fetch("/api/concierge/auth/logout", { method: "POST" });
+      await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
       router.push("/concierge-portal/login");
       router.refresh();
     } catch {

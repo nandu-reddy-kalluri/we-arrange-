@@ -7,10 +7,12 @@ import { useRouter } from "next/navigation";
 import { Star, MapPin, ChevronLeft, ChevronRight, X, Heart, Trash2 } from "lucide-react";
 import { Vendor } from "@/mock-data/vendors";
 import { useSavedStore } from "@/store/useSavedStore";
+import { getVendorFallbackImage } from "@/services/catalog/catalogMappers";
 
 export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRemove?: () => void }) {
   const router = useRouter();
   const { isVendorSaved, toggleSaveVendor } = useSavedStore();
+  const fallbackImage = getVendorFallbackImage(vendor.category);
 
   const [isMounted, setIsMounted] = React.useState(false);
   React.useEffect(() => setIsMounted(true), []);
@@ -20,11 +22,13 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
     const list = Array.from(
       new Set([vendor.imageUrl, vendor.logoUrl].filter(Boolean))
     ) as string[];
-    return list.length > 0 ? list : [vendor.imageUrl || "/images/editorial/hero_venue.png"];
-  }, [vendor]);
+    return list.length > 0 ? list : [fallbackImage];
+  }, [vendor, fallbackImage]);
 
   const [currentImgIndex, setCurrentImgIndex] = React.useState(0);
   const [viewedIndices, setViewedIndices] = React.useState<number[]>([0]);
+  const [brokenUrls, setBrokenUrls] = React.useState<Record<string, boolean>>({});
+  const [loadedMap, setLoadedMap] = React.useState<Record<string, boolean>>({});
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
   const isSwipingRef = React.useRef(false);
@@ -73,22 +77,36 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
       >
         {/* Image Container with Touch Swipe on Mobile */}
         <div
-          className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100 select-none"
+          className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-r from-stone-100 via-stone-50 to-stone-100 select-none"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
+          {/* Fluent shimmer skeleton while active image is decoding */}
+          {!loadedMap[images[currentImgIndex]] && (
+            <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-[#F7F4EE] to-stone-100 animate-pulse z-0 pointer-events-none" />
+          )}
           {images.map((imgUrl, idx) => {
             if (!viewedIndices.includes(idx)) return null;
+            const resolvedSrc = brokenUrls[imgUrl] ? fallbackImage : imgUrl;
+            const isCurrent = idx === currentImgIndex;
+            const isLoaded = loadedMap[imgUrl];
             return (
               <Image
                 key={imgUrl + idx}
-                src={imgUrl}
+                src={resolvedSrc}
                 alt={vendor.name}
                 fill
+                unoptimized={resolvedSrc.endsWith(".svg")}
                 quality={75}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                className={`object-cover transition-opacity duration-500 ease-in-out group-hover:scale-105 ${
-                  idx === currentImgIndex ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
+                onLoad={() => setLoadedMap((prev) => ({ ...prev, [imgUrl]: true }))}
+                onError={() => setBrokenUrls((prev) => ({ ...prev, [imgUrl]: true }))}
+                className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
+                  isCurrent
+                    ? isLoaded
+                      ? "opacity-100 blur-0 scale-100 z-0"
+                      : "opacity-0 blur-[4px] scale-[1.02] z-0"
+                    : "opacity-0 pointer-events-none"
                 }`}
               />
             );
@@ -158,10 +176,12 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
             <h3 className="font-serif text-sm md:text-base font-bold text-[#2D2D2D] truncate group-hover:text-[#C5A880] transition-colors duration-200">
               {vendor.name}
             </h3>
-            <div className="flex items-center gap-1 text-xs font-bold text-[#2D2D2D]">
-              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-              <span>{vendor.rating}</span>
-            </div>
+            {vendor.rating > 0 && (
+              <div className="flex items-center gap-1 text-xs font-bold text-[#2D2D2D]">
+                <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                <span>{vendor.rating.toFixed(1)}</span>
+              </div>
+            )}
           </div>
 
           {/* Location */}
@@ -177,7 +197,7 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
                 Starting Price
               </span>
               <span className="text-base font-bold text-[#8B263E]">
-                ₹{vendor.priceStart}L Onwards
+                {vendor.priceStart > 0 ? `₹${vendor.priceStart}L Onwards` : "Price on Request"}
               </span>
             </div>
             <Link
@@ -196,21 +216,25 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
                 Starting Price
               </span>
               <span className="text-xs font-bold text-[#8B263E]">
-                ₹{vendor.priceStart}L Onwards
+                {vendor.priceStart > 0 ? `₹${vendor.priceStart}L Onwards` : "Price on Request"}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <a
-                href="tel:+919876543210"
-                onClick={(e) => e.stopPropagation()}
-                className="py-2.5 rounded-lg text-[11px] font-bold text-center bg-neutral-100 text-neutral-800 hover:bg-neutral-200 transition-colors"
-              >
-                Call
-              </a>
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  alert(`Quote requested for ${vendor.name}`);
+                  router.push(`/vendors/${vendor.slug}`);
+                }}
+                className="py-2.5 rounded-lg text-[11px] font-bold text-center bg-neutral-100 text-neutral-800 hover:bg-neutral-200 transition-colors"
+              >
+                Profile
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/vendors/${vendor.slug}#contact`);
                 }}
                 className="py-2.5 rounded-lg text-[11px] font-bold text-center bg-[#8B263E]/10 text-[#8B263E] hover:bg-[#8B263E] hover:text-white transition-colors"
               >
@@ -260,10 +284,17 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            <img
-              src={images[currentImgIndex] || vendor.imageUrl}
+            <Image
+              src={
+                brokenUrls[images[currentImgIndex] || ""]
+                  ? fallbackImage
+                  : images[currentImgIndex] || vendor.imageUrl || fallbackImage
+              }
               alt={vendor.name}
-              className="max-h-[80vh] max-w-full object-contain rounded-lg"
+              fill
+              sizes="(max-width: 1024px) 100vw, 90vw"
+              quality={85}
+              className="object-contain"
             />
           </div>
 

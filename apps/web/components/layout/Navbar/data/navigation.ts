@@ -15,7 +15,7 @@ export const NAVIGATION_DATA: Record<string, NavigationCardData> = {
     heading: "Royal Wedding Venues",
     description: "Discover handpicked palaces, luxury hotels and heritage venues personally curated by our concierge team.",
     ctaText: "Explore Curated Venues",
-    imageSrc: "/images/editorial/venue_4.png",
+    imageSrc: "https://venue-images.youmarriagewearrange.com/taj-falaknuma-palace-492086/image-1.webp",
     href: "/venues"
   },
   vendors: {
@@ -24,7 +24,7 @@ export const NAVIGATION_DATA: Record<string, NavigationCardData> = {
     heading: "Trusted Professionals",
     description: "Meet photographers, decorators, makeup artists and entertainers selected for exceptional quality.",
     ctaText: "Meet Our Experts",
-    imageSrc: "/images/editorial/vendor_photography.png",
+    imageSrc: "https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp",
     href: "/vendors"
   },
   services: {
@@ -33,8 +33,8 @@ export const NAVIGATION_DATA: Record<string, NavigationCardData> = {
     heading: "Personal Wedding Concierge",
     description: "From planning to execution, your dedicated concierge manages every detail with care.",
     ctaText: "See How It Works",
-    imageSrc: "/images/editorial/vendor_planner.png",
-    href: "/services"
+    imageSrc: "https://venue-images.youmarriagewearrange.com/itc-kohenur-544059/image-1.webp",
+    href: "/contact"
   },
   inspiration: {
     id: "inspiration",
@@ -50,6 +50,6 @@ export const NAVIGATION_DATA: Record<string, NavigationCardData> = {
 // Main top-level navigation links
 export const NAV_LINKS = [
   { name: "Venues", id: "venues", href: "/venues" },
-  { name: "Collections", id: "collections", href: "/collections" },
+  { name: "Vendors", id: "vendors", href: "/vendors" },
   { name: "Inspiration", id: "inspiration", href: "/inspiration" },
 ];

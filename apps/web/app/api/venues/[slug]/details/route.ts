@@ -1,0 +1,21 @@
+import { NextRequest } from "next/server";
+import { createPublicAnonClient } from "@we-arrange/database/clients";
+import { slugOrIdSchema } from "@we-arrange/validation";
+import { getPublicVenueBySlugOrId } from "@we-arrange/service-venue";
+import { fail, ok } from "@/services/http/response";
+
+export async function GET(
+  _request: NextRequest,
+  context: { params: Promise<{ slug: string }> }
+) {
+  try {
+    const { slug } = await context.params;
+    const safeSlugOrId = slugOrIdSchema.parse(slug);
+    const supabase = createPublicAnonClient();
+    const result = await getPublicVenueBySlugOrId(supabase, safeSlugOrId);
+    return ok(result);
+  } catch (err) {
+    return fail(err, "Failed to load venue details.");
+  }
+}
+

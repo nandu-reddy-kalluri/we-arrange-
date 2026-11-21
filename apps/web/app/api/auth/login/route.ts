@@ -6,7 +6,11 @@ import { loginWithPassword } from "@/services/auth";
 export async function POST(request: NextRequest) {
   try {
     const body = await parseJsonBody(request, loginSchema);
-    const ctx = await loginWithPassword(body.email, body.password);
+    const ctx = await loginWithPassword(body.email, body.password, {
+      requireVendor: body.portal === "vendor",
+      rejectAdmin: true,
+      rejectStaff: body.portal !== "vendor",
+    });
 
     logApiEvent({
       route: "/api/auth/login",
@@ -14,6 +18,8 @@ export async function POST(request: NextRequest) {
       userId: ctx.userId,
       status: 200,
     });
+
+    const redirectUrl = ctx.role === "vendor" ? "/vendor" : "/customer/overview";
 
     return ok({
       user: {
@@ -24,6 +30,7 @@ export async function POST(request: NextRequest) {
         vendorId: ctx.vendorId,
         isActiveAdmin: ctx.isActiveAdmin,
       },
+      redirectUrl,
     });
   } catch (err) {
     return fail(err, "Authentication failed.");

@@ -32,14 +32,14 @@ export default function DigitalSuiteSection() {
           <div className="w-full md:w-[40%] relative aspect-video md:aspect-auto bg-gradient-to-br from-[#FAF8F5] via-[#F4EFE6] to-[#EBE3D5] flex items-center justify-center p-6 overflow-hidden">
              {/* Decorative abstract elements */}
              <div className="w-48 h-48 md:w-72 md:h-72 bg-gradient-to-tr from-accent-gold/20 to-primary/5 rounded-full blur-3xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-             {/* Soft illustration substitute */}
+             {/* Real Wedding Celebration Visual */}
              <Image 
-                src="/images/editorial/digital_invitation.png"
-                alt="Digital Suite"
+                src="https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp"
+                alt="Digital Wedding Suite"
                 fill
                 quality={75}
                 sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover opacity-60 mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
+                className="object-cover opacity-70 transition-transform duration-700 group-hover:scale-105"
              />
              <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent md:bg-gradient-to-r" />
           </div>

@@ -3,16 +3,33 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.10.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
   "scripts": {
     "dev": "turbo dev",
+    "dev:all": "turbo dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:customer": "pnpm --filter customer dev",
+    "dev:vendor": "pnpm --filter vendor dev",
+    "dev:admin": "pnpm --filter admin dev",
+    "dev:concierge": "pnpm --filter concierge dev",
+    "clean:ports": "powershell -ExecutionPolicy Bypass -File ./scripts/clean-ports.ps1",
+    "health": "powershell -ExecutionPolicy Bypass -File ./scripts/health-check.ps1",
     "build": "turbo build",
     "start": "turbo start",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "test": "turbo test"
+    "test": "turbo test",
+    "test:unit": "vitest run",
+    "test:integration": "vitest run apps/web/__tests__/integration/live-supabase.integration.test.ts"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "15.5.26",
     "@we-arrange/tsconfig": "workspace:*",
-    "turbo": "^2.11.5"
+    "turbo": "^2.11.5",
+    "vitest": "^5.1.0"
   }
 }

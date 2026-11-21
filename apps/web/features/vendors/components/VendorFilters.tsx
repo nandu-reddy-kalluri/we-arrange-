@@ -15,7 +15,7 @@ import {
   Castle,
 } from "lucide-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { vendorCategories, mockVendors } from "@/mock-data/vendors";
+import { vendorCategories } from "@/mock-data/vendors";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -623,29 +623,21 @@ function getCategoryEmoji(slug: string): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Count matching vendors for preview badge (module-level)
+// Count active filter criteria selected in draft (module-level)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function countMatching(draft: FilterState): number {
-  return mockVendors.filter((vendor) => {
-    if (draft.category && vendor.category !== draft.category) return false;
-    if (draft.city && vendor.city !== draft.city) return false;
-    if (draft.budgetTier && vendor.tier !== draft.budgetTier) return false;
-    if (draft.rating && vendor.rating < parseFloat(draft.rating)) return false;
-    if (draft.experience && (vendor.experience || 0) < parseInt(draft.experience)) return false;
-    if (draft.availability && vendor.availability !== "Available") return false;
-    if (draft.isVerified && !vendor.isVerified) return false;
-    if (draft.spaceType) {
-      const t = draft.spaceType.toLowerCase();
-      const isIndoor = ["indoor", "banquet", "banquet hall"].includes(t);
-      const isOutdoor = ["outdoor", "garden", "rooftop", "beach", "palace"].includes(t);
-      if (isIndoor && vendor.spaceType !== "Indoor" && vendor.spaceType !== "Both") return false;
-      if (isOutdoor && vendor.spaceType !== "Outdoor" && vendor.spaceType !== "Both") return false;
-    }
-    if (draft.minPrice && vendor.priceStart < draft.minPrice) return false;
-    if (draft.maxPrice && vendor.priceStart > draft.maxPrice) return false;
-    return true;
-  }).length;
+function countActiveFilters(draft: FilterState): number {
+  let count = 0;
+  if (draft.category) count++;
+  if (draft.city) count++;
+  if (draft.budgetTier) count++;
+  if (draft.rating) count++;
+  if (draft.experience) count++;
+  if (draft.availability) count++;
+  if (draft.isVerified) count++;
+  if (draft.spaceType) count++;
+  if (draft.minPrice > 0 || draft.maxPrice < 10) count++;
+  return count;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -804,7 +796,7 @@ const SidebarContent = React.memo(function SidebarContent({
           onToggle={() => onToggleSection("priceRange")}
         >
           <DoubleRangeSlider
-            min={0.5}
+            min={0}
             max={10.0}
             step={0.5}
             minVal={draft.minPrice}
@@ -864,15 +856,17 @@ const ApplyButton = React.memo(function ApplyButton({ count, onClick }: ApplyBut
         className="w-full py-3 rounded-xl bg-gradient-to-r from-[#8B263E] to-[#A33B54] text-white text-[11px] font-bold shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
       >
         <span>Apply Filters</span>
-        <motion.span
-          key={count}
-          initial={{ scale: 0.7, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 18 }}
-          className="bg-white/20 px-2 py-0.5 rounded-full text-[9px] font-black"
-        >
-          {count}
-        </motion.span>
+        {count > 0 && (
+          <motion.span
+            key={count}
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+            className="bg-white/20 px-2 py-0.5 rounded-full text-[9px] font-black"
+          >
+            {count}
+          </motion.span>
+        )}
       </motion.button>
     </motion.div>
   );
@@ -938,8 +932,8 @@ export const VendorFilters = React.memo(function VendorFilters({
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  // Count preview (computed from draft, not parent filters)
-  const matchingCount = React.useMemo(() => countMatching(draft), [draft]);
+  // Count active criteria in draft
+  const activeFilterCount = React.useMemo(() => countActiveFilters(draft), [draft]);
 
   return (
     <>
@@ -962,12 +956,12 @@ export const VendorFilters = React.memo(function VendorFilters({
             onClearAll={handleClearAll}
             cities={CITIES}
             budgetTiers={BUDGET_TIERS}
-            matchingCount={matchingCount}
+            matchingCount={activeFilterCount}
             openSections={openSections}
             onToggleSection={onToggleSection}
           />
 
-          <ApplyButton count={matchingCount} onClick={handleApply} />
+          <ApplyButton count={activeFilterCount} onClick={handleApply} />
         </motion.div>
       </div>
 
@@ -997,8 +991,8 @@ export const VendorFilters = React.memo(function VendorFilters({
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white shrink-0 z-10">
                 <div className="flex flex-col">
                   <span className="font-serif text-xl font-bold text-neutral-charcoal">Filters</span>
-                  {matchingCount > 0 && (
-                    <span className="text-[10px] text-neutral-muted uppercase font-bold tracking-wider">{matchingCount} Results</span>
+                  {activeFilterCount > 0 && (
+                    <span className="text-[10px] text-neutral-muted uppercase font-bold tracking-wider">{activeFilterCount} Active</span>
                   )}
                 </div>
                 <motion.button
@@ -1022,7 +1016,7 @@ export const VendorFilters = React.memo(function VendorFilters({
                   onClearAll={handleClearAll}
                   cities={CITIES}
                   budgetTiers={BUDGET_TIERS}
-                  matchingCount={matchingCount}
+                  matchingCount={activeFilterCount}
                   openSections={openSections}
                   onToggleSection={onToggleSection}
                 />
@@ -1047,7 +1041,7 @@ export const VendorFilters = React.memo(function VendorFilters({
                   onClick={handleApply}
                   className="flex-[0.6] py-3.5 rounded-xl text-center text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-[#8B263E] to-[#A33B54] cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <span>Show {matchingCount} Results</span>
+                  <span>Apply Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}</span>
                 </motion.button>
               </div>
             </motion.div>

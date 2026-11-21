@@ -92,7 +92,7 @@ export default function AdminPageEditorPage({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E0D8] pb-5">
         <div className="flex items-center gap-3">
           <Link
-            href="/concierge-portal/pages"
+            href="/pages"
             className="p-2 rounded-xl bg-white border border-[#E5E0D8] text-neutral-600 hover:text-neutral-900 transition-colors"
             title="Back to Pages Directory"
           >

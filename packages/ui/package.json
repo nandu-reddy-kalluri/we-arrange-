@@ -5,6 +5,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
+    "@we-arrange/api-client": "workspace:*",
     "@we-arrange/design-system": "workspace:*",
     "@we-arrange/utils": "workspace:*",
     "clsx": "^2.1.1",

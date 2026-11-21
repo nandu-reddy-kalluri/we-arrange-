@@ -62,7 +62,7 @@ export default function AdminVendorsPage() {
       priceStart: 1.5,
       rating: 4.9,
       reviewsCount: 1,
-      imageUrl: "/images/editorial/vendor_photography.png",
+      imageUrl: "/images/placeholders/photography.svg",
       slug: "",
       experience: 5,
       availability: "Available",

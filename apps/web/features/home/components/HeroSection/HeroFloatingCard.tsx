@@ -10,20 +10,28 @@ import {
 } from "framer-motion";
 import { MapPin, Users, Star } from "lucide-react";
 import Image from "next/image";
-import { photography } from "@/lib/design/photography";
-
-const PREVIEW_VENUES = [
-  { name: "Taj Falaknuma Palace",  location: "Falaknuma, Hyderabad",     rating: 4.9, price: "₹ 45L Onwards", guests: "200 - 1,200 Guests", image: photography.palaces[0] },
-  { name: "ITC Kohenur",           location: "Hitec City, Hyderabad",    rating: 4.8, price: "₹ 18L Onwards", guests: "150 - 800 Guests",   image: photography.palaces[1] },
-  { name: "Fort Grand",            location: "Rajendranagar, Hyderabad", rating: 4.7, price: "₹ 25L Onwards", guests: "800 - 4,000 Guests",  image: photography.palaces[2] },
-  { name: "Chowmahalla Palace",    location: "Khilwat, Hyderabad",       rating: 4.8, price: "₹ 30L Onwards", guests: "500 - 3,000 Guests",  image: photography.palaces[3] },
-];
+import Link from "next/link";
+import type { Venue } from "@/mock-data/venues";
+import { DEFAULT_VENUE_IMAGE } from "@/services/catalog/catalogMappers";
 
 const ROTATION_INTERVAL = 8000;
 
-export function HeroFloatingCard() {
+function formatHeroPrice(priceOnwards: string): string {
+  const trimmed = (priceOnwards || "").trim();
+  if (!trimmed || trimmed.toLowerCase().includes("request")) {
+    return "Price on Request";
+  }
+  return /^[\d,.]+$/.test(trimmed) ? `₹ ${trimmed} Onwards` : trimmed;
+}
+
+export function HeroFloatingCard({ venues = [] }: { venues?: Venue[] }) {
+  const displayVenues = React.useMemo(
+    () => venues.filter((v) => v.imageUrl && v.slug),
+    [venues]
+  );
   const [mounted, setMounted] = useState(false);
   const [venueIdx, setVenueIdx] = useState(0);
+  const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
   const [isReducedMotion, setIsReducedMotion] = useState(false);
 
   // Progress bar state
@@ -80,11 +88,11 @@ export function HeroFloatingCard() {
   };
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || displayVenues.length <= 1) return;
 
     startProgress();
     const interval = setInterval(() => {
-      setVenueIdx((prev) => (prev < PREVIEW_VENUES.length - 1 ? prev + 1 : 0));
+      setVenueIdx((prev) => (prev < displayVenues.length - 1 ? prev + 1 : 0));
     }, ROTATION_INTERVAL);
 
     return () => {
@@ -92,15 +100,29 @@ export function HeroFloatingCard() {
       cancelAnimationFrame(progressRafRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted]);
+  }, [mounted, displayVenues.length]);
 
   // Restart progress bar on venue change
   useEffect(() => {
-    if (mounted) startProgress();
+    if (mounted && displayVenues.length > 0) startProgress();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueIdx]);
+  }, [venueIdx, displayVenues.length]);
 
-  const activeVenue = PREVIEW_VENUES[venueIdx];
+  if (displayVenues.length === 0) {
+    return null;
+  }
+
+  const activeVenue = displayVenues[venueIdx % displayVenues.length];
+  const locationLabel =
+    activeVenue.location &&
+    activeVenue.city &&
+    activeVenue.location.toLowerCase() !== activeVenue.city.toLowerCase()
+      ? `${activeVenue.location}, ${activeVenue.city}`
+      : activeVenue.city || activeVenue.location || "Hyderabad";
+  const resolvedImage =
+    brokenImages[activeVenue.id] || !activeVenue.imageUrl
+      ? DEFAULT_VENUE_IMAGE
+      : activeVenue.imageUrl;
 
   // 2C: Cinematic blur-dissolve transition variants
   const cardVariants = {
@@ -188,15 +210,24 @@ export function HeroFloatingCard() {
                 </div>
 
                 {/* Venue Image */}
+                <Link
+                  href={`/venues/${activeVenue.slug}`}
+                  className="block group focus:outline-none"
+                  aria-label={`Explore ${activeVenue.name}`}
+                >
                 <div className="relative aspect-[4/3] w-full rounded-[14px] overflow-hidden bg-neutral-cream z-10 mb-4">
                   <Image
-                    src={activeVenue.image}
+                    src={resolvedImage}
                     alt={activeVenue.name}
                     fill
                     priority={venueIdx === 0}
+                    unoptimized={resolvedImage.endsWith(".svg")}
                     sizes="(max-width: 1024px) 100vw, 400px"
-                    className="object-cover"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
                     quality={80}
+                    onError={() =>
+                      setBrokenImages((prev) => ({ ...prev, [activeVenue.id]: true }))
+                    }
                   />
                   {/* Image inner depth shadow */}
                   <div
@@ -217,22 +248,24 @@ export function HeroFloatingCard() {
 
                 {/* Venue Details */}
                 <div className="relative z-10 flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-serif text-lg font-bold text-neutral-charcoal leading-tight">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-serif text-lg font-bold text-neutral-charcoal leading-tight truncate group-hover:text-[#6F1D2C] transition-colors">
                       {activeVenue.name}
                     </h3>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-charcoal">
-                      <Star className="w-3.5 h-3.5 fill-[#C8A165]" style={{ color: "#C8A165" }} />
-                      <span>{activeVenue.rating}</span>
-                    </div>
+                    {activeVenue.rating > 0 && (
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-neutral-charcoal shrink-0">
+                        <Star className="w-3.5 h-3.5 fill-[#C8A165]" style={{ color: "#C8A165" }} />
+                        <span>{activeVenue.rating.toFixed(1)}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-1 text-[11px] font-semibold text-neutral-muted">
                     <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: "#6F1D2C" }} />
-                    <span>{activeVenue.location}</span>
+                    <span className="truncate">{locationLabel}</span>
                   </div>
                   <div className="flex items-center gap-1 text-[11px] font-semibold text-neutral-muted">
                     <Users className="w-3.5 h-3.5 shrink-0" style={{ color: "#C8A165" }} />
-                    <span>{activeVenue.guests}</span>
+                    <span>{activeVenue.capacityRange}</span>
                   </div>
                 </div>
 
@@ -246,7 +279,7 @@ export function HeroFloatingCard() {
                       Est. Budget
                     </span>
                     <span className="block text-[13px] font-black" style={{ color: "#6F1D2C" }}>
-                      {activeVenue.price}
+                      {formatHeroPrice(activeVenue.priceOnwards)}
                     </span>
                   </div>
                   <span
@@ -257,9 +290,10 @@ export function HeroFloatingCard() {
                       border: "1px solid rgba(200,161,101,0.20)",
                     }}
                   >
-                    Premium Venue
+                    {activeVenue.type || "Premium Venue"}
                   </span>
                 </div>
+                </Link>
 
               </motion.div>
             )}

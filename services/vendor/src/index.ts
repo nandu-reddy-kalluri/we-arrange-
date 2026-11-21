@@ -1,6 +1,7 @@
 import { mockVendors, vendorCategories } from "@we-arrange/database";
 import type { Vendor, VendorCategory } from "@we-arrange/types";
 
+// Legacy synchronous UI helpers preserved until frontend integration cutover
 export function getAllVendors(): Vendor[] {
   return mockVendors;
 }
@@ -16,3 +17,5 @@ export function getVendorBySlug(slug: string): Vendor | undefined {
 export function getVendorsByCategory(categorySlug: string): Vendor[] {
   return mockVendors.filter((v) => v.category.toLowerCase() === categorySlug.toLowerCase());
 }
+
+export * from "./vendorService";

@@ -3,24 +3,52 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Settings, Heart, CalendarCheck, LogOut } from "lucide-react";
+import { Home, Settings, Heart, CalendarCheck, LogOut, MapPin, Store } from "lucide-react";
+import { apiClient } from "@we-arrange/api-client";
 import { useAuth } from "@we-arrange/auth";
 import { useSavedStore } from "../store/useSavedStore";
 
 export default function CustomerShell({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
-  const { savedVenueIds, savedVendorIds } = useSavedStore();
+  const { savedVenueIds, savedVendorIds, syncWithServer } = useSavedStore();
   const [mounted, setMounted] = useState(false);
+  const [profileName, setProfileName] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (!user) {
+      setProfileName(null);
+      return;
+    }
+    void syncWithServer();
+    let active = true;
+    void apiClient.get<{ fullName?: string }>("/api/auth/me").then((res) => {
+      if (active && res.ok && res.data?.fullName) {
+        setProfileName(res.data.fullName);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [user, syncWithServer]);
+
+  if (pathname === "/login" || pathname === "/register") {
+    return <>{children}</>;
+  }
+
   const handleLogout = async () => {
     try {
       await logout();
-      window.location.href = "/";
+      const publicHome = (
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_MARKETPLACE_URL ||
+        "http://localhost:3000"
+      ).replace(/\/+$/, "");
+      window.location.href = `${publicHome}/`;
     } catch (error) {
       console.error("LOGOUT ERROR:", error);
     }
@@ -62,7 +90,7 @@ export default function CustomerShell({ children }: { children?: React.ReactNode
           </p>
 
           <Link
-            href="/login?redirect=/customer/overview"
+            href="/login?redirect=/overview"
             className="inline-block mt-6 px-8 py-3 rounded-full bg-[#8B263E] hover:bg-[#701E31] text-white font-semibold text-xs tracking-wider uppercase transition-colors shadow-sm"
           >
             Sign In to Dashboard
@@ -73,6 +101,7 @@ export default function CustomerShell({ children }: { children?: React.ReactNode
   }
 
   const userName =
+    profileName ||
     user.user_metadata?.full_name ||
     user.user_metadata?.name ||
     user.user_metadata?.display_name ||
@@ -99,26 +128,38 @@ export default function CustomerShell({ children }: { children?: React.ReactNode
           aria-label="Customer account navigation"
           className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-[#8B263E]/10 bg-white px-4 sm:px-6 py-6 lg:py-10 flex flex-col shrink-0"
         >
-          <div className="mb-6 lg:mb-10">
-            <Link href="/" className="inline-block mb-3">
-              <span className="font-serif text-sm font-bold tracking-tight text-[#8B263E]">
-                YOU MARRIAGE
-              </span>
-              <span className="block text-[8px] font-sans font-black tracking-widest text-[#C5A880]">
-                WE ARRANGE
-              </span>
-            </Link>
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#8B263E]">
-              My Account
-            </p>
-            <h2 className="mt-1 text-2xl font-serif text-[#2D2D2D] font-bold truncate">
-              {userName}
-            </h2>
-            {user.email && (
-              <p className="mt-0.5 text-xs text-neutral-400 truncate">
-                {user.email}
-              </p>
-            )}
+          <div className="mb-5 lg:mb-8">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Link href="/" className="inline-block mb-3">
+                  <span className="font-serif text-sm font-bold tracking-tight text-[#8B263E]">
+                    YOU MARRIAGE
+                  </span>
+                  <span className="block text-[8px] font-sans font-black tracking-widest text-[#C5A880]">
+                    WE ARRANGE
+                  </span>
+                </Link>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#8B263E]">
+                  My Account
+                </p>
+                <h2 className="mt-1 text-2xl font-serif text-[#2D2D2D] font-bold truncate">
+                  {userName}
+                </h2>
+                {user.email && (
+                  <p className="mt-0.5 text-xs text-neutral-500 truncate">
+                    {user.email}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="lg:hidden shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#8B263E]/20 text-[#8B263E] hover:bg-[#F5EEE7] text-xs font-semibold cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
 
           <nav
@@ -184,6 +225,20 @@ export default function CustomerShell({ children }: { children?: React.ReactNode
               <Settings className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>Settings</span>
             </Link>
+            <a
+              href={`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/venues`}
+              className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-xs lg:text-sm whitespace-nowrap font-medium text-neutral-600 hover:bg-[#F5EEE7] hover:text-[#8B263E] transition-colors"
+            >
+              <MapPin className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>Browse Venues</span>
+            </a>
+            <a
+              href={`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/vendors`}
+              className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-xs lg:text-sm whitespace-nowrap font-medium text-neutral-600 hover:bg-[#F5EEE7] hover:text-[#8B263E] transition-colors"
+            >
+              <Store className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>Discover Vendors</span>
+            </a>
           </nav>
 
           <div className="hidden lg:block mt-auto pt-10 border-t border-neutral-100">

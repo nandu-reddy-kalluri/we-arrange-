@@ -7,13 +7,13 @@ import { VendorCategory } from "@/mock-data/vendors";
 import { motion } from "framer-motion";
 import { ChevronRight, CheckCircle2, Sparkles } from "lucide-react";
 
-const CATEGORY_METRICS: Record<string, string> = {
-  photography: "120+ Verified Photographers",
-  decor: "80+ Luxury Designers",
-  catering: "60+ Premium Caterers",
-  makeup: "150+ Bridal Experts",
-  "wedding-planning": "45+ Curated Planners",
-  mehendi: "90+ Master Artists",
+const CATEGORY_UNIT_LABELS: Record<string, string> = {
+  photography: "Verified Photographers",
+  decor: "Verified Designers",
+  catering: "Verified Caterers",
+  makeup: "Bridal Experts",
+  "wedding-planning": "Curated Planners",
+  mehendi: "Master Artists",
 };
 
 export function VendorScroller({ categories }: { categories: VendorCategory[] }) {
@@ -43,7 +43,8 @@ export function VendorScroller({ categories }: { categories: VendorCategory[] })
       className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-6 lg:gap-8 pb-6 justify-center items-start"
     >
       {categories.map((category) => {
-        const countStr = CATEGORY_METRICS[category.slug] || "50+ Verified Partners";
+        const unitLabel = CATEGORY_UNIT_LABELS[category.slug] || "Verified Partners";
+        const countStr = `${category.count.toLocaleString("en-IN")} ${unitLabel}`;
         return (
           <motion.div key={category.id} variants={itemVariants} className="w-full flex justify-center">
             <Link

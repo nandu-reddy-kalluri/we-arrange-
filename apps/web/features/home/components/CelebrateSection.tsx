@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useRef } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import Image from "next/image";
+import React, { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Check, Heart } from "lucide-react";
+import { CardStack, type CardStackItem } from "@/components/ui/CardStack";
+import type { Venue } from "@/mock-data/venues";
+import type { Vendor } from "@/mock-data/vendors";
+import { apiClient } from "@we-arrange/api-client";
 
 const dustParticles = [
   { left: 60.7, top: 84.4, duration: 9.2, delay: 1.5 },
@@ -13,26 +16,118 @@ const dustParticles = [
   { left: 58.3, top: 10.3, duration: 10.4, delay: 0.4 },
 ];
 
-export function CelebrateSection() {
-  const containerRef = useRef<HTMLElement>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+const DEFAULT_STACK_ITEMS: CardStackItem[] = [
+  {
+    id: "falaknuma",
+    title: "Taj Falaknuma Palace",
+    subtitle: "Engineered Heritage • Hyderabad",
+    tag: "Luxury Palace",
+    image: "https://venue-images.youmarriagewearrange.com/taj-falaknuma-palace-492086/image-1.webp",
+  },
+  {
+    id: "itc-kohenur",
+    title: "ITC Kohenur",
+    subtitle: "HITEC City • Contemporary Elegance",
+    tag: "5-Star Hotel",
+    image: "https://venue-images.youmarriagewearrange.com/itc-kohenur-544059/image-1.webp",
+  },
+  {
+    id: "episode-events",
+    title: "Episode Events",
+    subtitle: "Bespoke Floral & Mandap Concept",
+    tag: "Wedding Decorator",
+    image: "https://decorator-images.youmarriagewearrange.com/episode-events-1333773/image-1.webp",
+  },
+  {
+    id: "kunal-khade",
+    title: "Kunal Khade Films",
+    subtitle: "Cinematic Wedding Documentation",
+    tag: "Photographer",
+    image: "https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp",
+  },
+  {
+    id: "sitara-luxury",
+    title: "Sitara Luxury Hotel",
+    subtitle: "Ramoji Film City • Destination Weddings",
+    tag: "Luxury Resort",
+    image: "https://venue-images.youmarriagewearrange.com/ramoji-film-city-sitara-luxury-hotel-485923/image-1.webp",
+  },
+];
 
-  const handleMouseMove = (event: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    x.set(event.clientX - rect.left - rect.width / 2);
-    y.set(event.clientY - rect.top - rect.height / 2);
+interface CelebrateSectionProps {
+  venues?: Venue[];
+  vendors?: Vendor[];
+}
+
+export function CelebrateSection({ venues = [], vendors = [] }: CelebrateSectionProps) {
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Combine real database venues and vendors into discovery cards
+  const stackItems = useMemo<CardStackItem[]>(() => {
+    const items: CardStackItem[] = [];
+
+    if (venues && venues.length > 0) {
+      venues.slice(0, 4).forEach((v) => {
+        if (v.imageUrl && !v.imageUrl.endsWith(".svg")) {
+          items.push({
+            id: `venue-${v.id || v.slug}`,
+            slug: v.slug,
+            title: v.name,
+            subtitle: `${v.location || "Hyderabad"}, ${v.city || "Hyderabad"}`,
+            tag: v.type ? `${v.type} Venue` : "Curated Venue",
+            image: v.imageUrl,
+          });
+        }
+      });
+    }
+
+    if (vendors && vendors.length > 0) {
+      vendors.slice(0, 4).forEach((vn) => {
+        if (vn.imageUrl && !vn.imageUrl.endsWith(".svg")) {
+          items.push({
+            id: `vendor-${vn.id || vn.slug}`,
+            slug: vn.slug,
+            title: vn.name,
+            subtitle: vn.location || "Hyderabad",
+            tag: vn.category ? `${vn.category}` : "Verified Vendor",
+            image: vn.imageUrl,
+          });
+        }
+      });
+    }
+
+    return items.length >= 3 ? items : DEFAULT_STACK_ITEMS;
+  }, [venues, vendors]);
+
+  const handleLike = async (item: CardStackItem) => {
+    setToastMessage(`Saved "${item.title || "Item"}" to your shortlist!`);
+    setTimeout(() => setToastMessage(null), 3000);
+
+    // Save to favorites API if authenticated
+    try {
+      const isVenue = item.tag?.toLowerCase().includes("venue");
+      const entityType = isVenue ? "venue" : "vendor";
+      const rawId = String(item.id || "").replace(/^(venue|vendor)-/, "");
+      const numId = parseInt(rawId, 10);
+      if (!Number.isNaN(numId)) {
+        await apiClient.post("/api/favorites", {
+          entityType,
+          entityId: numId,
+        });
+      }
+    } catch {
+      // Ignored for guest browsing - feedback already shown
+    }
   };
 
-  const mouseRotateX = useTransform(y, [-400, 400], [8, -8]);
-  const mouseRotateY = useTransform(x, [-400, 400], [-8, 8]);
+  const handleSwipe = (_item: CardStackItem, _directionOrIndex?: any) => {
+    // Retain smooth state transition
+  };
 
   return (
     <section 
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      className="relative w-full pt-12 lg:pt-16 overflow-hidden bg-[#FAF7F2] perspective-[1500px]"
+      id="celebrate-discovery"
+      className="relative w-full pt-12 lg:pt-16 overflow-hidden bg-[#FAF7F2]"
     >
       {/* 1. Deep Atmospheric Canvas */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -77,17 +172,25 @@ export function CelebrateSection() {
             whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="text-[40px] sm:text-[48px] md:text-[56px] tracking-tight leading-[1.05] mb-8 text-neutral-950"
+            className="text-[36px] sm:text-[44px] md:text-[52px] tracking-tight leading-[1.05] mb-6 text-neutral-950"
           >
-            <span className="font-serif font-bold block">Everything For Your Wedding,</span>
+            <span className="font-serif font-bold block">Swipe to Curate,</span>
             <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[#C89B3C] to-[#E8C875] block mt-1 drop-shadow-[0_2px_10px_rgba(200,155,60,0.2)]">
-              Beautifully Together.
+              Love Every Detail.
             </span>
           </motion.h2>
+
+          <p className="font-sans text-xs sm:text-sm text-neutral-600 mb-8 max-w-md leading-relaxed">
+            Discover Hyderabad's finest venues and wedding professionals. Swipe right to shortlist your favorites or click below to start full concierge planning.
+          </p>
 
           {/* Liquid Gold Hover Button */}
           <motion.button
             initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.4 }}
+            onClick={() => {
+              const el = document.getElementById("hero");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }}
             className="group relative px-8 py-4 rounded-full overflow-hidden text-xs font-black uppercase tracking-widest text-white transition-all duration-500 shadow-[0_10px_30px_rgba(18,0,4,0.15)] hover:shadow-[0_15px_40px_rgba(200,155,60,0.4)] flex items-center justify-center gap-3 bg-[#120004]"
           >
             {/* Liquid gold background fill on hover */}
@@ -107,7 +210,7 @@ export function CelebrateSection() {
           {/* Unified Active Timeline */}
           <motion.div 
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.6 }}
-            className="relative flex items-center mt-12 overflow-hidden w-full max-w-[300px]"
+            className="relative flex items-center mt-10 overflow-hidden w-full max-w-[300px]"
           >
             {/* Base line */}
             <div className="absolute top-1/2 left-0 w-full h-[1px] bg-neutral-200 -translate-y-1/2 -z-10" />
@@ -121,8 +224,8 @@ export function CelebrateSection() {
 
             <div className="flex items-center justify-between w-full">
               {[
-                { num: "01", text: "Dream" },
-                { num: "02", text: "Explore" },
+                { num: "01", text: "Swipe" },
+                { num: "02", text: "Shortlist" },
                 { num: "03", text: "Celebrate" }
               ].map((step) => (
                 <div key={step.text} className="flex items-center gap-1.5 bg-[#FAF7F2] px-2 shadow-[0_0_10px_#FAF7F2]">
@@ -136,10 +239,10 @@ export function CelebrateSection() {
           </motion.div>
         </div>
 
-        {/* RIGHT 60%: Memory Capsule & Experience Flow */}
-        <div className="w-full lg:w-[60%] h-[400px] lg:h-[480px] relative flex items-center justify-center transform-style-preserve-3d mt-12 lg:mt-0 perspective-[1500px]">
+        {/* RIGHT 60%: Interactive Card Stack */}
+        <div className="w-full lg:w-[60%] min-h-[500px] relative flex flex-col items-center justify-center mt-6 lg:mt-0 z-10">
           
-          {/* Animated SVG Curved Path (Apple AirPods Style) */}
+          {/* Animated SVG Curved Path */}
           <div className="absolute inset-0 pointer-events-none z-0">
             <svg viewBox="0 0 500 500" className="w-full h-full overflow-visible">
               <motion.path 
@@ -155,56 +258,50 @@ export function CelebrateSection() {
             </svg>
           </div>
 
-          {/* Magnetic Outer Container */}
-          <motion.div 
-            style={{ rotateX: mouseRotateX, rotateY: mouseRotateY }}
-            className="relative w-full h-full flex items-center justify-center transform-style-preserve-3d z-10"
-          >
-            {/* Idle Outer Container */}
-            <motion.div
-              animate={{ rotateY: [-5, 5, -5], y: [-12, 12, -12] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-              className="relative w-full h-full flex items-center justify-center transform-style-preserve-3d"
+          <div className="relative z-10 flex flex-col items-center">
+            <CardStack
+              items={stackItems}
+              cardWidth={320}
+              cardHeight={420}
+              sensitivity={100}
+              sendToBackOnClick={true}
+              maxVisible={4}
+              showActionButtons={true}
+              onSwipe={handleSwipe}
+              onLike={handleLike}
+              className="w-[280px] h-[370px] sm:w-[320px] sm:h-[420px]"
+            />
+            
+            {/* Gesture Hint Pill */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
+              className="mt-4 flex items-center gap-2 text-[10px] font-sans font-bold uppercase tracking-[0.25em] text-[#C89B3C]/90 bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#E8C875]/40 shadow-sm"
             >
-              
-              {/* Back Glass Panel 1: Blurred Invitation */}
-              <div 
-                className="absolute w-[200px] h-[280px] md:w-[240px] md:h-[320px] rounded-[24px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] opacity-40 border border-white/20"
-                style={{ transform: "translateZ(-80px) translateX(-60px) translateY(-20px) rotateZ(-12deg) scale(0.85)" }}
-              >
-                <Image src="/images/editorial/venue_3.png" alt="Invite" fill quality={75} sizes="(max-width: 768px) 200px, 240px" className="object-cover blur-[4px]" />
-              </div>
-
-              {/* Back Glass Panel 2: Color Mood Board */}
-              <div 
-                className="absolute w-[220px] h-[300px] md:w-[260px] md:h-[340px] rounded-[24px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] opacity-60 border border-white/20"
-                style={{ transform: "translateZ(-40px) translateX(60px) translateY(20px) rotateZ(-4deg) scale(0.9)" }}
-              >
-                <Image src="/images/editorial/venue_2.png" alt="Moodboard" fill quality={75} sizes="(max-width: 768px) 220px, 260px" className="object-cover blur-[2px]" />
-              </div>
-
-              {/* MAIN WEDDING MEMORY CAPSULE */}
-              <div 
-                className="absolute w-[280px] h-[360px] md:w-[320px] md:h-[440px] rounded-[32px] bg-[#FAF7F2] shadow-[0_40px_80px_rgba(18,0,4,0.3),_inset_0_0_0_8px_#FAF7F2] border-[1px] border-[#E8C875]/20 overflow-hidden z-10"
-                style={{ transform: "translateZ(40px)" }}
-              >
-                {/* Diagonal Glass Reflection */}
-                <motion.div 
-                  className="absolute inset-0 w-full h-[200%] bg-gradient-to-b from-transparent via-white/50 to-transparent transform -skew-y-[30deg] z-20 pointer-events-none mix-blend-overlay"
-                  animate={{ y: ["-100%", "200%"] }}
-                  transition={{ duration: 7, repeat: Infinity, ease: "linear", delay: 1 }}
-                />
-                
-                <Image src="/images/editorial/venue_1.png" alt="Memory" fill quality={75} sizes="(max-width: 768px) 280px, 320px" className="object-cover rounded-[24px]" />
-              </div>
-
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C89B3C] animate-ping" />
+              <span>Swipe left to pass • Swipe right to shortlist</span>
             </motion.div>
-          </motion.div>
+
+            {/* Subtle Shortlist Toast */}
+            <AnimatePresence>
+              {toastMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  className="mt-3 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-900/90 text-white text-xs font-medium shadow-lg backdrop-blur-sm"
+                >
+                  <Heart className="w-3.5 h-3.5 fill-rose-400 text-rose-400" />
+                  <span>{toastMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
-
-
-
     </section>
   );
 }
+
+export default CelebrateSection;

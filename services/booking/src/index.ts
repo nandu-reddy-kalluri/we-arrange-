@@ -10,6 +10,7 @@ export interface BookingRequirement {
   preferredAreas?: string[];
 }
 
+// Legacy helper preserved until frontend cutover
 export function createBookingLead(req: BookingRequirement): ConciergeLead {
   const id = `lead_${Date.now()}`;
   return {
@@ -28,3 +29,7 @@ export function createBookingLead(req: BookingRequirement): ConciergeLead {
     updatedAt: new Date().toISOString(),
   };
 }
+
+export * from "./enquiryService";
+export * from "./quoteComparisonService";
+export * from "./bookingPaymentService";

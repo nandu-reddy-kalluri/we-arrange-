@@ -44,7 +44,9 @@ export default function CreateInviteClient({ templateId }: { templateId: string 
   // Step 3: Customize
   const [accentColor, setAccentColor] = useState("#8B263E"); // default burgundy
   const [fontStyle, setFontStyle] = useState("font-serif");
-  const [photoUrl, setPhotoUrl] = useState("/images/editorial/insp_bridal.png");
+  const [photoUrl, setPhotoUrl] = useState(
+    "https://makeup-images.youmarriagewearrange.com/the-makeup-mafia/The_Makeup_Mafia_4.webp"
+  );
 
   // Step 4: Preview Layout Toggle
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("mobile");
@@ -67,7 +69,10 @@ export default function CreateInviteClient({ templateId }: { templateId: string 
             setEvents(existing.events || []);
             setAccentColor(existing.accentColor || "#8B263E");
             setFontStyle(existing.fontStyle || "font-serif");
-            setPhotoUrl(existing.photoUrl || "/images/editorial/insp_bridal.png");
+            setPhotoUrl(
+              existing.photoUrl ||
+                "https://makeup-images.youmarriagewearrange.com/the-makeup-mafia/The_Makeup_Mafia_4.webp"
+            );
           }
         } catch (e) {
           console.error("Failed to parse local storage for edit", e);
@@ -516,9 +521,18 @@ export default function CreateInviteClient({ templateId }: { templateId: string 
                   <label className="text-[10px] uppercase font-bold text-neutral-550 tracking-wider">Cover Image Portrait</label>
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { url: "/images/editorial/insp_bridal.png", label: "Bridal Portrait" },
-                      { url: "/images/editorial/insp_groom.png", label: "Groom Portrait" },
-                      { url: "/images/editorial/insp_photography.png", label: "Couple Shoot" }
+                      {
+                        url: "https://makeup-images.youmarriagewearrange.com/the-makeup-mafia/The_Makeup_Mafia_4.webp",
+                        label: "Bridal Portrait",
+                      },
+                      {
+                        url: "https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp",
+                        label: "Wedding Moments",
+                      },
+                      {
+                        url: "https://images.youmarriagewearrange.com/wedam-chronicles/image-1.webp",
+                        label: "Couple Shoot",
+                      },
                     ].map((img) => (
                       <button
                         key={img.url}

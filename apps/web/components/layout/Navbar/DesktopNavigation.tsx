@@ -44,6 +44,7 @@ export function DesktopNavigation({ useDarkText = false }: { useDarkText?: boole
           <div key={navItem.id} className="relative group" onMouseEnter={() => handleMouseEnter(navItem.id)}>
             <Link
               href={navItem.href}
+              prefetch={true}
               className={`flex items-center gap-1.5 py-4 min-h-[44px] text-sm font-semibold transition-all duration-300 relative ${textClass}`}
             >
               {navItem.label}
@@ -74,6 +75,7 @@ export function DesktopNavigation({ useDarkText = false }: { useDarkText?: boole
                     <Link
                       key={subItem.label}
                       href={subItem.href}
+                      prefetch={false}
                       className="block px-5 py-2.5 min-h-[44px] flex items-center text-[13px] font-medium text-neutral-600 hover:text-[#8B263E] hover:bg-neutral-50 transition-colors"
                       onClick={() => setActiveMenu(null)}
                     >
@@ -102,6 +104,7 @@ export function DesktopNavigation({ useDarkText = false }: { useDarkText?: boole
                             <Link
                               key={subItem.label}
                               href={subItem.href}
+                              prefetch={false}
                               className="text-[13px] font-medium text-neutral-600 hover:text-[#8B263E] transition-colors py-1.5 min-h-[36px] flex items-center"
                               onClick={() => setActiveMenu(null)}
                             >
@@ -117,6 +120,7 @@ export function DesktopNavigation({ useDarkText = false }: { useDarkText?: boole
                     <div className="mt-8 pt-6 border-t border-neutral-100 flex justify-center">
                       <Link 
                         href="/vendors"
+                        prefetch={false}
                         className="text-[11px] font-bold uppercase tracking-widest text-[#8B263E] hover:text-[#6e1c2f] transition-colors flex items-center gap-1 min-h-[44px] px-4"
                         onClick={() => setActiveMenu(null)}
                       >

@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Custom Wedding Websites — Share Your Love Story",
+  description: "Build a private, elegant wedding website with event schedules, travel guides, RSVPs, and photo galleries.",
+  alternates: {
+    canonical: "https://www.youmarriagewearrange.com/wedding-studio/websites",
+  },
+};
+
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";

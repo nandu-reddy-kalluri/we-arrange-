@@ -31,7 +31,7 @@ const EXPERIENCES = [
     title: "Get Best Quotations",
     description: "Submit your requirement",
     icon: Sparkles,
-    href: "/quotes",
+    href: "/customer/bookings",
     gradient: "from-[#FDFBF7] to-[#F3F0F6]",
     borderColor: "border-[#D6CDE3]/60",
     iconColor: "text-[#4A3B69]"

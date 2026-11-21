@@ -4,15 +4,15 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart, ChevronRight, LogIn, User, LogOut, LayoutDashboard } from "lucide-react";
+import { X, ChevronRight, LogIn, User, LogOut, LayoutDashboard } from "lucide-react";
 import { FooterSocials } from "../Footer/FooterSocials";
-import { useSavedStore } from "@/store/useSavedStore";
 
 interface MobileExperienceProps {
   isOpen: boolean;
   onClose: () => void;
   user?: any;
   userName?: string;
+  dashboardHref?: string;
   onLogout?: () => void;
 }
 
@@ -21,13 +21,9 @@ export function MobileExperience({
   onClose,
   user,
   userName = "User",
+  dashboardHref = "/customer/overview",
   onLogout,
 }: MobileExperienceProps) {
-  const { savedVenueIds, savedVendorIds } = useSavedStore();
-  const [isMounted, setIsMounted] = React.useState(false);
-  React.useEffect(() => setIsMounted(true), []);
-  const savedCount = isMounted ? savedVenueIds.length + savedVendorIds.length : 0;
-
   React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -129,6 +125,7 @@ export function MobileExperience({
                   <div key={item.label} className="border-b border-neutral-100">
                     <Link
                       href={item.href}
+                      prefetch={true}
                       onClick={(e) => {
                         if (item.subItems) {
                           toggleExpand(item.label, e);
@@ -155,6 +152,7 @@ export function MobileExperience({
                           <div className="pb-4 pl-4 flex flex-col gap-1">
                             <Link
                               href={item.href}
+                              prefetch={true}
                               onClick={onClose}
                               className="text-sm font-semibold text-neutral-700 hover:text-[#8B263E] min-h-[44px] flex items-center"
                             >
@@ -164,6 +162,7 @@ export function MobileExperience({
                               <Link
                                 key={subItem.label}
                                 href={subItem.href}
+                                prefetch={true}
                                 onClick={onClose}
                                 className="text-sm text-neutral-600 hover:text-[#8B263E] min-h-[44px] flex items-center"
                               >
@@ -198,7 +197,8 @@ export function MobileExperience({
                     </div>
 
                     <Link
-                      href="/customer/overview"
+                      href={dashboardHref}
+                      prefetch={true}
                       onClick={onClose}
                       className="flex items-center justify-between py-2 text-sm font-semibold text-[#8B263E] hover:text-[#701E31] transition-colors"
                     >
@@ -207,23 +207,6 @@ export function MobileExperience({
                         <span>My Dashboard</span>
                       </div>
                       <ChevronRight className="w-4 h-4 text-[#8B263E]/50" />
-                    </Link>
-
-                    <Link
-                      href="/customer/saved"
-                      onClick={onClose}
-                      className="flex items-center justify-between py-2 text-sm font-semibold text-neutral-700 hover:text-[#8B263E] transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Heart className="w-4 h-4 text-[#8B263E]" />
-                        <span>Saved Shortlist</span>
-                        {savedCount > 0 && (
-                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-[#8B263E] text-white">
-                            {savedCount}
-                          </span>
-                        )}
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-neutral-300" />
                     </Link>
 
                     {onLogout && (
@@ -247,6 +230,7 @@ export function MobileExperience({
                   <>
                     <Link
                       href="/login"
+                      prefetch={true}
                       onClick={onClose}
                       className="flex items-center justify-between py-2.5 text-sm font-semibold text-neutral-700 hover:text-[#8B263E] transition-colors"
                     >

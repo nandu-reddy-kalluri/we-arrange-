@@ -7,9 +7,10 @@ import { HeroBackdrop } from "./BackgroundSystem";
 import { HeroForm } from "./HeroForm";
 import { HeroFloatingCard } from "./HeroFloatingCard";
 
+import type { Venue } from "@/mock-data/venues";
 import { layout, spacing, typography, motionTokens, icons, zIndex } from "@/styles";
 
-export default function HeroSection() {
+export default function HeroSection({ heroVenues = [] }: { heroVenues?: Venue[] }) {
   const { scrollY } = useScroll();
   // Scroll cue fades out as user scrolls down
   const scrollCueOpacity = useTransform(scrollY, [0, 120], [1, 0]);
@@ -75,7 +76,7 @@ export default function HeroSection() {
           transition={{ duration: 1.4, delay: 1.6, ease: [0.16, 1, 0.3, 1] }}
           className="hidden lg:flex w-full lg:w-[42%] xl:w-[38%] items-center justify-center relative min-h-[380px] z-10"
         >
-          <HeroFloatingCard />
+          <HeroFloatingCard venues={heroVenues} />
         </motion.div>
       </div>
 

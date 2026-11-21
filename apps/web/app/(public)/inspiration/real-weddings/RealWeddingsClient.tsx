@@ -355,8 +355,9 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
                 src={featuredWedding.heroImage}
                 alt={featuredWedding.title}
                 fill
-                unoptimized
                 priority
+                sizes="(max-width: 768px) 100vw, 1200px"
+                quality={85}
                 className="object-cover opacity-80 transition-transform duration-1000 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -470,7 +471,14 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {EXPLORE_MORE.map((item, i) => (
             <Link key={i} href={item.link} className="group block relative rounded-2xl overflow-hidden aspect-square border border-[#E8D8BC]/30 focus:outline-none focus:ring-2 focus:ring-[#C8A165]">
-              <Image src={item.img} alt={item.title} fill unoptimized className="object-cover group-hover:scale-110 transition-transform duration-700" />
+              <Image
+                src={item.img}
+                alt={item.title}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                quality={75}
+                className="object-cover group-hover:scale-110 transition-transform duration-700"
+              />
               <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500" />
               <div className="absolute inset-0 flex items-center justify-center p-4 text-center">
                 <span className="text-white font-bold text-sm drop-shadow-md">{item.title}</span>

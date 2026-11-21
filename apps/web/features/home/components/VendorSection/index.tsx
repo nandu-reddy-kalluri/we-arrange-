@@ -1,11 +1,15 @@
 import React from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { vendorCategories } from "@/mock-data/vendors";
+import { vendorCategories as defaultVendorCategories, type VendorCategory } from "@/mock-data/vendors";
 import { VendorScroller } from "./VendorScroller";
 import { typography, spacing, colors, layout } from "@/styles";
 
-export default function VendorSection() {
+export default function VendorSection({
+  categories = defaultVendorCategories,
+}: {
+  categories?: VendorCategory[];
+} = {}) {
   return (
     <section className={`hidden md:block ${spacing.section} ${colors.bgSecondary} relative border-t border-b ${colors.border}`}>
       <div className={`${layout.maxWidth} ${spacing.container}`}>
@@ -26,7 +30,7 @@ export default function VendorSection() {
             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
-        <VendorScroller categories={vendorCategories} />
+        <VendorScroller categories={categories} />
       </div>
     </section>
   );

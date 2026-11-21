@@ -3,32 +3,33 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Eye, Wand2 } from "lucide-react";
 
 type TemplateType = "einvites" | "websites";
 
 const EINVITE_TEMPLATES = [
-  { id: "e1", name: "Royal Heritage", category: "Traditional", isNew: true, image: "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&q=80" },
-  { id: "e2", name: "Minimalist Love", category: "Modern", isNew: false, image: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&q=80" },
-  { id: "e3", name: "Garden Romance", category: "Floral", isNew: false, image: "https://images.unsplash.com/photo-1519225495810-7517c2965a7d?auto=format&fit=crop&q=80" },
-  { id: "e4", name: "Contemporary Elegance", category: "Luxury", isNew: true, image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80" },
+  { id: "e1", name: "Royal Heritage", category: "Traditional", isNew: true, image: "https://venue-images.youmarriagewearrange.com/taj-falaknuma-palace-492086/image-1.webp" },
+  { id: "e2", name: "Minimalist Love", category: "Modern", isNew: false, image: "https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp" },
+  { id: "e3", name: "Garden Romance", category: "Floral", isNew: false, image: "https://decorator-images.youmarriagewearrange.com/episode-events-1333773/image-1.webp" },
+  { id: "e4", name: "Contemporary Elegance", category: "Luxury", isNew: true, image: "https://venue-images.youmarriagewearrange.com/itc-kohenur-544059/image-1.webp" },
 ];
 
 const WEBSITE_TEMPLATES = [
-  { id: "w1", name: "The Editorial", category: "Modern", isNew: true, image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80" },
-  { id: "w2", name: "Classic Story", category: "Traditional", isNew: false, image: "https://images.unsplash.com/photo-1610652492500-ded49ceeb378?auto=format&fit=crop&q=80" },
-  { id: "w3", name: "Botanical Dreams", category: "Floral", isNew: false, image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&q=80" },
-  { id: "w4", name: "Golden Hour", category: "Luxury", isNew: false, image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&q=80" },
+  { id: "w1", name: "The Editorial", category: "Modern", isNew: true, image: "https://images.youmarriagewearrange.com/wedam-chronicles/image-1.webp" },
+  { id: "w2", name: "Classic Story", category: "Traditional", isNew: false, image: "https://venue-images.youmarriagewearrange.com/chowmahalla-palace-22731/image-1.webp" },
+  { id: "w3", name: "Botanical Dreams", category: "Floral", isNew: false, image: "https://decorator-images.youmarriagewearrange.com/fishi-events-entertainments-1333863/image-1.webp" },
+  { id: "w4", name: "Golden Hour", category: "Luxury", isNew: false, image: "https://makeup-images.youmarriagewearrange.com/the-makeup-mafia/The_Makeup_Mafia_4.webp" },
 ];
 
 const VIBES = [
-  { id: "All", name: "All", desc: "View all styles", image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80" },
-  { id: "Minimal", name: "Minimal", desc: "Editorial · Clean", image: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&q=80" },
-  { id: "Royal", name: "Royal", desc: "Regal · Grand", image: "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&q=80" },
-  { id: "Garden", name: "Garden", desc: "Floral · Romantic", image: "https://images.unsplash.com/photo-1519225495810-7517c2965a7d?auto=format&fit=crop&q=80" },
-  { id: "Modern", name: "Modern", desc: "Bold · Contemporary", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80" },
-  { id: "Indian", name: "Indian", desc: "Cultural · Timeless", image: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80" },
-  { id: "Fusion", name: "Fusion", desc: "Personal · Unexpected", image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&q=80" },
+  { id: "All", name: "All", desc: "View all styles", image: "https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp" },
+  { id: "Minimal", name: "Minimal", desc: "Editorial · Clean", image: "https://images.youmarriagewearrange.com/wedam-chronicles/image-1.webp" },
+  { id: "Royal", name: "Royal", desc: "Regal · Grand", image: "https://venue-images.youmarriagewearrange.com/taj-falaknuma-palace-492086/image-1.webp" },
+  { id: "Garden", name: "Garden", desc: "Floral · Romantic", image: "https://decorator-images.youmarriagewearrange.com/episode-events-1333773/image-1.webp" },
+  { id: "Modern", name: "Modern", desc: "Bold · Contemporary", image: "https://venue-images.youmarriagewearrange.com/itc-kohenur-544059/image-1.webp" },
+  { id: "Indian", name: "Indian", desc: "Cultural · Timeless", image: "https://mehendi-images.youmarriagewearrange.com/rachna-mehndi-designs/Rachna_Mehndi_Designs_1.webp" },
+  { id: "Fusion", name: "Fusion", desc: "Personal · Unexpected", image: "https://catering-images.youmarriagewearrange.com/akshaya-caterers-472007/image-1.webp" },
 ];
 
 export function PopularTemplates() {
@@ -100,7 +101,7 @@ export function PopularTemplates() {
                 }`}
                 style={{ width: "160px", height: "90px" }}
               >
-                <img src={vibe.image} alt={vibe.name} className="absolute inset-0 w-full h-full object-cover" />
+                <Image src={vibe.image} alt={vibe.name} fill sizes="160px" quality={75} className="object-cover" />
                 <div className={`absolute inset-0 transition-colors ${isActive ? "bg-black/30" : "bg-black/50 group-hover:bg-black/35"}`} />
                 
                 {/* Active Indicator Badge */}
@@ -149,7 +150,7 @@ export function PopularTemplates() {
               >
                 {/* Image Area with "Studio Preview" overlay */}
                 <div className="relative aspect-[4/5] bg-neutral-100 overflow-hidden">
-                  <img src={template.image} alt={template.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                  <Image src={template.image} alt={template.name} fill sizes="(max-width: 768px) 80vw, 25vw" quality={75} className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
                   
                   {/* Badges */}
                   {template.isNew && (

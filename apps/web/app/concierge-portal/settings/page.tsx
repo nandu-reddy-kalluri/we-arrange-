@@ -60,7 +60,11 @@ export default function AdminSettingsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to update admin password.");
+        const errMsg =
+          typeof data.error === "string"
+            ? data.error
+            : data.error?.message || "Failed to update password.";
+        setError(errMsg);
         setIsLoading(false);
         return;
       }
@@ -84,7 +88,7 @@ export default function AdminSettingsPage() {
 
   const handleLogout = async () => {
     sessionStorage.removeItem("ymwa_admin_tab_authenticated");
-    await fetch("/api/admin/auth/logout", { method: "POST" });
+    await fetch("/api/concierge/auth/logout", { method: "POST" });
     router.push("/concierge-portal/login");
     router.refresh();
   };

@@ -83,6 +83,9 @@ export default function AdminLoginPage() {
       if (params.get("reason") === "password_changed") {
         setSuccessMsg("✓ Password updated successfully. Please log in with your new password.");
       }
+      if (params.get("error") === "unauthorized_role") {
+        setError("Access denied. An active concierge or administrator account is required.");
+      }
     }
   }, []);
 
@@ -93,15 +96,15 @@ export default function AdminLoginPage() {
     return `${mins}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  // ── 1. Handle Admin Login ─────────────────────────────────────────
+  // ── 1. Handle Concierge Login ──────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError("Please enter the admin email address.");
+      setError("Please enter your concierge email address.");
       return;
     }
     if (!password.trim()) {
-      setError("Please enter the admin master password.");
+      setError("Please enter your password.");
       return;
     }
 
@@ -109,7 +112,7 @@ export default function AdminLoginPage() {
     setError(null);
 
     try {
-      const res = await fetch("/api/admin/auth/login", {
+      const res = await fetch("/api/concierge/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
@@ -118,14 +121,26 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Authentication failed. Access denied.");
+        const errMsg =
+          typeof data.error === "string"
+            ? data.error
+            : data.error?.message || "Invalid concierge credentials. Access denied.";
+        setError(errMsg);
         setIsLoading(false);
         return;
       }
 
       // Successful login -> register active tab session & redirect to dashboard
       sessionStorage.setItem("ymwa_admin_tab_authenticated", "true");
-      router.push("/concierge-portal");
+      const rawRedirect =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("redirect")
+          : null;
+      const targetPath =
+        rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+          ? rawRedirect
+          : "/concierge-portal";
+      router.push(targetPath);
       router.refresh();
     } catch {
       setError("Authentication failed. Please verify network connection and retry.");
@@ -425,7 +440,7 @@ export default function AdminLoginPage() {
                     <input
                       suppressHydrationWarning
                       type="email"
-                      placeholder="sanjaypatel243444@gmail.com"
+                      placeholder="concierge@youmarriagewearrange.com"
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -504,7 +519,7 @@ export default function AdminLoginPage() {
                       </>
                     ) : (
                       <>
-                        <span>Access Admin Portal</span>
+                        <span>Access Concierge Portal</span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
@@ -529,7 +544,7 @@ export default function AdminLoginPage() {
                     <input
                       suppressHydrationWarning
                       type="email"
-                      placeholder="sanjaypatel243444@gmail.com"
+                      placeholder="concierge@youmarriagewearrange.com"
                       value={resetEmail}
                       onChange={(e) => {
                         setResetEmail(e.target.value);

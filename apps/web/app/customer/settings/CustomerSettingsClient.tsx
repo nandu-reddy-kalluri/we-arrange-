@@ -1,140 +1,33 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { User, Mail, Shield, Bell } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { ArrowLeft } from "lucide-react";
+import { CustomerSettingsWorkspace } from "@we-arrange/ui";
 
 export default function CustomerSettingsClient() {
-  const { user } = useAuth();
-  const [notificationEmail, setNotificationEmail] = useState(true);
-  const [savedSuccess, setSavedSuccess] = useState(false);
-
-  const handleSavePreferences = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
-  };
-
-  const userName =
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    user?.user_metadata?.display_name ||
-    user?.email?.split("@")[0] ||
-    "User";
-
   return (
     <div>
+      <div className="mb-6">
+        <Link
+          href="/customer/overview"
+          className="inline-flex items-center gap-2 text-xs md:text-sm font-semibold text-neutral-600 hover:text-[#8B263E] transition-colors py-1.5 px-3 -ml-3 rounded-lg hover:bg-[#F5EEE7] w-fit"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Dashboard</span>
+        </Link>
+      </div>
+
       <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#2D2D2D] font-bold">
+        <h1 className="text-3xl font-serif text-[#2D2D2D] font-bold">
           Account Settings
         </h1>
         <p className="mt-1 text-sm text-neutral-500">
-          Manage your profile information and notification preferences.
+          Manage your profile, avatar, wedding planning preferences, notifications, and security settings.
         </p>
       </div>
 
-      {savedSuccess && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="mb-6 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs rounded-xl font-medium"
-        >
-          Preferences updated successfully!
-        </div>
-      )}
-
-      <div className="space-y-6 max-w-2xl">
-        {/* PROFILE INFO CARD */}
-        <section aria-labelledby="profile-details-heading" className="bg-white rounded-2xl border border-[#8B263E]/10 p-6">
-          <h2 id="profile-details-heading" className="text-base font-serif text-[#2D2D2D] font-semibold mb-4 flex items-center gap-2">
-            <User className="w-4 h-4 text-[#8B263E]" aria-hidden="true" />
-            <span>Profile Details</span>
-          </h2>
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="user-name-input" className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-                Full Name
-              </label>
-              <input
-                id="user-name-input"
-                type="text"
-                disabled
-                value={userName}
-                className="w-full h-11 px-4 rounded-xl border border-neutral-200 bg-neutral-50 text-sm text-neutral-700 cursor-not-allowed"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="user-email-input" className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-                Email Address
-              </label>
-              <div className="relative">
-                <input
-                  id="user-email-input"
-                  type="email"
-                  disabled
-                  value={user?.email || "No email linked"}
-                  className="w-full h-11 px-4 rounded-xl border border-neutral-200 bg-neutral-50 text-sm text-neutral-700 cursor-not-allowed"
-                />
-                <Mail className="w-4 h-4 text-neutral-400 absolute right-3.5 top-3.5" aria-hidden="true" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* PREFERENCES CARD */}
-        <section aria-labelledby="notifications-heading" className="bg-white rounded-2xl border border-[#8B263E]/10 p-6">
-          <h2 id="notifications-heading" className="text-base font-serif text-[#2D2D2D] font-semibold mb-4 flex items-center gap-2">
-            <Bell className="w-4 h-4 text-[#8B263E]" aria-hidden="true" />
-            <span>Notifications & Concierge Updates</span>
-          </h2>
-
-          <form onSubmit={handleSavePreferences} className="space-y-4">
-            <label className="flex items-center justify-between cursor-pointer">
-              <div>
-                <p className="text-sm font-semibold text-[#2D2D2D]">Email Notifications</p>
-                <p className="text-xs text-neutral-500">Receive quote alerts and vendor responses via email</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={notificationEmail}
-                onChange={(e) => setNotificationEmail(e.target.checked)}
-                className="w-4 h-4 accent-[#8B263E]"
-              />
-            </label>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="px-6 py-2 rounded-full bg-[#8B263E] hover:bg-[#701E31] text-white text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer"
-              >
-                Save Preferences
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* SECURITY CARD */}
-        <section aria-labelledby="security-heading" className="bg-white rounded-2xl border border-[#8B263E]/10 p-6">
-          <h2 id="security-heading" className="text-base font-serif text-[#2D2D2D] font-semibold mb-4 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[#8B263E]" aria-hidden="true" />
-            <span>Security & Password</span>
-          </h2>
-
-          <p className="text-xs text-neutral-500 mb-4">
-            Need to change your password? You can request a password reset link to your registered email.
-          </p>
-
-          <Link
-            href="/reset-password"
-            className="inline-block px-5 py-2 rounded-full border border-[#8B263E] text-[#8B263E] hover:bg-[#8B263E] hover:text-white text-xs font-semibold transition-colors"
-          >
-            Reset Password
-          </Link>
-        </section>
-      </div>
+      <CustomerSettingsWorkspace />
     </div>
   );
 }

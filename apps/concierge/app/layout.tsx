@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@we-arrange/auth";
 import { ConciergePortalShell } from "./ConciergePortalShell";
 
 const playfair = Playfair_Display({
@@ -21,6 +22,10 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Concierge Portal | YouMarriage",
   description: "Internal Concierge Control Center",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
@@ -31,7 +36,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${jakarta.variable}`}>
       <body className="min-h-screen bg-[#FBF9F6] font-sans antialiased">
-        <ConciergePortalShell>{children}</ConciergePortalShell>
+        <AuthProvider>
+          <ConciergePortalShell>{children}</ConciergePortalShell>
+        </AuthProvider>
       </body>
     </html>
   );

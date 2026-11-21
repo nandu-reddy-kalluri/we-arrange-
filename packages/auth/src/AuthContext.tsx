@@ -8,6 +8,7 @@ import React, {
   type ReactNode,
 } from "react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { apiClient, registerAccessTokenProvider } from "@we-arrange/api-client";
 import { supabase } from "./supabaseClient";
 
 export interface AuthContextType {
@@ -18,20 +19,43 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const getSessionAccessToken = async () => {
+  try {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  if (typeof window !== "undefined") {
+    registerAccessTokenProvider(getSessionAccessToken);
+  }
+
   useEffect(() => {
     let mounted = true;
+    let unsubscribe: (() => void) | undefined;
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      setUser(session?.user ?? null);
+    registerAccessTokenProvider(getSessionAccessToken);
+
+    try {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!mounted) return;
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
+      unsubscribe = () => subscription.unsubscribe();
+    } catch (error) {
+      console.error("AUTH LISTENER ERROR:", error);
+      setUser(null);
       setLoading(false);
-    });
+    }
 
     const loadSession = async () => {
       try {
@@ -55,17 +79,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    loadSession();
+    void loadSession();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      unsubscribe?.();
     };
   }, []);
 
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
+      await apiClient.logout().catch(() => undefined);
       if (error) {
         console.error("LOGOUT ERROR:", error);
         throw error;

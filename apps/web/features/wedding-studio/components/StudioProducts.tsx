@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Mail, Globe } from "lucide-react";
 
 export function StudioProducts() {
@@ -154,11 +155,25 @@ export function StudioProducts() {
                 </div>
                 <div className="flex-1 relative flex flex-col bg-neutral-50">
                   <div className="h-24 w-full bg-[#4A7C59]/10 relative overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1519225495810-7517c2965a7d?auto=format&fit=crop&q=80" alt="wedding" className="w-full h-full object-cover opacity-50" />
+                    <Image
+                      src="https://decorator-images.youmarriagewearrange.com/episode-events-1333773/image-1.webp"
+                      alt="Wedding decor"
+                      fill
+                      sizes="300px"
+                      quality={75}
+                      className="object-cover opacity-50"
+                    />
                   </div>
                   <div className="flex-1 p-4 flex flex-col items-center">
                     <div className="w-16 h-16 rounded-full bg-white border-2 border-white shadow-md -mt-10 overflow-hidden relative z-10 mb-2">
-                       <img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&q=80" alt="couple" className="w-full h-full object-cover" />
+                       <Image
+                         src="https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp"
+                         alt="Couple celebration"
+                         fill
+                         sizes="64px"
+                         quality={75}
+                         className="object-cover"
+                       />
                     </div>
                     <div className="font-serif text-sm font-bold text-neutral-800">Aarav & Diya</div>
                     <div className="text-[6px] text-neutral-500 uppercase tracking-widest mt-1 mb-3">Our Wedding Story</div>

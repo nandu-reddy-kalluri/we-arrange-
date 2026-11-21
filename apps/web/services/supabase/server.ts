@@ -1,13 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getSupabasePublicEnv } from "@we-arrange/auth";
 import type { Database } from "@we-arrange/database/types";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
+  const headerStore = await headers();
+  const authHeader = headerStore.get("authorization");
   const { url, anonKey } = getSupabasePublicEnv();
 
   return createServerClient<Database>(url, anonKey, {
+    ...(authHeader && authHeader.toLowerCase().startsWith("bearer ")
+      ? { global: { headers: { Authorization: authHeader } } }
+      : {}),
     cookies: {
       getAll() {
         return cookieStore.getAll();

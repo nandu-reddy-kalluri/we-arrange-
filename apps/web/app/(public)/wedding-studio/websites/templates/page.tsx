@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Wedding Website Templates — Editorial and Luxury Designs",
+  description: "Explore responsive, mobile-optimized wedding website templates with seamless RSVP collection.",
+  alternates: {
+    canonical: "https://www.youmarriagewearrange.com/wedding-studio/websites/templates",
+  },
+};
+
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";

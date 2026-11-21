@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "eInvites Studio — Digital Wedding Invitation Design",
+  description: "Design luxury animated digital invitations with personalized typography, music, and ceremony details.",
+  alternates: {
+    canonical: "https://www.youmarriagewearrange.com/wedding-studio/einvites",
+  },
+};
+
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";

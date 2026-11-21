@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { Loader2 } from "lucide-react";
+import { conciergeApi } from "@we-arrange/api-client";
 
 export function ConciergePortalShell({
   children,
@@ -31,23 +32,31 @@ export function ConciergePortalShell({
       return;
     }
 
-    // Verify active session authentication in tab
-    const tabAuth =
-      typeof window !== "undefined"
-        ? sessionStorage.getItem("ymwa_admin_tab_authenticated")
-        : null;
+    let cancelled = false;
+    setIsVerifyingSession(true);
 
-    if (!tabAuth) {
-      // Invalidate any lingering server-side cookie and redirect to login
-      fetch("/api/admin/auth/logout", { method: "POST" }).finally(() => {
+    conciergeApi.getWorkspaceSummary().then((res) => {
+      if (cancelled) return;
+      if (res.ok) {
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("ymwa_admin_tab_authenticated", "true");
+        }
+        setIsAuthenticatedInTab(true);
         setIsVerifyingSession(false);
-        router.replace("/login");
-      });
-      return;
-    }
+        return;
+      }
 
-    setIsAuthenticatedInTab(true);
-    setIsVerifyingSession(false);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("ymwa_admin_tab_authenticated");
+      }
+      setIsAuthenticatedInTab(false);
+      setIsVerifyingSession(false);
+      router.replace("/login");
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [pathname, isLoginPage, router]);
 
   if (isLoginPage) {

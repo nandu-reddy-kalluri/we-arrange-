@@ -155,3 +155,19 @@ export const enquiryListQuerySchema = paginationQuerySchema.extend({
   assignedToMe: z.enum(["true", "false"]).optional(),
 });
 
+export const vendorQuoteCreateSchema = z
+  .object({
+    enquiryId: positiveIntIdSchema,
+    packageName: z.string().trim().min(2).max(160),
+    baseCostInr: inrAmountSchema,
+    cateringIncluded: z.boolean().default(false),
+    inclusions: z.array(z.string().trim().min(1).max(240)).max(50).default([]),
+    exclusions: z.array(z.string().trim().min(1).max(240)).max(50).default([]),
+    notes: z.string().trim().max(2000).optional(),
+    validUntil: isoDateSchema.optional(),
+    status: z.enum(["Draft", "Published"]).default("Published"),
+  })
+  .strict();
+
+export type VendorQuoteCreateInput = z.infer<typeof vendorQuoteCreateSchema>;
+

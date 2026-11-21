@@ -1,8 +1,4 @@
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "YouMarriageWeArrange - Wedding Planning made Simple",
-};
+import React from "react";
 
 export default function PublicLayout({
   children,

@@ -1,11 +1,40 @@
 import React from "react";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { featuredVenues } from "@/mock-data/venues";
+import { createPublicAnonClient } from "@we-arrange/database/clients";
+import { listPublicVenues, listVenueTypes } from "@we-arrange/service-venue";
+import type { Venue } from "@/mock-data/venues";
+import { mapDbVenueToUi } from "@/services/catalog/catalogMappers";
 import { VenueCarousel } from "./VenueCarousel";
 import { typography, spacing, colors, layout } from "@/styles";
 
-export default function VenueSection() {
+async function loadFeaturedVenues(): Promise<Venue[]> {
+  try {
+    const supabase = createPublicAnonClient();
+    const [venuesRes, types] = await Promise.all([
+      listPublicVenues(supabase, { page: 1, limit: 3 }, { includeMedia: true }),
+      listVenueTypes(supabase),
+    ]);
+    const typeMap = new Map<number, string>(
+      types.map((t) => [Number(t.type_id), String(t.type_name)])
+    );
+    return venuesRes.items.map((row) =>
+      mapDbVenueToUi(row as unknown as Record<string, unknown>, undefined, typeMap)
+    );
+  } catch {
+    return [];
+  }
+}
+
+export default async function VenueSection({
+  venues,
+  totalCount,
+}: {
+  venues?: Venue[];
+  totalCount?: number;
+} = {}) {
+  const featuredVenues = venues ?? (await loadFeaturedVenues());
+
   return (
     <section className={`py-10 lg:py-14 ${colors.bgPrimary} relative`}>
       <div className={`${layout.maxWidth} ${spacing.container}`}>
@@ -26,7 +55,7 @@ export default function VenueSection() {
             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
-        <VenueCarousel venues={featuredVenues} />
+        <VenueCarousel venues={featuredVenues} totalCount={totalCount} />
       </div>
     </section>
   );

@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,19 +12,27 @@ interface InspirationCardProps {
 }
 
 export function InspirationCard({ item, onClick }: InspirationCardProps) {
+  const [isLoaded, setIsLoaded] = React.useState(false);
   // Determine link destination based on category
   const href = `/inspiration/${item.category}/${item.slug}`;
 
   const innerContent = (
     <>
       {/* Image Container with Aspect Ratio 4:5 */}
-      <div className="relative w-full aspect-[4/5] overflow-hidden">
+      <div className="relative w-full aspect-[4/5] overflow-hidden bg-stone-100">
+        {!isLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-[#F7F4EE] to-stone-100 animate-pulse z-0 pointer-events-none" />
+        )}
         <Image
           src={item.imageUrl}
           alt={item.title}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+          quality={75}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          onLoad={() => setIsLoaded(true)}
+          className={`object-cover transition-all duration-700 ease-out group-hover:scale-110 ${
+            isLoaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-[4px] scale-[1.02]"
+          }`}
         />
         
         {/* Soft elegant vignette overlay */}

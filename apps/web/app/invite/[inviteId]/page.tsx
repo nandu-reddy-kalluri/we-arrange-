@@ -160,6 +160,8 @@ export default function InvitePage({ params }: InvitePageProps) {
               alt="Couple Portrait"
               fill
               priority
+              sizes="(max-width: 640px) 100vw, 448px"
+              quality={85}
               className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#FAF9F6] via-transparent to-black/20" />
@@ -282,13 +284,13 @@ export default function InvitePage({ params }: InvitePageProps) {
             <h3 className="text-xs font-bold uppercase tracking-widest text-[#C5A880] border-b border-neutral-100 pb-2">Gallery</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-50">
-                <Image src="/images/editorial/insp_bridal.png" alt="Bridal Preview" fill className="object-cover" />
+                <Image src="/images/editorial/insp_bridal.png" alt="Bridal Preview" fill sizes="(max-width: 640px) 50vw, 200px" quality={75} className="object-cover" />
               </div>
               <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-50">
-                <Image src="/images/editorial/insp_groom.png" alt="Groom Preview" fill className="object-cover" />
+                <Image src="/images/editorial/insp_groom.png" alt="Groom Preview" fill sizes="(max-width: 640px) 50vw, 200px" quality={75} className="object-cover" />
               </div>
               <div className="col-span-2 relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-50">
-                <Image src="/images/editorial/insp_photography.png" alt="Couple Preview" fill className="object-cover" />
+                <Image src="/images/editorial/insp_photography.png" alt="Couple Preview" fill sizes="(max-width: 640px) 100vw, 400px" quality={75} className="object-cover" />
               </div>
             </div>
           </div>

@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Guest List and RSVP Management Tool",
+  description: "Track wedding guests, family groups, meal preferences, and RSVP confirmations in one intuitive dashboard.",
+  alternates: {
+    canonical: "https://www.youmarriagewearrange.com/planning/guests",
+  },
+};
+
 import { ComingSoon } from "@/components/layout/ComingSoon";
 
 export default function GuestsPage() {

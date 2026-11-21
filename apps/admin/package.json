@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@we-arrange/api-client": "workspace:*",
     "@we-arrange/auth": "workspace:*",
     "@we-arrange/database": "workspace:*",
     "@we-arrange/design-system": "workspace:*",

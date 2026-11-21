@@ -70,7 +70,8 @@ export function CategoryGrid({ onSelectCategory, selectedCategory }: CategoryGri
                     src={cat.imageUrl}
                     alt={cat.name}
                     fill
-                    unoptimized
+                    quality={75}
+                    sizes="(max-width: 768px) 50vw, 20vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
                   />
                   {/* Luxury Overlay */}

@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Heart, Building2, Sparkles } from "lucide-react";
+import { CardSkeleton, CustomerCollectionsPanel, ShortlistQuoteBanner } from "@we-arrange/ui";
 import { useSavedStore } from "@/store/useSavedStore";
-import { featuredVenues, Venue } from "@/mock-data/venues";
-import { mockVendors, Vendor } from "@/mock-data/vendors";
+import type { Venue } from "@/mock-data/venues";
+import type { Vendor } from "@/mock-data/vendors";
+import { fetchSavedCatalogItems } from "@/services/catalog/catalogApi";
 import VenueCard from "@/components/cards/VenueCard";
 import VendorCard from "@/components/cards/VendorCard";
 
@@ -14,24 +16,52 @@ type ActiveTab = "all" | "venues" | "vendors";
 export default function CustomerSavedClient() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("all");
   const [isMounted, setIsMounted] = useState(false);
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+  const [savedVenues, setSavedVenues] = useState<Venue[]>([]);
+  const [savedVendors, setSavedVendors] = useState<Vendor[]>([]);
 
-  const { savedVenueIds, savedVendorIds, removeSavedVenue, removeSavedVendor } = useSavedStore();
+  const { savedVenueIds, savedVendorIds, removeSavedVenue, removeSavedVendor, syncWithServer } =
+    useSavedStore();
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    void syncWithServer();
+  }, [syncWithServer]);
 
-  const savedVenues = useMemo<Venue[]>(() => {
-    if (!isMounted) return [];
-    return featuredVenues.filter((venue) => savedVenueIds.includes(venue.id));
-  }, [savedVenueIds, isMounted]);
+  useEffect(() => {
+    if (!isMounted) return;
+    let active = true;
+    const hasIds = savedVenueIds.length > 0 || savedVendorIds.length > 0;
+    if (!hasIds) {
+      setSavedVenues([]);
+      setSavedVendors([]);
+      setIsLoadingItems(false);
+      return;
+    }
 
-  const savedVendors = useMemo<Vendor[]>(() => {
-    if (!isMounted) return [];
-    return mockVendors.filter((vendor) => savedVendorIds.includes(vendor.id));
-  }, [savedVendorIds, isMounted]);
+    setIsLoadingItems(true);
+    void fetchSavedCatalogItems({
+      venueIds: savedVenueIds,
+      vendorIds: savedVendorIds,
+    })
+      .then((res) => {
+        if (!active) return;
+        setSavedVenues(res.venues);
+        setSavedVendors(res.vendors);
+        setIsLoadingItems(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setIsLoadingItems(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isMounted, savedVenueIds, savedVendorIds]);
 
   const totalSavedCount = savedVenues.length + savedVendors.length;
+  const showLoader = !isMounted || isLoadingItems;
 
   return (
     <div>
@@ -157,12 +187,24 @@ export default function CustomerSavedClient() {
         </button>
       </div>
 
+      {/* COLLECTIONS & SHORTLIST ENQUIRY */}
+      <div className="mt-8 space-y-4">
+        <CustomerCollectionsPanel />
+        {isMounted && totalSavedCount > 0 && (
+          <ShortlistQuoteBanner
+            savedVenueIds={savedVenueIds}
+            savedVendorIds={savedVendorIds}
+          />
+        )}
+      </div>
+
       {/* TAB CONTENT */}
       <div className="mt-8">
-        {!isMounted ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3">
-            <div className="w-8 h-8 rounded-full border-2 border-[#8B263E] border-t-transparent animate-spin" />
-            <span className="text-xs font-bold text-neutral-500">Loading saved items...</span>
+        {showLoader ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 py-4" aria-label="Loading saved items">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <CardSkeleton key={idx} />
+            ))}
           </div>
         ) : totalSavedCount === 0 ? (
           /* Overall Empty State */

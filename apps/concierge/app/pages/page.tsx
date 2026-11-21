@@ -102,7 +102,7 @@ export default function AdminPagesListPage() {
                       </Link>
 
                       <Link
-                        href={`/concierge-portal/pages/${page.slug}`}
+                        href={`/pages/${page.slug}`}
                         className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#8B263E] hover:bg-[#721f33] text-white font-bold text-xs shadow-sm transition-all"
                       >
                         <Edit3 className="w-3.5 h-3.5" />

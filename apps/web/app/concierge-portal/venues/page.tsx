@@ -69,9 +69,9 @@ export default function AdminVenuesPage() {
       rating: 5.0,
       reviewCount: 0,
       savedCount: 0,
-      imageUrl: "https://image.wedmegood.com/resized/800X/uploads/member/25515947/1738996801_ASH09457.JPG",
+      imageUrl: "/images/placeholders/venue.svg",
       gallery: [
-        "https://image.wedmegood.com/resized/800X/uploads/member/25515947/1738996801_ASH09457.JPG",
+        "/images/placeholders/venue.svg",
       ],
       isVerified: true,
       isPopular: false,

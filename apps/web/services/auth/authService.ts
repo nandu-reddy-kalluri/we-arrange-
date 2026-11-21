@@ -28,6 +28,7 @@ const VENDOR_CATEGORY_ALIAS_MAP: Record<string, string> = {
   photography: "photographers",
   photographers: "photographers",
   decor: "decorators",
+  "decor-florists": "decorators",
   decorators: "decorators",
   catering: "catering",
   mehendi: "mehendi",
@@ -88,6 +89,50 @@ export async function syncPublicUserRecord(
   return { userId: params.userId, roleId: roleRow?.role_id ?? null };
 }
 
+async function signUpWithDuplicateCheck(
+  supabase: SupabaseClient<Database>,
+  adminClient: SupabaseClient<Database>,
+  input: { email: string; password: string; fullName: string }
+) {
+  const { data: existingUser } = await adminClient
+    .from("users")
+    .select("user_id, email")
+    .eq("email", input.email)
+    .maybeSingle();
+
+  if (existingUser && existingUser.email?.toLowerCase().trim() === input.email) {
+    throw new AppError("CONFLICT", 409, "An account with this email already exists.");
+  }
+
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email,
+    password: input.password,
+    options: {
+      data: {
+        full_name: input.fullName.trim(),
+      },
+    },
+  });
+
+  const isDuplicate =
+    error?.status === 422 ||
+    (error as { code?: string } | null)?.code === "user_already_exists" ||
+    Boolean(error?.message?.toLowerCase().includes("already")) ||
+    (Array.isArray(data?.user?.identities) && data.user.identities.length === 0);
+
+  if (error || !data.user || isDuplicate) {
+    throw new AppError(
+      isDuplicate ? "CONFLICT" : "VALIDATION_ERROR",
+      isDuplicate ? 409 : 400,
+      isDuplicate
+        ? "An account with this email already exists."
+        : error?.message || "Unable to register account."
+    );
+  }
+
+  return { user: data.user, session: data.session };
+}
+
 export async function registerCustomerAccount(
   input: RegisterCustomerInput,
   deps?: {
@@ -99,25 +144,11 @@ export async function registerCustomerAccount(
   const adminClient = deps?.adminClient ?? createServiceRoleClient();
   const normalizedEmail = input.email.toLowerCase().trim();
 
-  const { data, error } = await supabase.auth.signUp({
+  const data = await signUpWithDuplicateCheck(supabase, adminClient, {
     email: normalizedEmail,
     password: input.password,
-    options: {
-      data: {
-        full_name: input.fullName.trim(),
-      },
-    },
+    fullName: input.fullName,
   });
-
-  if (error || !data.user) {
-    throw new AppError(
-      error?.status === 422 || error?.message?.toLowerCase().includes("already")
-        ? "CONFLICT"
-        : "VALIDATION_ERROR",
-      error?.status === 422 ? 409 : 400,
-      error?.message || "Unable to register account."
-    );
-  }
 
   try {
     await syncPublicUserRecord(adminClient, {
@@ -168,23 +199,11 @@ export async function registerVendorAccount(
     throw new AppError("VALIDATION_ERROR", 400, "Unknown vendor category.");
   }
 
-  const { data, error } = await supabase.auth.signUp({
+  const data = await signUpWithDuplicateCheck(supabase, adminClient, {
     email: normalizedEmail,
     password: input.password,
-    options: {
-      data: {
-        full_name: input.fullName.trim(),
-      },
-    },
+    fullName: input.fullName,
   });
-
-  if (error || !data.user) {
-    throw new AppError(
-      error?.status === 422 ? "CONFLICT" : "VALIDATION_ERROR",
-      error?.status === 422 ? 409 : 400,
-      error?.message || "Unable to register vendor account."
-    );
-  }
 
   const uniqueSlug = `${slugify(input.businessName) || "vendor"}-${Date.now().toString(36)}`;
   let vendorRow: { vendor_id: number; slug: string | null; is_verified: boolean | null; status: string | null };
@@ -253,6 +272,10 @@ export async function loginWithPassword(
     supabase?: SupabaseClient<Database>;
     adminClient?: SupabaseClient<Database>;
     requireStaff?: boolean;
+    requireAdmin?: boolean;
+    requireVendor?: boolean;
+    rejectAdmin?: boolean;
+    rejectStaff?: boolean;
   }
 ): Promise<AuthenticatedContext> {
   const supabase = deps?.supabase ?? (await createSupabaseServerClient());
@@ -267,13 +290,60 @@ export async function loginWithPassword(
     throw new AppError("UNAUTHENTICATED", 401, "Invalid email or password.");
   }
 
-  const ctx = await resolveAuthenticatedContext(supabase, adminClient);
+  let ctx: AuthenticatedContext;
+  try {
+    ctx = await resolveAuthenticatedContext(supabase, adminClient);
+  } catch (resolveErr) {
+    // Revoke only this denied login session so rejected inactive accounts do not keep session cookies.
+    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+    throw resolveErr;
+  }
+
+  if (deps?.rejectAdmin && (ctx.isActiveAdmin || ctx.role === "admin")) {
+    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+    throw new AppError(
+      "FORBIDDEN",
+      403,
+      "Access restricted: Administrator accounts cannot sign in through the public login page. Please access via the designated admin portal entrance."
+    );
+  }
+
+  if (deps?.rejectStaff && ctx.role === "concierge") {
+    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+    throw new AppError(
+      "FORBIDDEN",
+      403,
+      "Access restricted: Concierge staff accounts must sign in through the Concierge Portal."
+    );
+  }
+
+  if (deps?.requireAdmin && !ctx.isActiveAdmin) {
+    // Revoke only this denied login session so legitimate sessions on another portal stay intact.
+    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+    throw new AppError(
+      "FORBIDDEN",
+      403,
+      "Active administrator membership is required to access the admin portal."
+    );
+  }
+
   if (deps?.requireStaff && !ctx.isConciergeOrAdmin) {
-    await supabase.auth.signOut().catch(() => undefined);
+    // Revoke only this denied login session so legitimate sessions on another portal stay intact.
+    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
     throw new AppError(
       "FORBIDDEN",
       403,
       "This account is not authorized as an active Administrator or Concierge."
+    );
+  }
+
+  if (deps?.requireVendor && ctx.role !== "vendor" && !ctx.isActiveAdmin) {
+    // Revoke only this denied login session so legitimate sessions on another portal stay intact.
+    await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+    throw new AppError(
+      "FORBIDDEN",
+      403,
+      "Vendor account required to sign in to the vendor portal."
     );
   }
 

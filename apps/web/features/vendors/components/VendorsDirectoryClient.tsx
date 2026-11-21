@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { SlidersHorizontal } from "lucide-react";
-import { mockVendors, Vendor } from "@/mock-data/vendors";
+import { Vendor } from "@/mock-data/vendors";
+import { fetchPaginatedVendors } from "@/services/catalog/catalogApi";
 
 // Subcomponents
 import { HeroSection } from "./HeroSection";
@@ -21,7 +21,7 @@ const INITIAL_FILTERS: FilterState = {
   isVerified: false,
   spaceType: "",
   sortBy: "popularity",
-  minPrice: 0.5,
+  minPrice: 0,
   maxPrice: 10,
 };
 
@@ -47,64 +47,85 @@ export function PageLoader() {
 // Only re-renders when filteredVendors, filters, or searchQuery change.
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface VendorGridProps {
-  vendors: Vendor[];
-  filters: FilterState;
-  setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
-  onResetFilters: () => void;
-  isLoading: boolean;
-  searchQuery: string;
-  setSearchQuery: (q: string) => void;
-}
-
-const MemoizedVendorGrid = React.memo(function MemoizedVendorGrid({
-  vendors,
-  filters,
-  setFilters,
-  onResetFilters,
-  isLoading,
-  searchQuery,
-  setSearchQuery,
-}: VendorGridProps) {
-  return (
-    <FeaturedVendors
-      vendors={vendors}
-      filters={filters}
-      setFilters={setFilters}
-      onResetFilters={onResetFilters}
-      isLoading={isLoading}
-      searchQuery={searchQuery}
-      setSearchQuery={setSearchQuery}
-    />
-  );
-});
+const MemoizedVendorGrid = React.memo(FeaturedVendors);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Client Component
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCategory?: string }) {
-  const router = useRouter();
-
   // Defer rendering until after hydration
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadTick, setReloadTick] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filters, setFilters] = useState<FilterState>({
     ...INITIAL_FILTERS,
     category: defaultCategory || INITIAL_FILTERS.category,
   });
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Transition skeleton — only fires when committed filters change
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset to page 1 when server-side query params change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, filters.category, filters.city, filters.rating, filters.isVerified, filters.sortBy]);
+
   useEffect(() => {
     if (!mounted) return;
-    setIsTransitioning(true);
-    const timer = setTimeout(() => setIsTransitioning(false), 320);
-    return () => clearTimeout(timer);
-  }, [filters, mounted]);
+    let active = true;
+    setIsLoading(true);
+    setError(null);
+
+    const serverSortBy: "relevance" | "rating" | "reviews" | "newest" =
+      filters.sortBy === "top-rated" || filters.sortBy === "highest-rated"
+        ? "rating"
+        : filters.sortBy === "most-reviewed"
+          ? "reviews"
+          : filters.sortBy === "newest"
+            ? "newest"
+            : "relevance";
+    const parsedMinRating = filters.rating ? parseFloat(filters.rating) : undefined;
+
+    void fetchPaginatedVendors({
+      page,
+      limit: 20,
+      q: debouncedSearch || undefined,
+      category: filters.category || undefined,
+      city: filters.city || undefined,
+      verifiedOnly: filters.isVerified || undefined,
+      minRating: Number.isFinite(parsedMinRating) ? parsedMinRating : undefined,
+      sortBy: serverSortBy,
+    }).then((result) => {
+      if (!active) return;
+      setVendors(result.items);
+      setTotalCount(result.meta.total);
+      setTotalPages(Math.max(1, result.meta.totalPages));
+      setError(result.error ?? null);
+      setIsLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [mounted, page, debouncedSearch, filters.category, filters.city, filters.rating, filters.isVerified, filters.sortBy, reloadTick]);
 
   // URL param init
   useEffect(() => {
@@ -126,33 +147,23 @@ export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCatego
     }
   }, [mounted]);
 
-  // ── Filtered + sorted vendor list ──
+  // ── Optional client-side refinements + sorting without hiding backend search/category matches ──
   const filteredVendors = useMemo(() => {
-    const list = mockVendors.filter((vendor) => {
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        if (
-          !vendor.name.toLowerCase().includes(q) &&
-          !vendor.tags?.some((t) => t.toLowerCase().includes(q)) &&
-          !vendor.category.toLowerCase().includes(q)
-        ) return false;
-      }
-      if (filters.category && vendor.category !== filters.category) return false;
-      if (filters.city && vendor.city !== filters.city) return false;
-      if (filters.budgetTier && vendor.tier !== filters.budgetTier) return false;
+    const list = vendors.filter((vendor) => {
+      if (filters.budgetTier && vendor.tier && vendor.tier !== filters.budgetTier) return false;
       if (filters.rating && vendor.rating < parseFloat(filters.rating)) return false;
-      if (filters.experience && (vendor.experience || 0) < parseInt(filters.experience)) return false;
-      if (filters.availability && vendor.availability !== "Available") return false;
+      if (filters.experience && (vendor.experience || 0) < parseInt(filters.experience, 10)) return false;
+      if (filters.availability && vendor.availability && vendor.availability !== "Available") return false;
       if (filters.isVerified && !vendor.isVerified) return false;
-      if (filters.spaceType) {
+      if (filters.spaceType && vendor.spaceType) {
         const t = filters.spaceType.toLowerCase();
         const isIndoor = ["indoor", "banquet", "banquet hall"].includes(t);
         const isOutdoor = ["outdoor", "garden", "rooftop", "beach", "palace"].includes(t);
         if (isIndoor && vendor.spaceType !== "Indoor" && vendor.spaceType !== "Both") return false;
         if (isOutdoor && vendor.spaceType !== "Outdoor" && vendor.spaceType !== "Both") return false;
       }
-      if (filters.minPrice && vendor.priceStart < filters.minPrice) return false;
-      if (filters.maxPrice && vendor.priceStart > filters.maxPrice) return false;
+      if (filters.minPrice > 0 && vendor.priceStart < filters.minPrice) return false;
+      if (filters.maxPrice < 10 && vendor.priceStart > filters.maxPrice) return false;
       return true;
     });
 
@@ -166,8 +177,10 @@ export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCatego
       return [...list].sort((a, b) => b.id.localeCompare(a.id));
     if (filters.sortBy === "fastest-response")
       return [...list].sort((a, b) => (a.experience || 0) - (b.experience || 0));
-    return [...list].sort((a, b) => b.reviewsCount - a.reviewsCount);
-  }, [filters, searchQuery]);
+    if (filters.sortBy === "most-reviewed")
+      return [...list].sort((a, b) => b.reviewsCount - a.reviewsCount || b.rating - a.rating);
+    return list;
+  }, [filters, vendors]);
 
   // ── Stable callbacks (prevent child re-renders) ──
   const handleSelectCategory = useCallback((slug: string) => {
@@ -238,10 +251,16 @@ export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCatego
             <div className="flex-grow">
               <MemoizedVendorGrid
                 vendors={filteredVendors}
+                totalCount={totalCount}
                 filters={filters}
                 setFilters={setFilters}
                 onResetFilters={handleClearFilters}
-                isLoading={isTransitioning}
+                isLoading={isLoading}
+                error={error}
+                onRetry={() => setReloadTick((n) => n + 1)}
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
               />

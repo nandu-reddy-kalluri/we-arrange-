@@ -1,6 +1,10 @@
 import React from "react";
-import { mockVendors } from "@/mock-data/vendors";
 import type { Metadata } from "next";
+import { createPublicAnonClient } from "@we-arrange/database/clients";
+import {
+  getPublicVendorBySlugOrId,
+  listVendorCategories,
+} from "@we-arrange/service-vendor";
 import VendorDetailsClient from "./VendorDetailsClient";
 import { VendorsDirectoryClient } from "@/features/vendors/components/VendorsDirectoryClient";
 
@@ -10,42 +14,77 @@ interface VendorPageProps {
   }>;
 }
 
-const CATEGORY_SLUGS = [
-  "photography",
-  "makeup",
-  "decor",
-  "mehendi",
-  "catering"
-];
+const CATEGORY_ALIAS_TO_UI: Record<string, string> = {
+  photography: "photography",
+  photographers: "photography",
+  makeup: "makeup",
+  "bridal-makeup": "makeup",
+  decor: "decor",
+  decorators: "decor",
+  "decor-florists": "decor",
+  mehendi: "mehendi",
+  catering: "catering",
+};
 
-// Helper to determine if slug is a category or detail page
-const isCategorySlug = (slug: string) => CATEGORY_SLUGS.includes(slug.toLowerCase());
+async function resolveCategorySlug(slug: string): Promise<string | null> {
+  const lower = slug.toLowerCase();
+  if (lower in CATEGORY_ALIAS_TO_UI) {
+    return CATEGORY_ALIAS_TO_UI[lower];
+  }
+  try {
+    const supabase = createPublicAnonClient();
+    const categories = await listVendorCategories(supabase);
+    const matched = categories.find((c) => c.slug?.toLowerCase() === lower);
+    if (matched) {
+      return CATEGORY_ALIAS_TO_UI[lower] ?? matched.slug;
+    }
+  } catch {
+    // Fall back to vendor detail lookup when categories cannot be queried
+  }
+  return null;
+}
 
 export async function generateMetadata({ params }: VendorPageProps): Promise<Metadata> {
   const { slug } = await params;
-  
-  if (isCategorySlug(slug)) {
-    const formattedCategory = slug.charAt(0).toUpperCase() + slug.slice(1);
+
+  const matchedCategory = await resolveCategorySlug(slug);
+  if (matchedCategory) {
+    const formattedCategory =
+      matchedCategory.charAt(0).toUpperCase() + matchedCategory.slice(1);
     return {
       title: `${formattedCategory} Artists & Services | YouMarriage Vendors`,
       description: `Find the best ${formattedCategory} vendors in Hyderabad on YouMarriage.`,
     };
   }
 
-  const vendor = mockVendors.find(v => v.slug === slug);
-  if (!vendor) return { title: "Vendor Not Found | YouMarriage" };
-  
-  return {
-    title: `${vendor.name} | YouMarriage Vendors`,
-    description: vendor.description || `Book ${vendor.name} for your wedding on YouMarriage.`,
-  };
+  try {
+    const supabase = createPublicAnonClient();
+    const detail = await getPublicVendorBySlugOrId(supabase, slug);
+    const vendorName = detail.vendor?.vendor_name;
+    if (typeof vendorName === "string" && vendorName.trim()) {
+      const desc =
+        typeof detail.vendor.description === "string" &&
+        detail.vendor.description.trim()
+          ? detail.vendor.description
+          : `Book ${vendorName} for your wedding on YouMarriage.`;
+      return {
+        title: `${vendorName} | YouMarriage Vendors`,
+        description: desc,
+      };
+    }
+  } catch {
+    // 404 or transient lookup failure
+  }
+
+  return { title: "Vendor Not Found | YouMarriage" };
 }
 
 export default async function Page({ params }: VendorPageProps) {
   const { slug } = await params;
-  
-  if (isCategorySlug(slug)) {
-    return <VendorsDirectoryClient defaultCategory={slug.toLowerCase()} />;
+
+  const matchedCategory = await resolveCategorySlug(slug);
+  if (matchedCategory) {
+    return <VendorsDirectoryClient defaultCategory={matchedCategory} />;
   }
 
   return <VendorDetailsClient slug={slug} />;

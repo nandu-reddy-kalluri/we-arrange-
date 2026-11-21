@@ -1,9 +1,14 @@
-import React from "react";
+import type { Metadata } from "next";
+import { AuthProvider } from "@we-arrange/auth";
 import "./globals.css";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "WeArrange Vendor Portal",
   description: "Vendor profile, enquiry management, and booking dashboard",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function VendorRootLayout({
@@ -13,7 +18,9 @@ export default function VendorRootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

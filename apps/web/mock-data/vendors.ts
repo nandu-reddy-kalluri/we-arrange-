@@ -30,11 +30,11 @@ export interface VendorCategory {
 }
 
 export const vendorCategories: VendorCategory[] = [
-  { id: "c1", name: "Wedding Photographers", imageUrl: "/images/editorial/vendor_photography.png", slug: "photography", count: 120 },
-  { id: "c2", name: "Wedding Decorators", imageUrl: "/images/editorial/vendor_decoration.png", slug: "decor", count: 80 },
-  { id: "c3", name: "Bridal Makeup Artists", imageUrl: "/images/editorial/vendor_makeup.png", slug: "makeup", count: 150 },
-  { id: "c4", name: "Mehendi Artists", imageUrl: "/images/editorial/insp_bridal.png", slug: "mehendi", count: 90 },
-  { id: "c5", name: "Wedding Catering", imageUrl: "/images/editorial/vendor_catering.png", slug: "catering", count: 60 },
+  { id: "c1", name: "Wedding Photographers", imageUrl: "https://images.youmarriagewearrange.com/kunal-khade-films/image-1.webp", slug: "photography", count: 1074 },
+  { id: "c2", name: "Wedding Decorators", imageUrl: "https://decorator-images.youmarriagewearrange.com/episode-events-1333773/image-1.webp", slug: "decor", count: 162 },
+  { id: "c3", name: "Bridal Makeup Artists", imageUrl: "https://makeup-images.youmarriagewearrange.com/the-makeup-mafia/The_Makeup_Mafia_4.webp", slug: "makeup", count: 1340 },
+  { id: "c4", name: "Mehendi Artists", imageUrl: "https://mehendi-images.youmarriagewearrange.com/rachna-mehndi-designs/Rachna_Mehndi_Designs_1.webp", slug: "mehendi", count: 205 },
+  { id: "c5", name: "Wedding Catering", imageUrl: "https://catering-images.youmarriagewearrange.com/akshaya-caterers-472007/image-1.webp", slug: "catering", count: 214 },
 ];
 
 export const mockVendors: Vendor[] = [

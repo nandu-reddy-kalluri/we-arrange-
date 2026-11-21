@@ -1,10 +1,34 @@
 import React from "react";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const wedding = realWeddingDetails[slug];
+  if (!wedding) {
+    return { title: "Real Wedding Story | YouMarriageWeArrange" };
+  }
+  return {
+    title: `${wedding.title} — Real Wedding Story`,
+    description: `${wedding.coupleNames}'s luxury wedding celebration at ${wedding.venue}, ${wedding.city}. Explore decor, wedding album, and vendor details.`,
+    alternates: {
+      canonical: `https://www.youmarriagewearrange.com/inspiration/real-weddings/${slug}`,
+    },
+    openGraph: {
+      title: `${wedding.title} | YouMarriage Real Weddings`,
+      description: `${wedding.coupleNames}'s luxury wedding celebration at ${wedding.venue}, ${wedding.city}.`,
+      images: [{ url: wedding.heroImage, alt: wedding.title }],
+    },
+  };
+}
+
+
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { realWeddingDetails } from "@/mock-data/real-weddings";
 import { realWeddings } from "@/mock-data/inspiration";
 import { InspirationCard } from "@/features/inspiration/components/InspirationCard";
+import { RealWeddingGallery } from "./RealWeddingGallery";
 import { MapPin, Calendar, Camera, Palette, Scissors, Users, Utensils, IndianRupee, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { typography, spacing, layout } from "@/styles";
 
@@ -41,7 +65,9 @@ export default async function RealWeddingDetailPage({ params }: { params: Promis
           src={wedding.heroImage}
           alt={wedding.title}
           fill
-          unoptimized
+          priority
+          sizes="100vw"
+          quality={85}
           className="object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -117,30 +143,13 @@ export default async function RealWeddingDetailPage({ params }: { params: Promis
               </div>
             </section>
 
-            {/* Image Gallery (Masonry Style) */}
+                        {/* Real Wedding Interactive Dynamic Gallery & Lightbox */}
             <section>
-              <h2 className="font-serif text-3xl text-neutral-900 mb-8 flex items-center justify-between">
-                Wedding Album
-                <span className="text-sm font-sans font-medium text-neutral-500 uppercase tracking-widest">
-                  {wedding.gallery.length} Photos
-                </span>
-              </h2>
-              
-              <div className="columns-1 sm:columns-2 md:columns-3 gap-4 space-y-4">
-                {wedding.gallery.map((img, index) => (
-                  <div key={index} className="break-inside-avoid relative rounded-xl overflow-hidden group">
-                    <Image
-                      src={img}
-                      alt={`${wedding.coupleNames} wedding photo ${index + 1}`}
-                      width={600}
-                      height={800}
-                      unoptimized
-                      className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                  </div>
-                ))}
-              </div>
+              <RealWeddingGallery
+                title={wedding.title}
+                coupleNames={wedding.coupleNames}
+                gallery={wedding.gallery}
+              />
             </section>
           </div>
 

@@ -17,7 +17,8 @@ function AuthenticationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const redirectTarget = searchParams.get("redirect") || "/customer/overview";
+  const initialRedirect = searchParams.get("redirect") || "/customer/overview";
+  const [redirectTarget, setRedirectTarget] = useState<string>(initialRedirect);
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
 
   const [authMode, setAuthMode] = useState<"signin" | "signup">(initialMode);
@@ -69,9 +70,31 @@ function AuthenticationContent() {
     if (!mounted) return;
     let isActive = true;
 
-    const handleAuthenticatedSession = (userName?: string) => {
+    const handleAuthenticatedSession = async (userName?: string) => {
       if (!isActive || redirectHandled.current) return;
       redirectHandled.current = true;
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { apiClient } = await import("@we-arrange/api-client");
+          const meRes = await apiClient.get<{ role?: string; isActiveAdmin?: boolean }>("/api/auth/me");
+          const role = meRes.data?.role;
+          if (role === "vendor") {
+            setRedirectTarget("/vendor");
+          } else if (role === "concierge") {
+            setRedirectTarget("/concierge-portal");
+          } else if (role === "admin" || meRes.data?.isActiveAdmin) {
+            setRedirectTarget("/admin");
+          } else if (initialRedirect.startsWith("/") && !initialRedirect.startsWith("//")) {
+            setRedirectTarget(initialRedirect);
+          } else {
+            setRedirectTarget("/customer/overview");
+          }
+        }
+      } catch (err) {
+        console.error("Session resolve error:", err);
+      }
 
       setAuthData({
         mode: "returning-user",
@@ -194,9 +217,16 @@ function AuthenticationContent() {
     window.history.pushState(null, "", url);
   };
 
-  const handleAuthSuccess = (mode: "new-user" | "returning-user", userName?: string) => {
+  const handleAuthSuccess = (
+    mode: "new-user" | "returning-user",
+    userName?: string,
+    targetUrl?: string
+  ) => {
     redirectHandled.current = true;
     setAuthData({ mode, userName });
+    if (targetUrl) {
+      setRedirectTarget(targetUrl);
+    }
     setAuthState("cinematic");
   };
 
@@ -239,7 +269,11 @@ function AuthenticationContent() {
             }}
             onComplete={() => {
               setAuthState("redirecting");
-              router.replace(redirectTarget);
+              if (redirectTarget.startsWith("http://") || redirectTarget.startsWith("https://")) {
+                window.location.assign(redirectTarget);
+              } else {
+                router.replace(redirectTarget);
+              }
             }}
           />
         )}
@@ -268,7 +302,7 @@ function AuthenticationContent() {
           </div>
 
           {/* MAIN CONTENT */}
-          <main className="relative z-10 w-full max-w-[1536px] mx-auto h-[calc(100dvh-70px)] lg:min-h-[100svh] pt-[72px] md:pt-[80px] pb-2 lg:pb-0 px-4 md:px-12 xl:px-16 flex flex-col lg:grid lg:grid-cols-[56%_44%] items-center justify-center gap-6 lg:gap-16 xl:gap-20 overflow-hidden lg:overflow-visible">
+          <main className="relative z-10 w-full max-w-[1536px] mx-auto h-[calc(100dvh-70px)] lg:min-h-[100svh] pt-[72px] md:pt-[80px] pb-6 lg:pb-0 px-4 md:px-12 xl:px-16 flex flex-col lg:grid lg:grid-cols-[56%_44%] items-center justify-center gap-6 lg:gap-16 xl:gap-20 overflow-y-auto lg:overflow-visible">
             {/* LEFT HERO TEXT */}
             <div className="hidden lg:flex w-full text-white pt-6 lg:pt-0 justify-start lg:justify-center">
               <div className="w-full max-w-[500px] lg:max-w-[620px]">

@@ -3,13 +3,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, MapPin, Camera, Sparkles, Scissors, Utensils, Brush, Check } from "lucide-react";
 import VenueCard from "@/components/cards/VenueCard";
-import { featuredVenues } from "@/mock-data/venues";
+import type { Venue } from "@/mock-data/venues";
 import VendorCard from "@/components/cards/VendorCard";
-import { mockVendors } from "@/mock-data/vendors";
+import type { Vendor } from "@/mock-data/vendors";
+import { CelebrateSection } from "@/features/home/components/CelebrateSection";
 
-const featuredVendors = mockVendors.filter(v => v.isFeatured);
-
-export function MobileHomeExperience() {
+export function MobileHomeExperience({
+  heroVenues = [],
+  featuredVenues = [],
+  featuredVendors = [],
+}: {
+  heroVenues?: Venue[];
+  featuredVenues?: Venue[];
+  featuredVendors?: Vendor[];
+}) {
+  const spotlightVenue = heroVenues[0] ?? featuredVenues[0];
   const categories = [
     { id: "venues", label: "Venues", icon: MapPin, href: "/venues" },
     { id: "photography", label: "Photography", icon: Camera, href: "/vendors/photography" },
@@ -26,19 +34,36 @@ export function MobileHomeExperience() {
       <section 
         className="px-4 pt-4 pb-6 flex flex-col items-center text-center relative z-10"
       >
-        <div 
-          className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 shadow-md border border-neutral-100"
+        <Link
+          href={spotlightVenue ? `/venues/${spotlightVenue.slug}` : "/venues"}
+          className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 shadow-md border border-neutral-100 block group"
         >
           <Image
-            src="/images/editorial/hero_venue.png"
-            alt="Beautiful Indian wedding venue in Hyderabad"
+            src={
+              spotlightVenue?.imageUrl ||
+              "https://venue-images.youmarriagewearrange.com/taj-falaknuma-palace-492086/image-1.webp"
+            }
+            alt={spotlightVenue?.name || "Luxury Indian wedding venue in Hyderabad"}
             fill
             priority
             quality={80}
             sizes="100vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
-        </div>
+          {spotlightVenue && (
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent px-4 py-3 text-left">
+              <span className="block text-[9px] font-black uppercase tracking-widest text-[#C8A165]">
+                Concierge Vetted
+              </span>
+              <span className="block font-serif text-base font-bold text-white leading-tight truncate">
+                {spotlightVenue.name}
+              </span>
+              <span className="block text-[11px] font-medium text-white/85 truncate">
+                {spotlightVenue.location}, {spotlightVenue.city}
+              </span>
+            </div>
+          )}
+        </Link>
         
         <h1 className="font-serif text-[28px] font-bold text-neutral-900 leading-tight mb-3 px-2">
           Find the right places<br />and people for your wedding.
@@ -80,52 +105,59 @@ export function MobileHomeExperience() {
       </section>
 
       {/* 3. HORIZONTAL FEATURED VENUES */}
-      <section className="py-8 bg-white border-y border-neutral-100">
-        <div className="px-4 flex flex-col mb-5">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B263E] mb-1">
-            Popular in Hyderabad
-          </h2>
-          <div className="flex items-center justify-between">
-            <h3 className="font-serif text-2xl font-bold text-neutral-900">Featured Venues</h3>
-            <Link href="/venues" className="text-[10px] font-bold uppercase tracking-wider text-[#8B263E] flex items-center gap-1">
-              View All <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Horizontal Snap Scroll */}
-        <div className="w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar pl-4 pb-6 flex gap-4 pr-12">
-          {featuredVenues.slice(0, 4).map((venue) => (
-            <div key={venue.id} className="snap-center shrink-0 w-[85vw] max-w-[320px]">
-              <VenueCard venue={venue} />
+      {featuredVenues.length > 0 && (
+        <section className="py-8 bg-white border-y border-neutral-100">
+          <div className="px-4 flex flex-col mb-5">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B263E] mb-1">
+              Popular in Hyderabad
+            </h2>
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif text-2xl font-bold text-neutral-900">Featured Venues</h3>
+              <Link href="/venues" className="text-[10px] font-bold uppercase tracking-wider text-[#8B263E] flex items-center gap-1">
+                View All <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+
+          {/* Horizontal Snap Scroll */}
+          <div className="w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar pl-4 pb-6 flex gap-4 pr-12">
+            {featuredVenues.slice(0, 4).map((venue) => (
+              <div key={venue.id} className="snap-center shrink-0 w-[85vw] max-w-[320px]">
+                <VenueCard venue={venue} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 5. HORIZONTAL POPULAR VENDORS */}
-      <section className="py-8 bg-[#FBF9F6]">
-        <div className="px-4 flex flex-col mb-5">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B263E] mb-1">
-            Top Professionals
-          </h2>
-          <div className="flex items-center justify-between">
-            <h3 className="font-serif text-2xl font-bold text-neutral-900">Popular Vendors</h3>
-            <Link href="/vendors" className="text-[10px] font-bold uppercase tracking-wider text-[#8B263E] flex items-center gap-1">
-              View All <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Horizontal Snap Scroll */}
-        <div className="w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar pl-4 pb-6 flex gap-4 pr-12">
-          {featuredVendors.slice(0, 4).map((vendor) => (
-            <div key={vendor.id} className="snap-center shrink-0 w-[85vw] max-w-[320px]">
-              <VendorCard vendor={vendor} />
+      {featuredVendors.length > 0 && (
+        <section className="py-8 bg-[#FBF9F6]">
+          <div className="px-4 flex flex-col mb-5">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8B263E] mb-1">
+              Top Professionals
+            </h2>
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif text-2xl font-bold text-neutral-900">Popular Vendors</h3>
+              <Link href="/vendors" className="text-[10px] font-bold uppercase tracking-wider text-[#8B263E] flex items-center gap-1">
+                View All <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
-          ))}
-        </div>
-      </section>
+          </div>
+
+          {/* Horizontal Snap Scroll */}
+          <div className="w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar pl-4 pb-6 flex gap-4 pr-12">
+            {featuredVendors.slice(0, 4).map((vendor) => (
+              <div key={vendor.id} className="snap-center shrink-0 w-[85vw] max-w-[320px]">
+                <VendorCard vendor={vendor} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 5b. INTERACTIVE CARD DISCOVERY DECK */}
+      <CelebrateSection venues={heroVenues} vendors={featuredVendors} />
 
       {/* 6. TRUST SECTION */}
       <section className="px-5 py-10 bg-[#FAF5ED] border-y border-[#C5A880]/20 flex flex-col items-center">

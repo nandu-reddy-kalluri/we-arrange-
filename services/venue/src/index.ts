@@ -11,6 +11,7 @@ export interface VenueSearchParams {
   query?: string;
 }
 
+// Legacy synchronous UI helpers preserved until frontend integration cutover
 export function getAllVenues(): Venue[] {
   return featuredVenues;
 }
@@ -44,3 +45,5 @@ export function searchVenues(params: VenueSearchParams = {}): Venue[] {
     return true;
   });
 }
+
+export * from "./venueService";

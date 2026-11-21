@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart } from "lucide-react";
 
 interface InspirationCategory {
@@ -18,6 +19,7 @@ export default function InspirationCard({
   category: InspirationCategory;
 }) {
   const [liked, setLiked] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Combine responsive aspects (Pinterest feel on desktop, compact masonry on mobile)
   const aspectClassMobile = category.aspectMobile || "aspect-[3/2]";
@@ -25,13 +27,22 @@ export default function InspirationCard({
   const aspectClass = `${aspectClassMobile} ${aspectClassDesktop}`;
 
   return (
-    <div className={`relative group w-full rounded-[20px] md:rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.02)] bg-gray-50 shrink-0 ${aspectClass}`}>
+    <div className={`relative group w-full rounded-[20px] md:rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.02)] bg-stone-100 shrink-0 ${aspectClass}`}>
+      {/* Fluent shimmer skeleton */}
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-gradient-to-r from-stone-100 via-[#F7F4EE] to-stone-100 animate-pulse z-0 pointer-events-none" />
+      )}
       {/* Image */}
-      <img
+      <Image
         src={category.imageUrl}
         alt={category.title}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-        loading="lazy"
+        fill
+        quality={75}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+        onLoad={() => setIsLoaded(true)}
+        className={`object-cover transition-all duration-700 ease-out group-hover:scale-105 ${
+          isLoaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-[4px] scale-[1.02]"
+        }`}
       />
 
       {/* Subtle black gradient overlay at bottom for better text readability */}

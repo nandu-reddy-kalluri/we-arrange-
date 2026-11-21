@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Star, MessageCircle, Phone } from "lucide-react";
 
 export function WeddingCuratorCard() {
@@ -11,11 +12,14 @@ export function WeddingCuratorCard() {
           Meet Your Wedding Curator
         </span>
         
-        <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-white shadow-sm mb-3">
-          <img 
-            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80" 
-            alt="Priya Sharma - Senior Wedding Curator" 
-            className="w-full h-full object-cover"
+        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-100 border-2 border-white shadow-sm mb-3">
+          <Image 
+            src="/assets/ym_icon_hires.jpg" 
+            alt="YouMarriage Wedding Concierge" 
+            fill
+            sizes="64px"
+            quality={80}
+            className="object-cover"
           />
         </div>
 
