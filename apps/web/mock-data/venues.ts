@@ -34,6 +34,7 @@ export interface Venue {
   parking: number;
   
   // Vibe & Experience
+  theme?: string;
   moodTags: string[];
   venueHighlights: string[]; 
   editorTag?: string; 

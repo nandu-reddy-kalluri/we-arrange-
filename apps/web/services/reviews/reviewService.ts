@@ -135,12 +135,18 @@ export async function updateOwnReview(
   if (input.rating !== undefined) updateData.rating = input.rating;
   if (input.reviewText !== undefined) updateData.review_text = input.reviewText;
 
-  // Ownership and Pending status are enforced by RLS private.is_review_owner(review_id)
-  const { data, error } = await supabase
+  // Defense-in-depth: enforce user_id alongside RLS private.is_review_owner(review_id)
+  let updateQuery = supabase
     .from("reviews")
     .update(updateData)
     .eq("review_id", reviewId)
-    .eq("status", "Pending")
+    .eq("status", "Pending");
+
+  if (userId) {
+    updateQuery = updateQuery.eq("user_id", userId);
+  }
+
+  const { data, error } = await updateQuery
     .select(PUBLIC_REVIEW_COLUMNS)
     .maybeSingle();
 
@@ -169,11 +175,12 @@ export async function deleteOwnReview(
   if (selectErr) throw mapDatabaseError(selectErr, "Failed to load review.");
   if (!existing) throw new AppError("NOT_FOUND", 404, "Review not found.");
 
-  // For non-admins on authenticated client, RLS private.is_review_owner(review_id) restricts DELETE to owner
-  const { data: deleted, error } = await supabase
-    .from("reviews")
-    .delete()
-    .eq("review_id", reviewId)
+  // Defense-in-depth: enforce user_id on non-admin alongside RLS private.is_review_owner(review_id)
+  let deleteQuery = supabase.from("reviews").delete().eq("review_id", reviewId);
+  if (!isAdmin && userId) {
+    deleteQuery = deleteQuery.eq("user_id", userId);
+  }
+  const { data: deleted, error } = await deleteQuery
     .select("review_id")
     .maybeSingle();
 

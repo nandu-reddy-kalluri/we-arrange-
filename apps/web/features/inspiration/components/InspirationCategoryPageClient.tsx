@@ -69,6 +69,32 @@ export function InspirationCategoryPageClient({ config, items }: InspirationCate
   const [isLoading, setIsLoading] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // URL param init on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const catParam = params.get("category") || params.get("subCategory");
+    const qParam = params.get("q") || params.get("search");
+    if (catParam) {
+      const matched = config.categories.find(c => c.toLowerCase() === catParam.toLowerCase());
+      if (matched) setActiveCategory(matched);
+    }
+    if (qParam) {
+      setSearchQuery(qParam);
+    }
+  }, [config.categories]);
+
+  // Sync URL query params with active filter state
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams();
+    if (activeCategory && activeCategory !== "All") params.set("category", activeCategory);
+    if (searchQuery.trim()) params.set("search", searchQuery.trim());
+    const queryStr = params.toString();
+    const newUrl = queryStr ? `${window.location.pathname}?${queryStr}` : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  }, [activeCategory, searchQuery]);
+
   const featuredItem = items.find(item => item.featured) || items[0];
 
   // Close dropdown on click outside

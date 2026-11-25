@@ -2918,6 +2918,8 @@ export type Database = {
           price_subtext: string | null;
           currency: string | null;
           venue_price_tag: string | null;
+          min_plate_price: number | null;
+          max_plate_price: number | null;
           category_price_suffix_text: string | null;
           destination_price: string | null;
           destination_price_unit: string | null;
@@ -2963,6 +2965,8 @@ export type Database = {
           price_subtext?: string | null;
           currency?: string | null;
           venue_price_tag?: string | null;
+          min_plate_price?: number | null;
+          max_plate_price?: number | null;
           category_price_suffix_text?: string | null;
           destination_price?: string | null;
           destination_price_unit?: string | null;
@@ -3008,6 +3012,8 @@ export type Database = {
           price_subtext?: string | null;
           currency?: string | null;
           venue_price_tag?: string | null;
+          min_plate_price?: number | null;
+          max_plate_price?: number | null;
           category_price_suffix_text?: string | null;
           destination_price?: string | null;
           destination_price_unit?: string | null;

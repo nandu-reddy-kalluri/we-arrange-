@@ -6,7 +6,6 @@ import VenueCard from "@/components/cards/VenueCard";
 import type { Venue } from "@/mock-data/venues";
 import VendorCard from "@/components/cards/VendorCard";
 import type { Vendor } from "@/mock-data/vendors";
-import { CelebrateSection } from "@/features/home/components/CelebrateSection";
 
 export function MobileHomeExperience({
   heroVenues = [],
@@ -155,9 +154,6 @@ export function MobileHomeExperience({
           </div>
         </section>
       )}
-
-      {/* 5b. INTERACTIVE CARD DISCOVERY DECK */}
-      <CelebrateSection venues={heroVenues} vendors={featuredVendors} />
 
       {/* 6. TRUST SECTION */}
       <section className="px-5 py-10 bg-[#FAF5ED] border-y border-[#C5A880]/20 flex flex-col items-center">

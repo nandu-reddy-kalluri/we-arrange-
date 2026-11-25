@@ -23,6 +23,7 @@ interface FeaturedVendorsProps {
   page?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  onPrefetchNext?: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
@@ -176,6 +177,7 @@ export function FeaturedVendors({
   page = 1,
   totalPages = 1,
   onPageChange,
+  onPrefetchNext,
   searchQuery,
   setSearchQuery,
 }: FeaturedVendorsProps) {
@@ -459,7 +461,7 @@ export function FeaturedVendors({
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.35, delay: index * 0.02 }}
                       onClick={() => handleCardClick(vendor.slug)}
-                      className="group bg-[#FAF9F6] rounded-[22px] overflow-hidden border border-[#C5A880]/20 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(197,168,128,0.1)] hover:-translate-y-2 hover:border-[#C5A880]/40 transition-all duration-350 flex flex-col justify-between max-w-[340px] mx-auto w-full cursor-pointer relative"
+                      className="cv-auto group bg-[#FAF9F6] rounded-[22px] overflow-hidden border border-[#C5A880]/20 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(197,168,128,0.1)] hover:-translate-y-2 hover:border-[#C5A880]/40 transition-all duration-350 flex flex-col justify-between max-w-[340px] mx-auto w-full cursor-pointer relative"
                     >
                       {/* Image */}
                       <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100 shrink-0 rounded-t-[22px]">
@@ -467,6 +469,7 @@ export function FeaturedVendors({
                           src={vendor.imageUrl || getVendorFallbackImage(vendor.category)}
                           alt={vendor.name}
                           fill
+                          priority={index < 4}
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
                           quality={75}
                           className="object-cover transition-transform duration-750 ease-out group-hover:scale-105"
@@ -606,6 +609,7 @@ export function FeaturedVendors({
                         src={vendor.imageUrl || getVendorFallbackImage(vendor.category)}
                         alt={vendor.name}
                         fill
+                        priority={index === 0}
                         sizes="(max-width: 640px) 100vw, 240px"
                         quality={75}
                         className="object-cover transition-transform duration-750 ease-out group-hover:scale-105"
@@ -738,6 +742,8 @@ export function FeaturedVendors({
                 type="button"
                 onClick={() => onPageChange(Math.min(totalPages, page + 1))}
                 disabled={page >= totalPages}
+                onMouseEnter={onPrefetchNext}
+                onFocus={onPrefetchNext}
                 className="inline-flex items-center gap-1 px-4 py-2 rounded-full border border-gray-200 bg-white text-xs font-bold text-neutral-charcoal disabled:opacity-40 hover:border-[#C5A880] cursor-pointer disabled:cursor-not-allowed transition-colors"
               >
                 Next

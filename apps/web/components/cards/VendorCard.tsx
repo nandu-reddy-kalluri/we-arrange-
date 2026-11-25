@@ -9,7 +9,15 @@ import { Vendor } from "@/mock-data/vendors";
 import { useSavedStore } from "@/store/useSavedStore";
 import { getVendorFallbackImage } from "@/services/catalog/catalogMappers";
 
-export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRemove?: () => void }) {
+export default function VendorCard({
+  vendor,
+  onRemove,
+  priority = false,
+}: {
+  vendor: Vendor;
+  onRemove?: () => void;
+  priority?: boolean;
+}) {
   const router = useRouter();
   const { isVendorSaved, toggleSaveVendor } = useSavedStore();
   const fallbackImage = getVendorFallbackImage(vendor.category);
@@ -69,11 +77,19 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
     router.push(`/vendors/${vendor.slug}`);
   };
 
+  const handleCardMouseEnter = () => {
+    if (typeof window !== "undefined" && images.length > 1 && images[1] && !loadedMap[images[1]]) {
+      const nextImg = new window.Image();
+      nextImg.src = images[1];
+    }
+  };
+
   return (
     <>
       <div 
         onClick={handleCardClick}
-        className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-[0_8px_32px_0_rgba(25,45,50,0.02)] hover:shadow-premium hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+        onMouseEnter={handleCardMouseEnter}
+        className="gpu-accelerate group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-[0_8px_32px_0_rgba(25,45,50,0.02)] hover:shadow-premium hover:-translate-y-1 transition-all duration-300 cursor-pointer"
       >
         {/* Image Container with Touch Swipe on Mobile */}
         <div
@@ -96,6 +112,7 @@ export default function VendorCard({ vendor, onRemove }: { vendor: Vendor; onRem
                 src={resolvedSrc}
                 alt={vendor.name}
                 fill
+                priority={Boolean(priority && idx === 0)}
                 unoptimized={resolvedSrc.endsWith(".svg")}
                 quality={75}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"

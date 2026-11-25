@@ -18,10 +18,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireActiveAdmin();
+    const ctx = await requireActiveAdmin();
     const body = await parseJsonBody(request, adminRoleCreateSchema);
     const adminClient = createServiceRoleClient();
-    const role = await createRoleWithPermissions(adminClient, body);
+    const role = await createRoleWithPermissions(adminClient, body, ctx.userId);
     return created(role);
   } catch (err) {
     return fail(err, "Failed to create role.");

@@ -1,8 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "@/styles/globals.css";
 import { GlobalLayoutWrapper } from "@/components/layout/GlobalLayoutWrapper";
 import { AuthProvider } from "@/context/AuthContext";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: "#8B263E",
+};
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -118,6 +126,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${jakarta.variable}`} style={{ scrollBehavior: 'smooth' }} suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://venue-images.youmarriagewearrange.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://venue-images.youmarriagewearrange.com" />
+        <link rel="preconnect" href="https://makeup-images.youmarriagewearrange.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://makeup-images.youmarriagewearrange.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

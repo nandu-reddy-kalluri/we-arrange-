@@ -18,10 +18,10 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    await requireActiveAdmin();
+    const ctx = await requireActiveAdmin();
     const body = await parseJsonBody(request, appSettingUpdateSchema);
     const adminClient = createServiceRoleClient();
-    const setting = await upsertAppSetting(adminClient, body);
+    const setting = await upsertAppSetting(adminClient, body, ctx.userId);
     return ok(setting);
   } catch (err) {
     return fail(err, "Failed to update application setting.");

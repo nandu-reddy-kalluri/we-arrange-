@@ -65,6 +65,32 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
   const [visibleCount, setVisibleCount] = useState(8);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // URL param init on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const themeParam = params.get("theme") || params.get("category");
+    const qParam = params.get("q") || params.get("search");
+    if (themeParam) {
+      const matched = CATEGORIES.find(c => c.toLowerCase() === themeParam.toLowerCase());
+      if (matched) setActiveCategory(matched);
+    }
+    if (qParam) {
+      setSearchQuery(qParam);
+    }
+  }, []);
+
+  // Sync URL query params with active filter state
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams();
+    if (activeCategory && activeCategory !== "All") params.set("theme", activeCategory);
+    if (searchQuery.trim()) params.set("search", searchQuery.trim());
+    const queryStr = params.toString();
+    const newUrl = queryStr ? `${window.location.pathname}?${queryStr}` : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  }, [activeCategory, searchQuery]);
+
   const featuredWedding = weddings[0];
   const gridWeddings = weddings.slice(1);
 
@@ -113,7 +139,8 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
   }, [allSuggestions, searchQuery]);
 
   const filteredWeddings = useMemo(() => {
-    return gridWeddings.filter((w) => {
+    const listToFilter = activeCategory === "All" && !searchQuery.trim() ? gridWeddings : weddings;
+    return listToFilter.filter((w) => {
       const matchCategory = activeCategory === "All" || w.theme.toLowerCase() === activeCategory.toLowerCase();
       const lowerQuery = searchQuery.toLowerCase().trim();
       const matchSearch =
@@ -124,7 +151,7 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
         w.theme.toLowerCase().includes(lowerQuery);
       return matchCategory && matchSearch;
     });
-  }, [gridWeddings, activeCategory, searchQuery]);
+  }, [weddings, gridWeddings, activeCategory, searchQuery]);
 
   const visibleWeddings = filteredWeddings.slice(0, visibleCount);
   const hasMore = visibleCount < filteredWeddings.length;
@@ -211,8 +238,8 @@ export function RealWeddingsClient({ weddings }: RealWeddingsClientProps) {
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <StatCounter value={120} label="Weddings Featured" />
-          <StatCounter value={45} label="Luxury Destinations" />
-          <StatCounter value={350} label="Top Vendors" />
+          <StatCounter value={1100} label="Luxury Venues" />
+          <StatCounter value={2900} label="Verified Vendors" />
           <StatCounter value={15} label="Wedding Themes" />
         </div>
       </motion.section>

@@ -29,9 +29,25 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.03em;
 }
 
-/* Global Image Treatment */
-img {
-  filter: brightness(0.95) contrast(1.05) sepia(0.02);
+/* Content visibility optimization for low-power mobile devices & laptops */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 420px;
+}
+
+/* Hardware GPU acceleration helper */
+.gpu-accelerate {
+  transform: translateZ(0);
+}
+
+/* Reduced motion support for accessibility and low-power battery saving */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Texture Overlay */

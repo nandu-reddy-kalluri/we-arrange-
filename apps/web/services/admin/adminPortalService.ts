@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AppError, mapDatabaseError } from "@we-arrange/database/errors";
-import { buildPaginationMeta, normalizePagination } from "@we-arrange/database/repository";
+import {
+  buildPaginationMeta,
+  normalizePagination,
+  sanitizePostgrestFilterTerm,
+} from "@we-arrange/database/repository";
 import type { Database } from "@we-arrange/database/types";
 
 const SAFE_USER_COLUMNS =
@@ -21,8 +25,10 @@ export async function listUsersForAdmin(
     query = query.eq("status", options.status as Database["public"]["Enums"]["status_enum"]);
   }
   if (options.search) {
-    const q = options.search.trim();
-    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
+    const q = sanitizePostgrestFilterTerm(options.search);
+    if (q) {
+      query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
+    }
   }
 
   const [{ data: users, error, count }, { data: roles }] = await Promise.all([
@@ -120,7 +126,8 @@ export async function listRolesAndPermissions(adminClient: SupabaseClient<Databa
 
 export async function createRoleWithPermissions(
   adminClient: SupabaseClient<Database>,
-  input: { roleName: string; permissionNames?: string[] }
+  input: { roleName: string; permissionNames?: string[] },
+  actorUserId?: string
 ) {
   const { data: role, error } = await adminClient
     .from("roles")
@@ -144,6 +151,14 @@ export async function createRoleWithPermissions(
         }))
       );
     }
+  }
+
+  if (actorUserId) {
+    await adminClient.from("moderation_logs").insert({
+      moderator_id: actorUserId,
+      action: "role_create",
+      remarks: `Created role "${input.roleName}" with permissions: ${input.permissionNames?.join(", ") ?? "none"}`,
+    });
   }
 
   return role;
@@ -245,7 +260,8 @@ export async function upsertAppSetting(
     settingValue: string;
     description?: string;
     dataType: "text" | "number" | "boolean" | "json";
-  }
+  },
+  actorUserId?: string
 ) {
   const { data: existing } = await adminClient
     .from("app_settings")
@@ -282,6 +298,15 @@ export async function upsertAppSetting(
   if (res.error || !res.data) {
     throw mapDatabaseError(res.error, "Failed to save application setting.");
   }
+
+  if (actorUserId) {
+    await adminClient.from("moderation_logs").insert({
+      moderator_id: actorUserId,
+      action: "setting_update",
+      remarks: `Updated setting "${input.settingKey}"`,
+    });
+  }
+
   return res.data;
 }
 

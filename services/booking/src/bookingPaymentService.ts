@@ -421,10 +421,23 @@ export async function createOrReusePaymentIntent(
   let payableAmount = input.amountInr;
   let couponApplied: string | null = null;
   if (input.couponCode) {
-    // shortcut: coupon used_count is validated here but not auto-incremented on capture until payments stores coupon_id
     const calc = await validateAndCalculateCoupon(adminClient, input.couponCode, input.amountInr);
     payableAmount = calc.finalAmountInr;
     couponApplied = calc.couponCode;
+
+    // Atomically increment used_count upon attaching coupon to payment intent
+    if (calc.couponId) {
+      const { data: c } = await adminClient
+        .from("coupons")
+        .select("used_count")
+        .eq("coupon_id", calc.couponId)
+        .maybeSingle();
+
+      await adminClient
+        .from("coupons")
+        .update({ used_count: (c?.used_count ?? 0) + 1 })
+        .eq("coupon_id", calc.couponId);
+    }
   }
 
   if (payableAmount <= 0) {

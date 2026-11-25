@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { checkRateLimit, getClientIp } from "@we-arrange/utils";
 import { resolveAuthenticatedContext } from "@/services/auth";
 import { createSupabaseServerClient } from "@/services/supabase/server";
 import { AppError, fail, ok, parseJsonBody } from "@/services/http/response";
@@ -11,6 +12,15 @@ const verifyRecoveryOtpSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const clientIp = getClientIp(request);
+    const rl = checkRateLimit("admin_verify_otp", clientIp, {
+      windowMs: 15 * 60 * 1000,
+      max: process.env.NODE_ENV === "test" ? 1000 : 5,
+    });
+    if (!rl.success) {
+      throw new AppError("TOO_MANY_REQUESTS", 429, "Too many OTP verification attempts. Please try again later.");
+    }
+
     const body = await parseJsonBody(request, verifyRecoveryOtpSchema);
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.auth.verifyOtp({

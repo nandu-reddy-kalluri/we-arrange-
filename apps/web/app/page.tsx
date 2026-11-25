@@ -135,37 +135,60 @@ async function loadHomeFeaturedCatalog(): Promise<HomeFeaturedCatalogResult> {
       heroVenues = featuredVenues.filter((v) => v.imageUrl && !v.imageUrl.endsWith(".svg")).slice(0, 6);
     }
 
-    const liveCategories = await Promise.all(
+    // Query accurate category vendor counts and cover images in parallel without 1,000-row truncation
+    const categoryStats = await Promise.all(
       vendorCategories.map(async (cat) => {
-        const dbSlug = String(cat.slug || "").toLowerCase();
-        const uiSlug = DB_TO_UI_CATEGORY_SLUG[dbSlug] ?? dbSlug;
-        const [countRes, sampleRes] = await Promise.all([
+        const [countRes, sampleVendorRes] = await Promise.all([
           supabase
             .from("vendors")
             .select("vendor_id", { count: "exact", head: true })
-            .eq("status", "Active")
-            .eq("category_id", cat.category_id),
+            .eq("category_id", cat.category_id)
+            .eq("status", "Active"),
           supabase
             .from("vendors")
             .select("cover_image")
-            .eq("status", "Active")
             .eq("category_id", cat.category_id)
-            .ilike("cover_image", "%youmarriagewearrange.com%")
+            .eq("status", "Active")
+            .not("cover_image", "is", null)
             .order("rating", { ascending: false, nullsFirst: false })
-            .order("vendor_id", { ascending: true })
-            .limit(1),
+            .limit(1)
+            .maybeSingle(),
         ]);
-        const rawCover = splitMediaUrls(sampleRes.data?.[0]?.cover_image)[0];
-        const fallbackCat = fallbackVendorCategories.find((f) => f.slug === uiSlug);
+
+        let coverUrl: string | undefined;
+        if (sampleVendorRes.data?.cover_image && typeof sampleVendorRes.data.cover_image === "string") {
+          const raw = splitMediaUrls(sampleVendorRes.data.cover_image)[0];
+          if (raw && (raw.includes("youmarriagewearrange.com") || !raw.endsWith(".svg"))) {
+            coverUrl = raw;
+          }
+        }
+
         return {
-          id: String(cat.category_id),
-          name: DB_CATEGORY_DISPLAY_NAMES[uiSlug] ?? String(cat.category_name),
-          imageUrl: rawCover || fallbackCat?.imageUrl || "/images/placeholders/photography.svg",
-          slug: uiSlug,
-          count: countRes.count ?? fallbackCat?.count ?? 0,
+          catId: Number(cat.category_id),
+          count: countRes.count ?? 0,
+          coverUrl,
         };
       })
     );
+
+    const countByCat = new Map<number, number>(categoryStats.map((s) => [s.catId, s.count]));
+    const sampleCoverByCat = new Map<number, string>(
+      categoryStats.filter((s) => Boolean(s.coverUrl)).map((s) => [s.catId, s.coverUrl!])
+    );
+
+    const liveCategories = vendorCategories.map((cat) => {
+      const dbSlug = String(cat.slug || "").toLowerCase();
+      const uiSlug = DB_TO_UI_CATEGORY_SLUG[dbSlug] ?? dbSlug;
+      const rawCover = sampleCoverByCat.get(cat.category_id);
+      const fallbackCat = fallbackVendorCategories.find((f) => f.slug === uiSlug);
+      return {
+        id: String(cat.category_id),
+        name: DB_CATEGORY_DISPLAY_NAMES[uiSlug] ?? String(cat.category_name),
+        imageUrl: rawCover || fallbackCat?.imageUrl || "/images/placeholders/photography.svg",
+        slug: uiSlug,
+        count: countByCat.get(cat.category_id) ?? fallbackCat?.count ?? 0,
+      };
+    });
 
     const result: HomeFeaturedCatalogResult = {
       heroVenues,
@@ -222,9 +245,6 @@ export default async function HomePage() {
         </div>
 
         <DigitalSuiteSection />
-        <CelebrateSection venues={heroVenues} vendors={featuredVendors} />
-        
-        <FloatingConciergeButton />
       </div>
 
       {/* --- MOBILE EXPERIENCE --- */}
@@ -235,6 +255,10 @@ export default async function HomePage() {
           featuredVendors={featuredVendors}
         />
       </div>
+
+      {/* --- SHARED SECTIONS (Eliminates DOM Duplication FE-001) --- */}
+      <CelebrateSection venues={heroVenues} vendors={featuredVendors} />
+      <FloatingConciergeButton />
     </main>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { VenueHeroSearch, VenueFilterState } from "./VenueHeroSearch";
 import { QuickExperienceCards } from "./QuickExperienceCards";
 import { PremiumVenueGrid } from "./PremiumVenueGrid";
@@ -15,7 +15,20 @@ const INITIAL_FILTERS: VenueFilterState = {
   budget: "Any Budget",
   venueType: "All Types",
   space: "All Spaces",
+  theme: "All Themes",
 };
+
+const QUICK_THEME_PILLS = [
+  { label: "All Venues", type: "all", value: "All Themes" },
+  { label: "👑 Royal Heritage", type: "theme", value: "Royal Heritage & Palace" },
+  { label: "⭐ Luxury 5-Star", type: "theme", value: "Luxury 5-Star Hotel" },
+  { label: "🌿 Scenic Garden", type: "theme", value: "Scenic Garden & Lawn" },
+  { label: "🏊 Poolside Resort", type: "theme", value: "Poolside & Resort" },
+  { label: "🏛️ Grand Convention", type: "theme", value: "Grand Convention" },
+  { label: "🏮 Mandapam", type: "theme", value: "Traditional Mandapam" },
+  { label: "💰 Under ₹1,500", type: "budget", value: "₹1,500 per plate" },
+  { label: "✨ Price on Request", type: "budget", value: "Price on Request" },
+] as const;
 
 function parseCapacityBounds(guests: string): { minCapacity?: number; maxCapacity?: number } {
   if (!guests || guests.startsWith("Any")) return {};
@@ -28,19 +41,28 @@ function parseCapacityBounds(guests: string): { minCapacity?: number; maxCapacit
   return !Number.isNaN(parsed) && parsed > 0 ? { minCapacity: parsed } : {};
 }
 
-export function VenueDiscoveryClient() {
+export function VenueDiscoveryClient({
+  initialVenues = [],
+  initialTotal = 0,
+  initialTotalPages = 1,
+}: {
+  initialVenues?: Venue[];
+  initialTotal?: number;
+  initialTotalPages?: number;
+} = {}) {
   const [mounted, setMounted] = useState(false);
   const [filters, setFilters] = useState<VenueFilterState>(INITIAL_FILTERS);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [venues, setVenues] = useState<Venue[]>([]);
+  const [venues, setVenues] = useState<Venue[]>(initialVenues);
   const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(initialTotal);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [sortBy, setSortBy] = useState<"relevance" | "rating" | "reviews" | "capacity" | "newest">("relevance");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(initialVenues.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
+  const initialSkipRef = useRef(initialVenues.length > 0);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -50,12 +72,13 @@ export function VenueDiscoveryClient() {
     const budgetParam = params.get("budget");
     const typeParam = params.get("venueType") || params.get("type");
     const spaceParam = params.get("space");
+    const themeParam = params.get("theme");
 
     if (qParam) {
       setSearchQuery(qParam);
       setDebouncedSearch(qParam.trim());
     }
-    if (locationParam || guestsParam || budgetParam || typeParam || spaceParam) {
+    if (locationParam || guestsParam || budgetParam || typeParam || spaceParam || themeParam) {
       setFilters((prev) => ({
         ...prev,
         location: locationParam || prev.location,
@@ -63,6 +86,7 @@ export function VenueDiscoveryClient() {
         budget: budgetParam || prev.budget,
         venueType: typeParam || prev.venueType,
         space: spaceParam || prev.space,
+        theme: themeParam || prev.theme,
       }));
     }
     setMounted(true);
@@ -103,6 +127,8 @@ function parseBudgetParams(budget: string): {
       filters.venueType && !filters.venueType.startsWith("All") && !filters.venueType.startsWith("Any");
     const hasSpace =
       filters.space && !filters.space.startsWith("All") && !filters.space.startsWith("Any");
+    const hasTheme =
+      filters.theme && !filters.theme.startsWith("All") && !filters.theme.startsWith("Any");
 
     return fetchPaginatedVenues({
       page,
@@ -112,6 +138,7 @@ function parseBudgetParams(budget: string): {
       locality: hasLocation && !isHyderabadCity ? locTrimmed : undefined,
       type: hasType ? filters.venueType : undefined,
       space: hasSpace ? filters.space : undefined,
+      theme: hasTheme ? filters.theme : undefined,
       minCapacity,
       maxCapacity,
       minPlatePrice,
@@ -130,8 +157,76 @@ function parseBudgetParams(budget: string): {
     sortBy,
   ]);
 
+  const nextPrefetchedRef = useRef<number | null>(null);
+
+  const handlePrefetchNext = useCallback(async () => {
+    if (page >= totalPages || nextPrefetchedRef.current === page + 1) return;
+    nextPrefetchedRef.current = page + 1;
+    try {
+      const { minCapacity, maxCapacity } = parseCapacityBounds(filters.guests);
+      const { minPlatePrice, maxPlatePrice, priceOnRequestOnly } = parseBudgetParams(filters.budget);
+      const hasLocation =
+        filters.location && !filters.location.startsWith("All") && !filters.location.startsWith("Any");
+      const locTrimmed = filters.location.trim();
+      const isHyderabadCity =
+        locTrimmed.toLowerCase() === "hyderabad" || locTrimmed.toLowerCase() === "hyderabad city";
+      const hasType =
+        filters.venueType && !filters.venueType.startsWith("All") && !filters.venueType.startsWith("Any");
+      const hasSpace =
+        filters.space && !filters.space.startsWith("All") && !filters.space.startsWith("Any");
+
+      const res = await fetchPaginatedVenues({
+        page: page + 1,
+        limit: 20,
+        q: debouncedSearch || undefined,
+        city: hasLocation && isHyderabadCity ? "Hyderabad" : undefined,
+        locality: hasLocation && !isHyderabadCity ? locTrimmed : undefined,
+        type: hasType ? filters.venueType : undefined,
+        space: hasSpace ? filters.space : undefined,
+        minCapacity,
+        maxCapacity,
+        minPlatePrice,
+        maxPlatePrice,
+        priceOnRequestOnly,
+        sortBy,
+      });
+
+      if (res?.items && Array.isArray(res.items) && typeof window !== "undefined") {
+        res.items.slice(0, 8).forEach((v) => {
+          if (v.imageUrl) {
+            const img = new window.Image();
+            img.src = v.imageUrl;
+          }
+        });
+      }
+    } catch {
+      // Best-effort image prefetch
+    }
+  }, [page, totalPages, filters, debouncedSearch, sortBy]);
+
   useEffect(() => {
     if (!mounted) return;
+    if (initialSkipRef.current) {
+      initialSkipRef.current = false;
+      const params = new URLSearchParams(window.location.search);
+      const hasCustomParams = Array.from(params.keys()).some((k) =>
+        [
+          "q",
+          "search",
+          "location",
+          "city",
+          "locality",
+          "guests",
+          "budget",
+          "venueType",
+          "type",
+          "space",
+        ].includes(k)
+      );
+      if (!hasCustomParams) {
+        return;
+      }
+    }
     let active = true;
     setIsLoading(true);
     setError(null);
@@ -169,6 +264,38 @@ function parseBudgetParams(budget: string): {
     setFilters(INITIAL_FILTERS);
   };
 
+  // Sync URL query params with active venue filters
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+    const params = new URLSearchParams();
+    if (debouncedSearch) params.set("q", debouncedSearch);
+    if (filters.location && !filters.location.startsWith("Any") && !filters.location.startsWith("All")) {
+      params.set("location", filters.location);
+    }
+    if (filters.guests && !filters.guests.startsWith("Any")) {
+      params.set("guests", filters.guests);
+    }
+    if (filters.budget && !filters.budget.startsWith("Any")) {
+      params.set("budget", filters.budget);
+    }
+    if (filters.venueType && !filters.venueType.startsWith("All") && !filters.venueType.startsWith("Any")) {
+      params.set("venueType", filters.venueType);
+    }
+    if (filters.space && !filters.space.startsWith("All") && !filters.space.startsWith("Any")) {
+      params.set("space", filters.space);
+    }
+    if (filters.theme && !filters.theme.startsWith("All") && !filters.theme.startsWith("Any")) {
+      params.set("theme", filters.theme);
+    }
+    if (sortBy && sortBy !== "relevance") {
+      params.set("sortBy", sortBy);
+    }
+
+    const queryStr = params.toString();
+    const newUrl = queryStr ? `${window.location.pathname}?${queryStr}` : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  }, [mounted, filters, debouncedSearch, sortBy]);
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (searchQuery.trim()) count++;
@@ -177,6 +304,7 @@ function parseBudgetParams(budget: string): {
     if (filters.budget && !filters.budget.startsWith("Any")) count++;
     if (filters.venueType && !filters.venueType.startsWith("All") && !filters.venueType.startsWith("Any")) count++;
     if (filters.space && !filters.space.startsWith("All") && !filters.space.startsWith("Any")) count++;
+    if (filters.theme && !filters.theme.startsWith("All") && !filters.theme.startsWith("Any")) count++;
     return count;
   }, [filters, searchQuery]);
 
@@ -242,6 +370,45 @@ function parseBudgetParams(budget: string): {
             onReset={handleResetFilters}
             activeFilterCount={activeFilterCount}
           />
+
+          {/* Quick Theme & Price Filter Chips */}
+          <div className="mt-4 flex items-center justify-center gap-2 overflow-x-auto pb-1 max-w-5xl mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {QUICK_THEME_PILLS.map((pill) => {
+              const isThemeActive =
+                pill.type === "theme" && filters.theme === pill.value;
+              const isBudgetActive = pill.type === "budget" && filters.budget === pill.value;
+              const isAllActive =
+                pill.type === "all" &&
+                (!filters.theme || filters.theme.startsWith("All")) &&
+                (!filters.budget || filters.budget.startsWith("Any"));
+              const isActive = isThemeActive || isBudgetActive || isAllActive;
+
+              return (
+                <button
+                  key={pill.label}
+                  type="button"
+                  onClick={() => {
+                    if (pill.type === "theme") {
+                      handleFilterChange("theme", pill.value);
+                    } else if (pill.type === "budget") {
+                      handleFilterChange("budget", pill.value);
+                    } else if (pill.type === "all") {
+                      handleFilterChange("theme", "All Themes");
+                      handleFilterChange("budget", "Any Budget");
+                    }
+                    setTimeout(handleScrollToGrid, 80);
+                  }}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? "bg-[#8B263E] text-white shadow-sm ring-1 ring-[#8B263E]"
+                      : "bg-white/80 hover:bg-white text-neutral-700 hover:text-neutral-900 border border-[#C5A880]/30 hover:border-[#C5A880]"
+                  }`}
+                >
+                  <span>{pill.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </motion.div>
 
       </section>
@@ -262,6 +429,7 @@ function parseBudgetParams(budget: string): {
         onRetry={() => setReloadTick((t) => t + 1)}
         page={page}
         totalPages={totalPages}
+        onPrefetchNext={handlePrefetchNext}
         onPageChange={(nextPage) => {
           setPage(nextPage);
           handleScrollToGrid();

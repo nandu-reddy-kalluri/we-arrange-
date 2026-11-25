@@ -392,6 +392,7 @@ export async function fetchPaginatedVenues(params: {
   locality?: string;
   type?: string;
   space?: string;
+  theme?: string;
   minCapacity?: number;
   maxCapacity?: number;
   minPlatePrice?: number;
@@ -420,6 +421,7 @@ export async function fetchPaginatedVenues(params: {
         locality: params.locality,
         type: params.type,
         space: params.space,
+        theme: params.theme,
         minCapacity: params.minCapacity,
         maxCapacity: params.maxCapacity,
         minPlatePrice: params.minPlatePrice,
@@ -455,6 +457,7 @@ export async function fetchPaginatedVenues(params: {
       locality: params.locality,
       type: params.type,
       space: params.space,
+      theme: params.theme,
       minCapacity: params.minCapacity,
       maxCapacity: params.maxCapacity,
       minPlatePrice: params.minPlatePrice,

@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { VendorsDirectoryClient, PageLoader } from "@/features/vendors/components/VendorsDirectoryClient";
+import { getCachedServerVendorsDirectory } from "@/services/catalog/catalogServer";
 
 export const metadata = {
   title: "Discover Premium Wedding Vendors | YouMarriageWeArrange",
@@ -22,9 +23,16 @@ export default async function VendorsPage({
   const rawCategory = typeof sp.category === "string" ? sp.category.toLowerCase().trim() : "";
   const defaultCategory = CATEGORY_ALIAS[rawCategory] ?? rawCategory;
 
+  const initialData = await getCachedServerVendorsDirectory(defaultCategory, 1, 20);
+
   return (
     <Suspense fallback={<PageLoader />}>
-      <VendorsDirectoryClient defaultCategory={defaultCategory} />
+      <VendorsDirectoryClient
+        defaultCategory={defaultCategory}
+        initialVendors={initialData.items}
+        initialTotal={initialData.total}
+        initialTotalPages={initialData.totalPages}
+      />
     </Suspense>
   );
 }

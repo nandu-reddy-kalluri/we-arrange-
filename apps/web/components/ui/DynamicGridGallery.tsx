@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
 import {
   type GalleryItem,
   DEFAULT_FALLBACK_IMAGE,
@@ -146,13 +147,14 @@ export function DynamicGridGallery({
                 }
               }}
             >
-              <img
+              <Image
                 src={imageSrc}
                 alt={item.alt || item.title || `Gallery photo ${index + 1}`}
-                loading={priorityFirst && index < 2 ? "eager" : "lazy"}
-                decoding="async"
+                fill
+                priority={priorityFirst && index === 0}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 onError={() => handleImageError(index)}
-                className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105 filter brightness-[0.98] contrast-[1.03]"
+                className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105 filter brightness-[0.98] contrast-[1.03]"
               />
 
               {/* Ambient lighting vignette */}

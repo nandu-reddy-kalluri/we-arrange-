@@ -136,4 +136,34 @@ describe("Phase 5: Performance & Optimization Benchmarks", () => {
     expect(detailCalls).toBe(1); // Reused cache!
     expect(cachedDuration).toBeLessThan(5);
   });
+
+  it("prefetches next page items and prevents duplicate network requests on page change", async () => {
+    let apiCallCount = 0;
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url.startsWith("/api/venues/types")) {
+        return { ok: true, status: 200, error: null, data: [] };
+      }
+      if (url.startsWith("/api/venues")) {
+        apiCallCount++;
+        return {
+          ok: true,
+          status: 200,
+          error: null,
+          data: [{ venue_id: 201, venue_name: "Taj Krishna", slug: "taj-krishna" }],
+          meta: { page: 2, limit: 20, total: 40, totalPages: 2 },
+        };
+      }
+      return { ok: false, status: 404, error: "Not found", data: null };
+    });
+
+    // 1. Hover "Next" triggers prefetch for page 2
+    const prefetched = await fetchPaginatedVenues({ page: 2 });
+    expect(prefetched.items).toHaveLength(1);
+    expect(apiCallCount).toBe(1);
+
+    // 2. User clicks "Next" (actual navigation to page 2)
+    const navigated = await fetchPaginatedVenues({ page: 2 });
+    expect(navigated.items).toHaveLength(1);
+    expect(apiCallCount).toBe(1); // Zero additional network calls!
+  });
 });

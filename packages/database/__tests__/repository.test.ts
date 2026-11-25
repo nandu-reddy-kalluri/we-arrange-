@@ -88,7 +88,7 @@ describe("Database Foundation: Errors & Repository Helpers", () => {
     expect(slugify("The Taj Falaknuma Palace & Lawns!")).toBe("the-taj-falaknuma-palace-lawns");
     const repoRoot = path.resolve(__dirname, "../../..");
     const report = verifyMigrationInventory(path.join(repoRoot, "supabase", "migrations"));
-    expect(report.count).toBe(12);
+    expect(report.count).toBe(13);
     expect(report.ordered).toBe(true);
     expect(report.hasUnsafeBlanketGrants).toBe(false);
   });

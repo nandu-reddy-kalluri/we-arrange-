@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { AppError } from "@we-arrange/database/errors";
 import { loginSchema } from "@we-arrange/validation";
+import { checkRateLimit, getClientIp } from "@we-arrange/utils";
 import { ADMIN_SESSION_COOKIE } from "@/lib/adminAuth";
 import { loginWithPassword } from "@/services/auth";
 import { fail, ok } from "@/services/http/response";
@@ -20,6 +21,15 @@ const FORBIDDEN_PRIVILEGE_FIELDS = [
 
 export async function POST(request: NextRequest) {
   try {
+    const clientIp = getClientIp(request);
+    const rl = checkRateLimit("admin_auth_login", clientIp, {
+      windowMs: 15 * 60 * 1000,
+      max: process.env.NODE_ENV === "test" ? 1000 : 5,
+    });
+    if (!rl.success) {
+      throw new AppError("TOO_MANY_REQUESTS", 429, "Too many administrative login attempts. Please try again later.");
+    }
+
     const raw = await request.json().catch(() => null);
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
       return fail(loginSchema.safeParse(raw).error);

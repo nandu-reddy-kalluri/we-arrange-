@@ -15,6 +15,7 @@ import {
   RotateCcw,
   ArrowRight,
   ChevronDown,
+  Crown,
 } from "lucide-react";
 
 export interface VenueFilterState {
@@ -23,6 +24,7 @@ export interface VenueFilterState {
   budget: string;
   venueType: string;
   space: string;
+  theme?: string;
 }
 
 interface VenueHeroSearchProps {
@@ -103,6 +105,17 @@ export const SPACE_OPTIONS = [
   "Indoor",
   "Outdoor",
   "Indoor & Outdoor",
+];
+
+export const THEME_OPTIONS = [
+  "All Themes",
+  "Royal Heritage & Palace",
+  "Luxury 5-Star Hotel",
+  "Scenic Garden & Lawn",
+  "Poolside & Resort",
+  "Traditional Mandapam",
+  "Modern Minimalist",
+  "Grand Convention",
 ];
 
 export function VenueHeroSearch({
@@ -774,6 +787,73 @@ export function VenueHeroSearch({
           </AnimatePresence>
         </div>
 
+        {/* 6. THEME FILTER */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setActiveDropdown(activeDropdown === "theme" ? null : "theme")}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-left transition-all duration-200 outline-none ${
+              activeDropdown === "theme"
+                ? "bg-[#FAF5ED] ring-2 ring-[#C5A880] shadow-sm"
+                : getChipDisplayValue("theme")
+                ? "bg-[#FAF5ED] border border-[#C5A880]/50 text-neutral-900"
+                : "hover:bg-[#FBF8F4] text-neutral-600 hover:text-neutral-900"
+            }`}
+          >
+            <Crown className={`w-4 h-4 shrink-0 ${getChipDisplayValue("theme") || activeDropdown === "theme" ? "text-[#8B263E]" : "text-[#C5A880]"}`} />
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-[9px] uppercase font-bold tracking-wider text-neutral-400">
+                Theme
+              </span>
+              <span className={`text-[12px] xl:text-[13px] font-semibold truncate max-w-[95px] xl:max-w-[125px] ${
+                getChipDisplayValue("theme") ? "text-[#8B263E]" : "text-neutral-800"
+              }`}>
+                {getChipDisplayValue("theme") || "All Themes"}
+              </span>
+            </div>
+          </button>
+
+          {/* Theme Dropdown Popover */}
+          <AnimatePresence>
+            {activeDropdown === "theme" && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 4, scale: 0.96 }}
+                transition={{ duration: 0.16, ease: "easeOut" }}
+                className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.18)] border border-[#C5A880]/30 p-3 z-50"
+              >
+                <div className="px-3 py-1 border-b border-neutral-100 mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#C5A880]">
+                    Wedding Theme / Style
+                  </span>
+                </div>
+
+                <div className="space-y-0.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
+                  {THEME_OPTIONS.map((opt) => {
+                    const isSelected = (!filters.theme && opt === "All Themes") || filters.theme === opt;
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => handleSelectOption("theme", opt)}
+                        className={`w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-lg font-medium transition-colors text-left ${
+                          isSelected
+                            ? "bg-[#FAF5ED] text-[#8B263E] font-bold"
+                            : "text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900"
+                        }`}
+                      >
+                        <span className="truncate">{opt}</span>
+                        {isSelected && <Check className="w-3 h-3 text-[#8B263E] shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* 6. RESET BUTTON (if filters active) */}
         {activeFilterCount > 0 && (
           <button
@@ -879,6 +959,19 @@ export function VenueHeroSearch({
             <Sun className="w-3.5 h-3.5 text-[#C5A880]" />
             <span>{getChipDisplayValue("space") || "Space"}</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => openMobileWithCategory("theme")}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
+              getChipDisplayValue("theme")
+                ? "bg-[#FAF5ED] text-[#8B263E] border border-[#C5A880]/50"
+                : "bg-neutral-100 text-neutral-700"
+            }`}
+          >
+            <Crown className="w-3.5 h-3.5 text-[#C5A880]" />
+            <span>{getChipDisplayValue("theme") || "Theme"}</span>
+          </button>
         </div>
 
         {/* Action Row */}
@@ -960,6 +1053,7 @@ export function VenueHeroSearch({
                     { id: "budget", label: "Budget", icon: IndianRupee },
                     { id: "venueType", label: "Type", icon: Home },
                     { id: "space", label: "Space", icon: Sun },
+                    { id: "theme", label: "Theme", icon: Crown },
                   ] as const
                 ).map((cat) => {
                   const Icon = cat.icon;
@@ -1329,6 +1423,35 @@ export function VenueHeroSearch({
                             key={opt}
                             type="button"
                             onClick={() => onFilterChange("space", opt)}
+                            className={`py-2.5 px-3.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between ${
+                              isSelected
+                                ? "bg-[#FAF5ED] text-[#8B263E] font-bold border border-[#C5A880]/50"
+                                : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100"
+                            }`}
+                          >
+                            <span>{opt}</span>
+                            {isSelected && <Check className="w-4 h-4 text-[#8B263E]" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. THEME CATEGORY */}
+                {mobileActiveCategory === "theme" && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                      Wedding Theme / Style
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5 max-h-60 overflow-y-auto">
+                      {THEME_OPTIONS.map((opt) => {
+                        const isSelected = (!filters.theme && opt === "All Themes") || filters.theme === opt;
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => onFilterChange("theme", opt)}
                             className={`py-2.5 px-3.5 rounded-xl text-left text-xs font-semibold flex items-center justify-between ${
                               isSelected
                                 ? "bg-[#FAF5ED] text-[#8B263E] font-bold border border-[#C5A880]/50"

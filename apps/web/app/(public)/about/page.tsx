@@ -32,10 +32,10 @@ const VALUES = [
 ];
 
 const STATS = [
-  { value: "150+", label: "Vetted Hyderabad Venues" },
-  { value: "300+", label: "Artisan Wedding Vendors" },
+  { value: "1,100+", label: "Vetted Hyderabad Venues" },
+  { value: "2,900+", label: "Artisan Wedding Vendors" },
   { value: "100%", label: "Verified Reviews & Contracts" },
-  { value: "48 hrs", label: "Average Concierge Response" },
+  { value: "24 hrs", label: "Average Concierge Response" },
 ];
 
 export default function AboutPage() {

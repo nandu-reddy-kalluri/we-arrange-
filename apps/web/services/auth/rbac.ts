@@ -56,7 +56,16 @@ export async function resolveAuthenticatedContext(
   }
 
   const authUser = authData.user;
-  const adminClient = existingAdminClient ?? createServiceRoleClient();
+  let adminClient: SupabaseClient<Database>;
+  if (existingAdminClient) {
+    adminClient = existingAdminClient;
+  } else {
+    try {
+      adminClient = createServiceRoleClient();
+    } catch {
+      adminClient = supabase;
+    }
+  }
 
   const { data: dbUser, error: userError } = await adminClient
     .from("users")

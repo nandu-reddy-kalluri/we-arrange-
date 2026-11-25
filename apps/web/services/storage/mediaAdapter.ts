@@ -19,6 +19,11 @@ export interface SignedUploadResponse {
   requiredHeaders: {
     "Content-Type": string;
   };
+  variants?: {
+    thumbnail: string;
+    card: string;
+    large: string;
+  };
 }
 
 export interface R2EnvConfig {
@@ -70,7 +75,8 @@ export function createR2PresignedPutUrl(
   config: R2EnvConfig,
   objectKey: string,
   expiresInSeconds = 300,
-  now = new Date()
+  now = new Date(),
+  contentType?: string
 ): string {
   const host = `${config.accountId}.r2.cloudflarestorage.com`;
   const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
@@ -78,22 +84,29 @@ export function createR2PresignedPutUrl(
   const credentialScope = `${dateStamp}/auto/s3/aws4_request`;
   const canonicalUri = encodeRfc3986Path(`/${config.bucket}/${objectKey}`);
 
+  const normalizedContentType = contentType?.trim().toLowerCase();
+  const signedHeaders = normalizedContentType ? "content-type;host" : "host";
+
   const params = new URLSearchParams({
     "X-Amz-Algorithm": "AWS4-HMAC-SHA256",
     "X-Amz-Credential": `${config.accessKeyId}/${credentialScope}`,
     "X-Amz-Date": amzDate,
     "X-Amz-Expires": String(expiresInSeconds),
-    "X-Amz-SignedHeaders": "host",
+    "X-Amz-SignedHeaders": signedHeaders,
   });
   params.sort();
   const canonicalQuery = params.toString();
+
+  const canonicalHeaders = normalizedContentType
+    ? `content-type:${normalizedContentType}\nhost:${host}\n`
+    : `host:${host}\n`;
 
   const canonicalRequest = [
     "PUT",
     canonicalUri,
     canonicalQuery,
-    `host:${host}\n`,
-    "host",
+    canonicalHeaders,
+    signedHeaders,
     "UNSIGNED-PAYLOAD",
   ].join("\n");
 
@@ -116,6 +129,22 @@ export function createR2PresignedPutUrl(
   return `https://${host}${canonicalUri}?${canonicalQuery}&X-Amz-Signature=${signature}`;
 }
 
+export function buildCloudflareDerivativeUrl(
+  publicBaseUrl: string,
+  objectKey: string,
+  variant: "thumbnail" | "card" | "large"
+): string {
+  const base = publicBaseUrl.replace(/\/+$/, "");
+  const cleanKey = objectKey.replace(/^\/+/, "");
+  const transforms = {
+    thumbnail: "width=400,quality=80,format=auto",
+    card: "width=800,quality=80,format=auto",
+    large: "width=1600,quality=85,format=auto",
+  }[variant];
+
+  return `${base}/cdn-cgi/image/${transforms}/${cleanKey}`;
+}
+
 export function createSignedMediaUploadUrl(
   req: SignedUploadRequest,
   overrideConfig?: R2EnvConfig | null
@@ -133,7 +162,13 @@ export function createSignedMediaUploadUrl(
   const uniquePrefix = `${Date.now().toString(36)}-${crypto.randomBytes(6).toString("hex")}`;
   const objectKey = `${req.scope}/${String(req.ownerId)}/${uniquePrefix}-${safeName}`;
   const expiresInSeconds = 300;
-  const uploadUrl = createR2PresignedPutUrl(config, objectKey, expiresInSeconds);
+  const uploadUrl = createR2PresignedPutUrl(
+    config,
+    objectKey,
+    expiresInSeconds,
+    new Date(),
+    req.contentType
+  );
   const publicBase = config.publicBaseUrl.replace(/\/+$/, "");
 
   return {
@@ -145,6 +180,11 @@ export function createSignedMediaUploadUrl(
     expiresInSeconds,
     requiredHeaders: {
       "Content-Type": req.contentType,
+    },
+    variants: {
+      thumbnail: buildCloudflareDerivativeUrl(config.publicBaseUrl, objectKey, "thumbnail"),
+      card: buildCloudflareDerivativeUrl(config.publicBaseUrl, objectKey, "card"),
+      large: buildCloudflareDerivativeUrl(config.publicBaseUrl, objectKey, "large"),
     },
   };
 }

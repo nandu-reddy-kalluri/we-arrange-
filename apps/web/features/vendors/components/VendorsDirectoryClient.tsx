@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { Vendor } from "@/mock-data/vendors";
 import { fetchPaginatedVendors } from "@/services/catalog/catalogApi";
@@ -53,16 +53,27 @@ const MemoizedVendorGrid = React.memo(FeaturedVendors);
 // Main Client Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCategory?: string }) {
+export function VendorsDirectoryClient({
+  defaultCategory = "",
+  initialVendors = [],
+  initialTotal = 0,
+  initialTotalPages = 1,
+}: {
+  defaultCategory?: string;
+  initialVendors?: Vendor[];
+  initialTotal?: number;
+  initialTotalPages?: number;
+}) {
   // Defer rendering until after hydration
   const [mounted, setMounted] = useState(false);
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
+  const [vendors, setVendors] = useState<Vendor[]>(initialVendors);
+  const [totalCount, setTotalCount] = useState(initialTotal);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(initialVendors.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
+  const initialSkipRef = useRef(initialVendors.length > 0);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -90,6 +101,16 @@ export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCatego
 
   useEffect(() => {
     if (!mounted) return;
+    if (initialSkipRef.current) {
+      initialSkipRef.current = false;
+      const params = new URLSearchParams(window.location.search);
+      const hasCustomParams = Array.from(params.keys()).some((k) =>
+        ["city", "search", "rating", "isVerified", "sortBy"].includes(k)
+      );
+      if (!hasCustomParams) {
+        return;
+      }
+    }
     let active = true;
     setIsLoading(true);
     setError(null);
@@ -127,6 +148,46 @@ export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCatego
     };
   }, [mounted, page, debouncedSearch, filters.category, filters.city, filters.rating, filters.isVerified, filters.sortBy, reloadTick]);
 
+  const nextPrefetchedRef = useRef<number | null>(null);
+
+  const handlePrefetchNext = useCallback(async () => {
+    if (page >= totalPages || nextPrefetchedRef.current === page + 1) return;
+    nextPrefetchedRef.current = page + 1;
+    try {
+      const serverSortBy: "relevance" | "rating" | "reviews" | "newest" =
+        filters.sortBy === "top-rated" || filters.sortBy === "highest-rated"
+          ? "rating"
+          : filters.sortBy === "most-reviewed"
+            ? "reviews"
+            : filters.sortBy === "newest"
+              ? "newest"
+              : "relevance";
+      const parsedMinRating = filters.rating ? parseFloat(filters.rating) : undefined;
+
+      const result = await fetchPaginatedVendors({
+        page: page + 1,
+        limit: 20,
+        q: debouncedSearch || undefined,
+        category: filters.category || undefined,
+        city: filters.city || undefined,
+        verifiedOnly: filters.isVerified || undefined,
+        minRating: Number.isFinite(parsedMinRating) ? parsedMinRating : undefined,
+        sortBy: serverSortBy,
+      });
+
+      if (result?.items && Array.isArray(result.items) && typeof window !== "undefined") {
+        result.items.slice(0, 8).forEach((v) => {
+          if (v.imageUrl) {
+            const img = new window.Image();
+            img.src = v.imageUrl;
+          }
+        });
+      }
+    } catch {
+      // Best-effort image prefetch
+    }
+  }, [page, totalPages, debouncedSearch, filters]);
+
   // URL param init
   useEffect(() => {
     if (!mounted) return;
@@ -147,12 +208,35 @@ export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCatego
     }
   }, [mounted]);
 
+  // Sync URL query params with active filters
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+    const params = new URLSearchParams();
+    if (filters.category) params.set("category", filters.category);
+    if (filters.city) params.set("city", filters.city);
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (filters.rating) params.set("rating", filters.rating);
+    if (filters.sortBy && filters.sortBy !== "popularity") params.set("sortBy", filters.sortBy);
+
+    const queryStr = params.toString();
+    const newUrl = queryStr ? `${window.location.pathname}?${queryStr}` : window.location.pathname;
+    window.history.replaceState(null, "", newUrl);
+  }, [mounted, filters.category, filters.city, filters.rating, filters.sortBy, debouncedSearch]);
+
   // ── Optional client-side refinements + sorting without hiding backend search/category matches ──
   const filteredVendors = useMemo(() => {
     const list = vendors.filter((vendor) => {
-      if (filters.budgetTier && vendor.tier && vendor.tier !== filters.budgetTier) return false;
+      if (filters.budgetTier) {
+        if (vendor.tier) {
+          if (vendor.tier !== filters.budgetTier) return false;
+        } else {
+          if (filters.budgetTier === "Luxury" && vendor.priceStart < 2.5) return false;
+          if (filters.budgetTier === "Premium" && (vendor.priceStart < 1.0 || vendor.priceStart >= 2.5)) return false;
+          if (filters.budgetTier === "Budget" && (vendor.priceStart <= 0 || vendor.priceStart >= 1.0)) return false;
+        }
+      }
       if (filters.rating && vendor.rating < parseFloat(filters.rating)) return false;
-      if (filters.experience && (vendor.experience || 0) < parseInt(filters.experience, 10)) return false;
+      if (filters.experience && (vendor.experience ?? 0) < parseInt(filters.experience, 10)) return false;
       if (filters.availability && vendor.availability && vendor.availability !== "Available") return false;
       if (filters.isVerified && !vendor.isVerified) return false;
       if (filters.spaceType && vendor.spaceType) {
@@ -261,6 +345,7 @@ export function VendorsDirectoryClient({ defaultCategory = "" }: { defaultCatego
                 page={page}
                 totalPages={totalPages}
                 onPageChange={setPage}
+                onPrefetchNext={handlePrefetchNext}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
               />

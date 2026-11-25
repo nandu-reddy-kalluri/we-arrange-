@@ -17,6 +17,8 @@ const EXPECTED_MIGRATIONS = [
   "20261112170009_admin_concierge_authorization_rls.sql",
   "20261112170010_quotes_comparison_sheets_and_links.sql",
   "20261112180011_booking_links_site_visits_and_preferences.sql",
+  "20261112180012_harden_concierge_or_admin_rls.sql",
+  "20261112180013_trigram_search_and_numeric_plate_pricing.sql",
 ] as const;
 
 function readMigration(filename: string): string {
@@ -280,6 +282,33 @@ describe("Prepared SQL Migrations 01–10 Security & Integrity Verification", ()
     expect(mig06).toContain("CREATE INDEX IF NOT EXISTS idx_enquiries_user_id ON public.enquiries (user_id);");
     expect(mig06).toContain("CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON public.favorites (user_id);");
     expect(mig06).toContain("CREATE INDEX IF NOT EXISTS idx_payments_user_id ON public.payments (user_id);");
+  });
+
+  it("defines Migration 13 pg_trgm GIN search indexes, numeric plate pricing, and column grants", () => {
+    const mig13 = stripSqlComments(readMigration("20261112180013_trigram_search_and_numeric_plate_pricing.sql"));
+
+    // DB-002: Trigram extension and 5 GIN indexes
+    expect(mig13).toContain("CREATE EXTENSION IF NOT EXISTS pg_trgm;");
+    expect(mig13).toContain("CREATE INDEX IF NOT EXISTS idx_venues_venue_name_trgm");
+    expect(mig13).toContain("ON public.venues USING gin (venue_name gin_trgm_ops)");
+    expect(mig13).toContain("CREATE INDEX IF NOT EXISTS idx_venues_locality_name_trgm");
+    expect(mig13).toContain("ON public.venues USING gin (locality_name gin_trgm_ops)");
+    expect(mig13).toContain("CREATE INDEX IF NOT EXISTS idx_venues_base_city_trgm");
+    expect(mig13).toContain("ON public.venues USING gin (base_city gin_trgm_ops)");
+    expect(mig13).toContain("CREATE INDEX IF NOT EXISTS idx_vendors_vendor_name_trgm");
+    expect(mig13).toContain("ON public.vendors USING gin (vendor_name gin_trgm_ops)");
+    expect(mig13).toContain("CREATE INDEX IF NOT EXISTS idx_vendors_description_trgm");
+    expect(mig13).toContain("ON public.vendors USING gin (description gin_trgm_ops)");
+
+    // BE-001: Structured numeric columns and B-tree indexes
+    expect(mig13).toContain("ADD COLUMN IF NOT EXISTS min_plate_price NUMERIC");
+    expect(mig13).toContain("ADD COLUMN IF NOT EXISTS max_plate_price NUMERIC");
+    expect(mig13).toContain("CREATE INDEX IF NOT EXISTS idx_venues_min_plate_price ON public.venues (min_plate_price)");
+    expect(mig13).toContain("CREATE INDEX IF NOT EXISTS idx_venues_max_plate_price ON public.venues (max_plate_price)");
+
+    // Least-privilege column grants for anon and authenticated
+    expect(mig13).toMatch(/GRANT\s+SELECT\s*\(\s*min_plate_price,\s*max_plate_price\s*\)\s*ON\s+public\.venues\s+TO\s+anon,\s*authenticated/i);
+    expect(mig13).not.toMatch(/GRANT\s+ALL/i);
   });
 });
 

@@ -1,9 +1,21 @@
 import type { MetadataRoute } from "next";
+import { createPublicAnonClient } from "@we-arrange/database/clients";
 import { featuredVenues } from "@/mock-data/venues";
 import { mockVendors } from "@/mock-data/vendors";
 import { realWeddingDetails } from "@/mock-data/real-weddings";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+interface SlugItem {
+  slug: string;
+  updated_at?: string | null;
+}
+
+function parseLastModified(rawDate?: string | null, fallback: Date = new Date()): Date {
+  if (!rawDate) return fallback;
+  const parsed = new Date(rawDate);
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed;
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.youmarriagewearrange.com";
   const now = new Date();
 
@@ -58,19 +70,74 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }));
 
-  const venueRoutes: MetadataRoute.Sitemap = featuredVenues.map((venue) => ({
-    url: `${baseUrl}/venues/${venue.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: 0.8,
-  }));
+  let venueRoutes: MetadataRoute.Sitemap;
+  let vendorRoutes: MetadataRoute.Sitemap;
 
-  const vendorRoutes: MetadataRoute.Sitemap = mockVendors.map((vendor) => ({
-    url: `${baseUrl}/vendors/${vendor.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: 0.8,
-  }));
+  try {
+    const supabase = createPublicAnonClient();
+    const [venuesRes, vendorsRes] = await Promise.all([
+      supabase.from("venues").select("slug, updated_at").eq("status", "Active").limit(1000),
+      supabase.from("vendors").select("slug, updated_at").eq("status", "Active").limit(1000),
+    ]);
+
+    let activeVenues = (venuesRes.data as SlugItem[] | null)?.filter((v) => Boolean(v?.slug));
+    if ((!activeVenues || activeVenues.length === 0) && venuesRes.error) {
+      const fallbackVenueRes = await supabase
+        .from("venues")
+        .select("slug")
+        .eq("status", "Active")
+        .limit(1000);
+      if (fallbackVenueRes.data && Array.isArray(fallbackVenueRes.data) && fallbackVenueRes.data.length > 0) {
+        activeVenues = fallbackVenueRes.data.filter((v: { slug?: string | null }) => Boolean(v?.slug)) as SlugItem[];
+      }
+    }
+
+    if (activeVenues && activeVenues.length > 0) {
+      venueRoutes = activeVenues.map((v) => ({
+        url: `${baseUrl}/venues/${v.slug}`,
+        lastModified: parseLastModified(v.updated_at, now),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      }));
+    } else {
+      venueRoutes = featuredVenues.map((venue) => ({
+        url: `${baseUrl}/venues/${venue.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      }));
+    }
+
+    const activeVendors = (vendorsRes.data as SlugItem[] | null)?.filter((v) => Boolean(v?.slug));
+    if (activeVendors && activeVendors.length > 0) {
+      vendorRoutes = activeVendors.map((v) => ({
+        url: `${baseUrl}/vendors/${v.slug}`,
+        lastModified: parseLastModified(v.updated_at, now),
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      }));
+    } else {
+      vendorRoutes = mockVendors.map((vendor) => ({
+        url: `${baseUrl}/vendors/${vendor.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.8,
+      }));
+    }
+  } catch {
+    venueRoutes = featuredVenues.map((venue) => ({
+      url: `${baseUrl}/venues/${venue.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    }));
+    vendorRoutes = mockVendors.map((vendor) => ({
+      url: `${baseUrl}/vendors/${vendor.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    }));
+  }
 
   const realWeddingRoutes: MetadataRoute.Sitemap = Object.keys(realWeddingDetails).map((slug) => ({
     url: `${baseUrl}/inspiration/real-weddings/${slug}`,

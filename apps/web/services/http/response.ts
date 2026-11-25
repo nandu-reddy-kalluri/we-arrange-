@@ -82,7 +82,14 @@ export function fail(err: unknown, fallbackMessage = "Request failed.") {
   );
 }
 
+const MAX_JSON_BODY_BYTES = 1024 * 1024; // 1MB payload cap to prevent memory spikes
+
 export async function parseJsonBody<T>(request: Request, schema: ZodType<T>): Promise<T> {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && Number(contentLength) > MAX_JSON_BODY_BYTES) {
+    throw new AppError("PAYLOAD_TOO_LARGE", 413, "Request payload exceeds maximum allowed size (1MB).");
+  }
+
   let raw: unknown;
   try {
     raw = await request.json();

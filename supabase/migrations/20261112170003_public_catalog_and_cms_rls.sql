@@ -288,3 +288,35 @@ DROP POLICY IF EXISTS "Public can view inspiration categories" ON public.inspira
 CREATE POLICY "Public can view inspiration categories"
   ON public.inspiration_categories FOR SELECT TO anon, authenticated
   USING (status = 'Active'::public.status_enum);
+
+-- 6. CMS & content tables public view policies (published/active content)
+DROP POLICY IF EXISTS "Public can view published blogs" ON public.blogs;
+CREATE POLICY "Public can view published blogs"
+  ON public.blogs FOR SELECT TO anon, authenticated
+  USING (status = 'Published'::public.status_enum);
+
+DROP POLICY IF EXISTS "Public can view published pages" ON public.pages;
+CREATE POLICY "Public can view published pages"
+  ON public.pages FOR SELECT TO anon, authenticated
+  USING (status = 'Published'::public.status_enum);
+
+DROP POLICY IF EXISTS "Public can view active faqs" ON public.faqs;
+CREATE POLICY "Public can view active faqs"
+  ON public.faqs FOR SELECT TO anon, authenticated
+  USING (status = 'Active'::public.status_enum);
+
+DROP POLICY IF EXISTS "Public can view active home sections" ON public.home_sections;
+CREATE POLICY "Public can view active home sections"
+  ON public.home_sections FOR SELECT TO anon, authenticated
+  USING (status = 'Active'::public.status_enum);
+
+DROP POLICY IF EXISTS "Public can view active testimonials" ON public.testimonials;
+CREATE POLICY "Public can view active testimonials"
+  ON public.testimonials FOR SELECT TO anon, authenticated
+  USING (status = 'Active'::public.status_enum);
+
+DROP POLICY IF EXISTS "Public can view active themes" ON public.themes;
+CREATE POLICY "Public can view active themes"
+  ON public.themes FOR SELECT TO anon, authenticated
+  USING (status = 'Active'::public.status_enum);
+

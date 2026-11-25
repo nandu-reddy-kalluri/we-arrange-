@@ -100,6 +100,10 @@ describe("Phase 6: External Integrations Comprehensive Audit & Verification", ()
       expect(res.objectKey).toMatch(/^vendors\/42\/[a-z0-9]+-[a-f0-9]+-portfolio\.webp$/);
       expect(res.publicUrl).toBe(`https://media-dev.we-arrange.com/${res.objectKey}`);
       expect(res.requiredHeaders["Content-Type"]).toBe("image/webp");
+      expect(res.variants).toBeDefined();
+      expect(res.variants?.thumbnail).toContain("/cdn-cgi/image/width=400,quality=80,format=auto/");
+      expect(res.variants?.card).toContain("/cdn-cgi/image/width=800,quality=80,format=auto/");
+      expect(res.variants?.large).toContain("/cdn-cgi/image/width=1600,quality=85,format=auto/");
     });
 
     it("enforces strict MIME types and size limits on upload sign schemas", () => {

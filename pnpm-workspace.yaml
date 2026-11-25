@@ -3,6 +3,14 @@ packages:
   - "packages/*"
   - "services/*"
 
+overrides:
+  next: 15.5.29
+  eslint-config-next: 15.5.29
+  postcss: ^8.5.12
+  postcss-selector-parser: ^6.1.5
+  zod: ^4.6.6
+  minimatch: ^11.0.1
+
 allowBuilds:
   unrs-resolver: true
 

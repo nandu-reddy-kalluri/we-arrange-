@@ -4,6 +4,7 @@ import {
   buildPaginationMeta,
   normalizePagination,
   PUBLIC_VENUE_COLUMNS,
+  sanitizePostgrestFilterTerm,
   slugify,
 } from "@we-arrange/database/repository";
 import type { Database, Json } from "@we-arrange/database/types";
@@ -18,6 +19,7 @@ export interface VenueFilterInput {
   typeIds?: number[];
   type?: string;
   space?: string;
+  theme?: string;
   minCapacity?: number;
   maxCapacity?: number;
   minPlatePrice?: number;
@@ -28,27 +30,53 @@ export interface VenueFilterInput {
   sortOrder?: "asc" | "desc";
 }
 
-function matchesVenueBudget(
+export function parsePlatePrices(priceTag: string): number[] {
+  if (!priceTag) return [];
+  const matches = priceTag.match(/[\d,]+(?:\.\d+)?/g);
+  if (!matches) return [];
+  return matches
+    .map((m) => Number(m.replace(/,/g, "")))
+    .filter((n) => Number.isFinite(n) && n > 0);
+}
+
+export function matchesVenueBudget(
   row: Record<string, unknown>,
   filters: VenueFilterInput
 ): boolean {
-  const priceTag =
-    (typeof row.venue_price_tag === "string" && row.venue_price_tag.trim()) ||
-    (typeof row.price_range === "string" ? row.price_range.trim() : "");
-  const isRequestOnly = !priceTag || priceTag.toLowerCase().includes("request");
-  const numeric = Number(priceTag.replace(/[^\d.]/g, ""));
-  const validPrice = Number.isFinite(numeric) && numeric > 0;
+  let minPrice: number | null =
+    typeof row.min_plate_price === "number" && Number.isFinite(row.min_plate_price)
+      ? row.min_plate_price
+      : null;
+  let maxPrice: number | null =
+    typeof row.max_plate_price === "number" && Number.isFinite(row.max_plate_price)
+      ? row.max_plate_price
+      : null;
 
+  if (minPrice === null && maxPrice === null) {
+    const priceTag =
+      (typeof row.venue_price_tag === "string" && row.venue_price_tag.trim()) ||
+      (typeof row.price_range === "string" ? row.price_range.trim() : "");
+    const prices = parsePlatePrices(priceTag);
+    if (prices.length > 0) {
+      minPrice = Math.min(...prices);
+      maxPrice = Math.max(...prices);
+    }
+  }
+
+  if (minPrice === null && maxPrice === null) {
+    return Boolean(filters.priceOnRequestOnly);
+  }
   if (filters.priceOnRequestOnly) {
-    return isRequestOnly || !validPrice;
-  }
-  if (isRequestOnly || !validPrice) {
     return false;
   }
-  if (filters.minPlatePrice !== undefined && numeric < filters.minPlatePrice) {
+
+  const effectiveMax = maxPrice ?? minPrice ?? 0;
+  const effectiveMin = minPrice ?? maxPrice ?? 0;
+
+  if (filters.minPlatePrice !== undefined && effectiveMax < filters.minPlatePrice) {
     return false;
   }
-  if (filters.maxPlatePrice !== undefined && numeric > filters.maxPlatePrice) {
+  if (filters.maxPlatePrice !== undefined && effectiveMin > filters.maxPlatePrice) {
     return false;
   }
   return true;
@@ -130,10 +158,12 @@ export async function listPublicVenues(
     query = query.ilike("base_city", `%${filters.city.trim()}%`);
   }
   if (filters.locality) {
-    const loc = filters.locality.trim();
-    query = query.or(
-      `locality_name.ilike.%${loc}%,primary_locality.ilike.%${loc}%,address.ilike.%${loc}%`
-    );
+    const loc = sanitizePostgrestFilterTerm(filters.locality);
+    if (loc) {
+      query = query.or(
+        `locality_name.ilike.%${loc}%,primary_locality.ilike.%${loc}%,address.ilike.%${loc}%`
+      );
+    }
   }
   if (derivedSpaceFilter) {
     const lowerSpace = derivedSpaceFilter.toLowerCase();
@@ -150,10 +180,60 @@ export async function listPublicVenues(
     query = query.lte("guest_count_min", filters.maxCapacity);
   }
   if (filters.q) {
-    const term = filters.q.trim();
-    query = query.or(
-      `venue_name.ilike.%${term}%,locality_name.ilike.%${term}%,base_city.ilike.%${term}%,short_summary.ilike.%${term}%`
-    );
+    const term = sanitizePostgrestFilterTerm(filters.q);
+    if (term) {
+      query = query.or(
+        `venue_name.ilike.%${term}%,locality_name.ilike.%${term}%,base_city.ilike.%${term}%,short_summary.ilike.%${term}%`
+      );
+    }
+  }
+
+  if (filters.theme && !filters.theme.startsWith("All") && !filters.theme.startsWith("Any")) {
+    const t = filters.theme.toLowerCase();
+    if (t.includes("royal") || t.includes("palace") || t.includes("heritage")) {
+      query = query.or(
+        "venue_name.ilike.%palace%,venue_name.ilike.%heritage%,venue_name.ilike.%royal%,description.ilike.%palace%,description.ilike.%heritage%,description.ilike.%royal%"
+      );
+    } else if (t.includes("5-star") || t.includes("luxury") || t.includes("hotel")) {
+      query = query.or(
+        "venue_name.ilike.%hotel%,venue_name.ilike.%itc%,venue_name.ilike.%taj%,venue_name.ilike.%marriott%,venue_name.ilike.%hyatt%,venue_name.ilike.%novotel%,venue_name.ilike.%radisson%,description.ilike.%luxury%,description.ilike.%5-star%"
+      );
+    } else if (t.includes("garden") || t.includes("lawn")) {
+      query = query.or(
+        "indoor_outdoor_spaces.ilike.%outdoor%,venue_name.ilike.%lawn%,venue_name.ilike.%garden%,description.ilike.%lawn%,description.ilike.%garden%"
+      );
+    } else if (t.includes("resort") || t.includes("pool") || t.includes("farm")) {
+      query = query.or(
+        "venue_name.ilike.%resort%,venue_name.ilike.%farm%,description.ilike.%resort%,description.ilike.%pool%"
+      );
+    } else if (t.includes("convention")) {
+      query = query.or("venue_name.ilike.%convention%,description.ilike.%convention%");
+    } else if (t.includes("mandapam") || t.includes("traditional")) {
+      query = query.or(
+        "venue_name.ilike.%mandapam%,venue_name.ilike.%kalyana%,description.ilike.%traditional%"
+      );
+    } else if (t.includes("minimal")) {
+      query = query.or(
+        "description.ilike.%contemporary%,description.ilike.%boutique%,description.ilike.%modern%"
+      );
+    }
+  }
+
+  // BE-001: Execute budget filters directly in PostgreSQL using B-tree indexed numeric columns
+  const hasBudgetFilter =
+    Boolean(filters.priceOnRequestOnly) ||
+    filters.minPlatePrice !== undefined ||
+    filters.maxPlatePrice !== undefined;
+
+  if (filters.priceOnRequestOnly) {
+    query = query.or("min_plate_price.is.null,venue_price_tag.ilike.%request%");
+  } else {
+    if (filters.minPlatePrice !== undefined) {
+      query = query.gte("max_plate_price", filters.minPlatePrice);
+    }
+    if (filters.maxPlatePrice !== undefined) {
+      query = query.lte("min_plate_price", filters.maxPlatePrice);
+    }
   }
 
   // Strictly non-price sorting (ENGINEERING_RULES.md); always break ties by venue_id for stable pagination
@@ -196,39 +276,19 @@ export async function listPublicVenues(
       break;
   }
 
-  const hasBudgetFilter =
-    Boolean(filters.priceOnRequestOnly) ||
-    filters.minPlatePrice !== undefined ||
-    filters.maxPlatePrice !== undefined;
-
-  let rows: Array<Record<string, unknown>> = [];
-  let totalCount = 0;
-
-  if (hasBudgetFilter) {
-    // Scan full filtered catalog in server-side chunks so budget pagination never stops at page 1
-    const allMatched: Array<Record<string, unknown>> = [];
-    const chunkSize = 1000;
-    let offset = 0;
-    while (offset < 5000) {
-      const { data: chunk, error: chunkErr } = await query.range(offset, offset + chunkSize - 1);
-      if (chunkErr) throw mapDatabaseError(chunkErr, "Failed to query venues.");
-      const list = (chunk ?? []) as unknown as Array<Record<string, unknown>>;
-      for (const item of list) {
-        if (matchesVenueBudget(item, filters)) {
-          allMatched.push(item);
-        }
-      }
-      if (list.length < chunkSize) break;
-      offset += chunkSize;
-    }
-    totalCount = allMatched.length;
-    rows = allMatched.slice(from, to + 1);
-  } else {
-    const { data, error, count } = await query.range(from, to);
-    if (error) throw mapDatabaseError(error, "Failed to query venues.");
-    rows = (data ?? []) as unknown as Array<Record<string, unknown>>;
-    totalCount = count ?? rows.length;
-  }
+  // Standard paginated fetch directly against PostgreSQL — eliminates 5,000-row in-memory chunking (BE-001)
+  const { data, error, count } = await query.range(from, to);
+  if (error) throw mapDatabaseError(error, "Failed to query venues.");
+  const rawList = (data ?? []) as unknown as Array<Record<string, unknown>>;
+  const rows = hasBudgetFilter
+    ? rawList.filter((item) => matchesVenueBudget(item, filters))
+    : rawList;
+  const totalCount =
+    hasBudgetFilter && count !== null && count !== undefined && rows.length === rawList.length
+      ? count
+      : hasBudgetFilter
+        ? rows.length
+        : (count ?? rows.length);
 
   if (options?.includeMedia && rows.length > 0) {
     const venueIds = rows

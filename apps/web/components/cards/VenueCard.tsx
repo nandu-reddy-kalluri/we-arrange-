@@ -9,7 +9,15 @@ import { Venue } from "@/mock-data/venues";
 import { useSavedStore } from "@/store/useSavedStore";
 import { DEFAULT_VENUE_IMAGE } from "@/services/catalog/catalogMappers";
 
-export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?: () => void }) {
+export default function VenueCard({
+  venue,
+  onRemove,
+  priority = false,
+}: {
+  venue: Venue;
+  onRemove?: () => void;
+  priority?: boolean;
+}) {
   const router = useRouter();
   const { isVenueSaved, toggleSaveVenue } = useSavedStore();
   
@@ -66,11 +74,19 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
     router.push(`/venues/${venue.slug}`);
   };
 
+  const handleCardMouseEnter = () => {
+    if (typeof window !== "undefined" && images.length > 1 && images[1] && !loadedMap[images[1]]) {
+      const nextImg = new window.Image();
+      nextImg.src = images[1];
+    }
+  };
+
   return (
     <>
       <div 
         onClick={handleCardClick}
-        className="group flex flex-col bg-white border border-gray-100 shadow-[0_8px_32px_0_rgba(25,45,50,0.02)] hover:shadow-[0_20px_40px_rgba(200,161,101,0.15)] hover:-translate-y-1 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-[#C8A165] rounded-2xl overflow-hidden cursor-pointer"
+        onMouseEnter={handleCardMouseEnter}
+        className="gpu-accelerate group flex flex-col bg-white border border-gray-100 shadow-[0_8px_32px_0_rgba(25,45,50,0.02)] hover:shadow-[0_20px_40px_rgba(200,161,101,0.15)] hover:-translate-y-1 transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-[#C8A165] rounded-2xl overflow-hidden cursor-pointer"
       >
         {/* Image Container with Automatic 1s Slider and Touch Swipe */}
         <div 
@@ -93,6 +109,7 @@ export default function VenueCard({ venue, onRemove }: { venue: Venue; onRemove?
                 src={resolvedSrc}
                 alt={venue.name}
                 fill
+                priority={Boolean(priority && idx === 0)}
                 unoptimized={resolvedSrc.endsWith(".svg")}
                 quality={75}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"

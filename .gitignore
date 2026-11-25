@@ -52,6 +52,7 @@ homepage-*.json
 post-gate-*.json
 *.devtoolslog.json
 *.trace.json
+audit/*.json
 
 # Database & migration backups
 *.bak

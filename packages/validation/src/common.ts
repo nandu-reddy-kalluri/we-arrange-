@@ -40,11 +40,27 @@ export const inrAmountSchema = z.coerce
   .min(0, "Amount cannot be negative")
   .max(500_000_000, "Amount exceeds supported transaction limit");
 
+const PRIVATE_OR_METADATA_HOST_REGEX =
+  /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0|\[::1\])$/i;
+
 export const safeHttpUrlSchema = z
   .string()
   .trim()
   .url("Valid URL is required")
-  .refine((u) => /^https?:\/\//i.test(u), "URL must use http or https scheme");
+  .refine((u) => {
+    try {
+      const parsed = new URL(u);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+      const hostname = parsed.hostname.toLowerCase();
+      // Block internal/loopback/cloud metadata SSRF vectors in non-test runtimes
+      if (process.env.NODE_ENV === "production" && PRIVATE_OR_METADATA_HOST_REGEX.test(hostname)) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }, "URL must be a valid public http or https address (private and cloud metadata addresses are prohibited)");
 
 export const nonEmptyTrimmed = (label: string, max = 500) =>
   z.string().trim().min(1, `${label} is required`).max(max);

@@ -1,10 +1,8 @@
 import React from "react";
 import type { Metadata } from "next";
 import { createPublicAnonClient } from "@we-arrange/database/clients";
-import {
-  getPublicVendorBySlugOrId,
-  listVendorCategories,
-} from "@we-arrange/service-vendor";
+import { listVendorCategories } from "@we-arrange/service-vendor";
+import { getCachedServerVendorDetail } from "@/services/catalog/catalogServer";
 import VendorDetailsClient from "./VendorDetailsClient";
 import { VendorsDirectoryClient } from "@/features/vendors/components/VendorsDirectoryClient";
 
@@ -57,23 +55,42 @@ export async function generateMetadata({ params }: VendorPageProps): Promise<Met
     };
   }
 
-  try {
-    const supabase = createPublicAnonClient();
-    const detail = await getPublicVendorBySlugOrId(supabase, slug);
-    const vendorName = detail.vendor?.vendor_name;
-    if (typeof vendorName === "string" && vendorName.trim()) {
-      const desc =
-        typeof detail.vendor.description === "string" &&
-        detail.vendor.description.trim()
-          ? detail.vendor.description
-          : `Book ${vendorName} for your wedding on YouMarriage.`;
-      return {
+  const detail = await getCachedServerVendorDetail(slug);
+  if (detail?.vendor) {
+    const v = detail.vendor;
+    const vendorName = v.name?.trim() || "Wedding Vendor";
+    const city = v.city?.trim() || "Hyderabad";
+    const desc =
+      detail.rawDescription?.trim() ||
+      v.description?.trim() ||
+      `Book ${vendorName} for your wedding on YouMarriage.`;
+    const primaryImage =
+      v.imageUrl ||
+      detail.galleryUrls[0] ||
+      "/images/placeholders/photography.svg";
+
+    return {
+      title: `${city ? `${vendorName} - ${city}` : vendorName} | YouMarriage Vendors`,
+      description: desc,
+      openGraph: {
         title: `${vendorName} | YouMarriage Vendors`,
         description: desc,
-      };
-    }
-  } catch {
-    // 404 or transient lookup failure
+        images: [
+          {
+            url: primaryImage,
+            width: 1200,
+            height: 630,
+            alt: vendorName,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${vendorName} | YouMarriage Vendors`,
+        description: desc,
+        images: [primaryImage],
+      },
+    };
   }
 
   return { title: "Vendor Not Found | YouMarriage" };
@@ -87,5 +104,51 @@ export default async function Page({ params }: VendorPageProps) {
     return <VendorsDirectoryClient defaultCategory={matchedCategory} />;
   }
 
-  return <VendorDetailsClient slug={slug} />;
+  const detail = await getCachedServerVendorDetail(slug);
+
+  // Schema.org LocalBusiness JSON-LD structured data (SEO-002)
+  const jsonLd = detail
+    ? {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        name: detail.vendor.name,
+        description: detail.rawDescription || detail.vendor.description,
+        url: `https://youmarriagewearrange.com/vendors/${slug}`,
+        image:
+          detail.galleryUrls.length > 0
+            ? detail.galleryUrls
+            : [detail.vendor.imageUrl],
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: detail.vendor.location || "",
+          addressRegion: detail.vendor.city || "Telangana",
+          addressCountry: "IN",
+        },
+        priceRange: detail.startingPriceInr
+          ? `From ₹${detail.startingPriceInr}`
+          : detail.vendor.priceStart || undefined,
+        aggregateRating:
+          detail.vendor.rating && detail.vendor.rating > 0
+            ? {
+                "@type": "AggregateRating",
+                ratingValue: detail.vendor.rating,
+                reviewCount: detail.vendor.reviewsCount || 1,
+                bestRating: 5,
+                worstRating: 1,
+              }
+            : undefined,
+      }
+    : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <VendorDetailsClient slug={slug} initialData={detail} />
+    </>
+  );
 }

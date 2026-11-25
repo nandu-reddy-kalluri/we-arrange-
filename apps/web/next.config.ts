@@ -4,6 +4,8 @@ import path from "node:path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  compress: true,
+  poweredByHeader: false,
   outputFileTracingRoot: path.resolve(__dirname, "../../"),
   images: {
     formats: ["image/avif", "image/webp"],
@@ -41,6 +43,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
+  productionBrowserSourceMaps: false,
   async headers() {
     return [
       {
@@ -57,6 +60,10 @@ const nextConfig: NextConfig = {
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
           },
           {
             key: "Permissions-Policy",

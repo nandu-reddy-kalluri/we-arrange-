@@ -4,6 +4,7 @@ import {
   buildPaginationMeta,
   normalizePagination,
   PUBLIC_VENDOR_COLUMNS,
+  sanitizePostgrestFilterTerm,
 } from "@we-arrange/database/repository";
 import type { Database } from "@we-arrange/database/types";
 
@@ -86,8 +87,10 @@ export async function listPublicVendors(
     query = query.ilike("description", `%${filters.city.trim()}%`);
   }
   if (filters.q) {
-    const term = filters.q.trim();
-    query = query.or(`vendor_name.ilike.%${term}%,description.ilike.%${term}%`);
+    const term = sanitizePostgrestFilterTerm(filters.q);
+    if (term) {
+      query = query.or(`vendor_name.ilike.%${term}%,description.ilike.%${term}%`);
+    }
   }
 
   const ascending = filters.sortOrder === "asc";

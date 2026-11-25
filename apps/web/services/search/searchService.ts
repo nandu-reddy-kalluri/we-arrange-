@@ -14,6 +14,7 @@ export async function runUnifiedCatalogSearch(
     category?: string;
     type?: string;
     space?: string;
+    theme?: string;
     minCapacity?: number;
     maxCapacity?: number;
     minPlatePrice?: number;
@@ -36,6 +37,7 @@ export async function runUnifiedCatalogSearch(
             locality: input.locality,
             type: input.type,
             space: input.space,
+            theme: input.theme,
             minCapacity: input.minCapacity,
             maxCapacity: input.maxCapacity,
             minPlatePrice: input.minPlatePrice,

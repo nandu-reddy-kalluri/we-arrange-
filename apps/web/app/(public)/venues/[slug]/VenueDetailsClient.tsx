@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Heart,
   MapPin,
@@ -139,12 +140,18 @@ function VenueDetailSkeleton() {
   );
 }
 
-export default function VenueDetailsClient({ slug }: { slug: string }) {
+export default function VenueDetailsClient({
+  slug,
+  initialData,
+}: {
+  slug: string;
+  initialData?: VenueDetailResult | null;
+}) {
   const router = useRouter();
   const { isVenueSaved, toggleSaveVenue } = useSavedStore();
 
-  const [detail, setDetail] = useState<VenueDetailResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [detail, setDetail] = useState<VenueDetailResult | null>(initialData ?? null);
+  const [isLoading, setIsLoading] = useState(!initialData);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -157,6 +164,11 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
   }>({ open: false });
 
   useEffect(() => {
+    // If SSR provided initialData and user has not triggered a reload, use it directly (ARCH-002)
+    if (initialData && reloadTick === 0) {
+      return;
+    }
+
     let active = true;
     setIsLoading(true);
     setNotFound(false);
@@ -199,16 +211,37 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
 
   const [activeLightboxIndex, setActiveLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
+  const [failedThumbnails, setFailedThumbnails] = useState<Record<number, boolean>>({});
 
+  const [galleryDisplayLimit, setGalleryDisplayLimit] = useState(12);
   const allGalleryImages = useMemo(() => {
     return detail?.galleryUrls ?? [];
   }, [detail]);
+  const displayedGalleryImages = useMemo(() => {
+    return allGalleryImages.slice(0, galleryDisplayLimit);
+  }, [allGalleryImages, galleryDisplayLimit]);
 
   const lightboxImages = useMemo(() => {
     if (allGalleryImages.length > 0) return allGalleryImages;
     if (venue?.imageUrl) return [venue.imageUrl];
     return [DEFAULT_VENUE_IMAGE];
   }, [allGalleryImages, venue?.imageUrl]);
+
+  const visibleThumbnails = useMemo(() => {
+    const all = lightboxImages.map((thumbUrl, idx) => ({ thumbUrl, idx }));
+    if (all.length <= 12 || activeLightboxIndex === null) {
+      return all;
+    }
+    const windowSize = 9;
+    const half = Math.floor(windowSize / 2);
+    let start = Math.max(0, activeLightboxIndex - half);
+    let end = start + windowSize;
+    if (end > all.length) {
+      end = all.length;
+      start = Math.max(0, end - windowSize);
+    }
+    return all.slice(start, end);
+  }, [lightboxImages, activeLightboxIndex]);
 
   const handlePrevImage = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -261,7 +294,7 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
     const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
     touchStartRef.current = null;
 
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 25) {
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 45) {
       if (deltaX < 0) {
         handleNextImage();
       } else {
@@ -279,7 +312,7 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
     const deltaX = e.clientX - mouseStartRef.current;
     mouseStartRef.current = null;
 
-    if (Math.abs(deltaX) > 35) {
+    if (Math.abs(deltaX) > 45) {
       if (deltaX < 0) {
         handleNextImage();
       } else {
@@ -474,6 +507,9 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                role="dialog"
+                aria-modal="true"
+                aria-label={`${venue.name} photo gallery`}
                 onClick={() => setActiveLightboxIndex(null)}
                 className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 md:p-6 pb-6 md:pb-8 select-none overflow-hidden"
               >
@@ -554,27 +590,34 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
                 className="w-full max-w-5xl mx-auto flex items-center gap-2 overflow-x-auto py-2 px-4 hide-scrollbar z-10 justify-start sm:justify-center mt-2 mb-1"
                 onClick={(e) => e.stopPropagation()}
               >
-                {lightboxImages.map((thumbUrl, idx) => (
-                  <button
-                    key={`${thumbUrl}-${idx}`}
-                    onClick={() => setActiveLightboxIndex(idx)}
-                    className={`relative w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                      idx === activeLightboxIndex
-                        ? "border-[#C5A880] scale-105 shadow-md opacity-100"
-                        : "border-transparent opacity-50 hover:opacity-80"
-                    }`}
-                  >
-                    <img
-                      src={thumbUrl}
-                      alt={`Thumbnail ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = DEFAULT_VENUE_IMAGE;
-                      }}
-                    />
-                  </button>
-                ))}
+                {visibleThumbnails.map(({ thumbUrl, idx }) => {
+                  const isFailed = failedThumbnails[idx];
+                  const thumbSrc = isFailed ? DEFAULT_VENUE_IMAGE : (thumbUrl || DEFAULT_VENUE_IMAGE);
+                  return (
+                    <button
+                      key={`${thumbUrl}-${idx}`}
+                      onClick={() => setActiveLightboxIndex(idx)}
+                      className={`relative w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                        idx === activeLightboxIndex
+                          ? "border-[#C5A880] scale-105 shadow-md opacity-100"
+                          : "border-transparent opacity-50 hover:opacity-80"
+                      }`}
+                      aria-label={`Select photo ${idx + 1} of ${lightboxImages.length}`}
+                    >
+                      <Image
+                        src={thumbSrc}
+                        alt={`Thumbnail ${idx + 1}`}
+                        fill
+                        sizes="56px"
+                        quality={60}
+                        className="object-cover"
+                        onError={() => {
+                          setFailedThumbnails((prev) => ({ ...prev, [idx]: true }));
+                        }}
+                      />
+                    </button>
+                  );
+                })}
               </div>
             )}
           </motion.div>
@@ -1047,23 +1090,22 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
                       </button>
                     </div>
                     <div className="columns-2 sm:columns-3 gap-3">
-                      {allGalleryImages.map((imgUrl, i) => (
+                      {displayedGalleryImages.map((imgUrl, i) => (
                         <div
                           key={`${imgUrl}-${i}`}
-                          className="mb-3 break-inside-avoid relative overflow-hidden rounded-xl bg-gray-100 group shadow-sm"
+                          className="mb-3 break-inside-avoid relative overflow-hidden rounded-xl bg-gray-100 group shadow-sm aspect-[4/3]"
                         >
-                          <img
-                            src={imgUrl}
+                          <Image
+                            src={imgUrl || DEFAULT_VENUE_IMAGE}
                             alt={`${venue.name} gallery item ${i + 1}`}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                             loading="lazy"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = DEFAULT_VENUE_IMAGE;
-                            }}
-                            className="w-full h-auto object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 cursor-pointer"
+                            quality={75}
+                            className="object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 cursor-pointer"
                             onClick={() => setActiveLightboxIndex(i)}
                           />
-                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3 pointer-events-none">
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3 pointer-events-none z-10">
                             <span className="text-[9px] font-bold text-white uppercase tracking-wider">
                               Expand image
                             </span>
@@ -1071,6 +1113,17 @@ export default function VenueDetailsClient({ slug }: { slug: string }) {
                         </div>
                       ))}
                     </div>
+                    {allGalleryImages.length > galleryDisplayLimit && (
+                      <div className="mt-4 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setGalleryDisplayLimit((prev) => prev + 12)}
+                          className="px-6 py-2.5 rounded-full border border-gray-300 bg-white hover:border-[#8B263E] text-[#8B263E] font-bold text-xs uppercase tracking-wider transition-all shadow-sm"
+                        >
+                          Load More Photos ({allGalleryImages.length - galleryDisplayLimit} more)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 

@@ -27,7 +27,7 @@ export const colors = {
   },
   text: {
     main: "#2D2D2D",
-    muted: "#6D6D6D",
+    muted: "#595959",
   },
   border: {
     subtle: "#EAEAEA",

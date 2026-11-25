@@ -310,7 +310,7 @@ export function createDefaultPageSectionContent(title = "YMWA Page"): PageSectio
       heroImage: "/images/editorial/insp_bridal.png",
     },
     trustStrip: {
-      stat1Number: "150+",
+      stat1Number: "4,000+",
       stat1Label: "Verified Partners",
       stat2Number: "100%",
       stat2Label: "Transparent Concierge Pricing",

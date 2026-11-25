@@ -17,6 +17,7 @@ export const venueQuerySchema = paginationQuerySchema.extend({
   space: z
     .enum(["Indoor", "Outdoor", "Indoor & Outdoor", "IndoorOutdoor", "Poolside", "Rooftop", "Garden"])
     .optional(),
+  theme: z.string().trim().max(80).optional(),
   minCapacity: z.coerce.number().int().min(0).optional(),
   maxCapacity: z.coerce.number().int().min(1).optional(),
   minPlatePrice: z.coerce.number().min(0).optional(),
@@ -213,6 +214,7 @@ export const unifiedSearchQuerySchema = paginationQuerySchema.extend({
   space: z
     .enum(["Indoor", "Outdoor", "Indoor & Outdoor", "IndoorOutdoor", "Poolside", "Rooftop", "Garden"])
     .optional(),
+  theme: z.string().trim().max(80).optional(),
   minCapacity: z.coerce.number().int().min(0).optional(),
   maxCapacity: z.coerce.number().int().min(1).optional(),
   minPlatePrice: z.coerce.number().min(0).optional(),

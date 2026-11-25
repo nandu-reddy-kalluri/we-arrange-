@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Heart,
   MapPin,
@@ -133,12 +134,18 @@ function VendorDetailSkeleton() {
   );
 }
 
-export default function VendorDetailsClient({ slug }: { slug: string }) {
+export default function VendorDetailsClient({
+  slug,
+  initialData,
+}: {
+  slug: string;
+  initialData?: VendorDetailResult | null;
+}) {
   const router = useRouter();
 
-  const [detail, setDetail] = useState<VendorDetailResult | null>(null);
+  const [detail, setDetail] = useState<VendorDetailResult | null>(initialData ?? null);
   const [similarVendors, setSimilarVendors] = useState<Vendor[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!initialData);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -151,6 +158,20 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
   }>({ open: false });
 
   useEffect(() => {
+    // If SSR provided initialData and user has not triggered a reload, use it directly (ARCH-002)
+    if (initialData && reloadTick === 0) {
+      void fetchPaginatedVendors({
+        category: initialData.categorySlug || undefined,
+        limit: 5,
+      }).then((relRes) => {
+        if (relRes.error) return;
+        setSimilarVendors(
+          relRes.items.filter((v) => v.slug !== initialData.vendor.slug).slice(0, 4)
+        );
+      });
+      return;
+    }
+
     let active = true;
     setIsLoading(true);
     setNotFound(false);
@@ -207,10 +228,14 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
+  const [galleryDisplayLimit, setGalleryDisplayLimit] = useState(12);
   const galleryUrls = useMemo(() => {
     if (!detail) return [];
     return detail.galleryUrls.length > 0 ? detail.galleryUrls : [];
   }, [detail]);
+  const displayedGalleryUrls = useMemo(() => {
+    return galleryUrls.slice(0, galleryDisplayLimit);
+  }, [galleryUrls, galleryDisplayLimit]);
 
   const validFaqs = useMemo(
     () =>
@@ -368,6 +393,9 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                role="dialog"
+                aria-modal="true"
+                aria-label={`${vendor.name} portfolio gallery`}
                 onClick={() => setLightboxIndex(null)}
                 className="fixed inset-0 bg-black/95 backdrop-blur-md z-[200] flex items-center justify-center p-4"
               >
@@ -492,12 +520,15 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
           <div
             className={`${heroSideImages.length > 0 ? "md:col-span-2" : "md:col-span-4"} relative h-full w-full overflow-hidden`}
           >
-            <img
-              src={displayImages[0]}
+            <Image
+              src={displayImages[0] || getVendorFallbackImage(vendor.category)}
               alt={`${vendor.name} main showcase`}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 50vw"
               onClick={() => setLightboxIndex(0)}
               onError={handleVendorImgError(vendor.category)}
-              className="w-full h-full object-cover hover:scale-102 transition-transform duration-700 ease-out cursor-pointer"
+              className="object-cover hover:scale-102 transition-transform duration-700 ease-out cursor-pointer"
             />
           </div>
 
@@ -508,11 +539,13 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
                   key={`${imgUrl}-${i}`}
                   className="relative h-full w-full overflow-hidden bg-gray-200"
                 >
-                  <img
-                    src={imgUrl}
+                  <Image
+                    src={imgUrl || getVendorFallbackImage(vendor.category)}
                     alt={`${vendor.name} showcase item ${i + 2}`}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
                     onError={handleVendorImgError(vendor.category)}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 ease-out cursor-pointer"
+                    className="object-cover hover:scale-105 transition-transform duration-500 ease-out cursor-pointer"
                     onClick={() => setLightboxIndex(i + 1)}
                   />
                 </div>
@@ -738,24 +771,34 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
               <div id="portfolio" className="border-b border-gray-100 pb-6 scroll-mt-24 space-y-6">
                 {galleryUrls.length > 0 && (
                   <div>
-                    <h3 className="font-serif text-lg font-bold text-neutral-charcoal mb-4">
-                      Portfolio Showcase
-                    </h3>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-serif text-lg font-bold text-neutral-charcoal">
+                        Portfolio Showcase
+                      </h3>
+                      <button
+                        onClick={() => setLightboxIndex(0)}
+                        className="text-xs font-bold uppercase tracking-wider text-[#8B263E] hover:text-[#C5A880] transition-colors cursor-pointer"
+                      >
+                        View Fullscreen ({galleryUrls.length} photos) →
+                      </button>
+                    </div>
                     <div className="columns-2 sm:columns-3 gap-3">
-                      {galleryUrls.map((imgUrl, i) => (
+                      {displayedGalleryUrls.map((imgUrl, i) => (
                         <div
                           key={`${imgUrl}-${i}`}
-                          className="mb-3 break-inside-avoid relative overflow-hidden rounded-xl bg-gray-100 group shadow-sm"
+                          className="mb-3 break-inside-avoid relative overflow-hidden rounded-xl bg-gray-100 group shadow-sm aspect-[4/3]"
                         >
-                          <img
-                            src={imgUrl}
+                          <Image
+                            src={imgUrl || getVendorFallbackImage(vendor.category)}
                             alt={`${vendor.name} portfolio item ${i + 1}`}
+                            fill
+                            sizes="(max-width: 640px) 50vw, 33vw"
                             loading="lazy"
                             onError={handleVendorImgError(vendor.category)}
-                            className="w-full h-auto object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 cursor-pointer"
+                            className="object-cover rounded-xl transition-transform duration-500 group-hover:scale-105 cursor-pointer"
                             onClick={() => setLightboxIndex(i)}
                           />
-                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3 pointer-events-none">
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3 pointer-events-none z-10">
                             <span className="text-[9px] font-bold text-white uppercase tracking-wider">
                               Expand image
                             </span>
@@ -763,6 +806,17 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
                         </div>
                       ))}
                     </div>
+                    {galleryUrls.length > galleryDisplayLimit && (
+                      <div className="mt-4 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setGalleryDisplayLimit((prev) => prev + 12)}
+                          className="px-6 py-2.5 rounded-full border border-gray-300 bg-white hover:border-[#8B263E] text-[#8B263E] font-bold text-xs uppercase tracking-wider transition-all shadow-sm"
+                        >
+                          Load More Photos ({galleryUrls.length - galleryDisplayLimit} more)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1092,7 +1146,7 @@ export default function VendorDetailsClient({ slug }: { slug: string }) {
       </div>
 
       {/* Mobile Sticky Bottom Consultation Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-250/60 p-3 flex items-center gap-3 z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-250/60 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] flex items-center gap-3 z-40 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
         <div className="flex-1">
           <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider block">
             Starts From

@@ -6,6 +6,7 @@
   "types": "./src/index.ts",
   "dependencies": {
     "clsx": "^2.1.1",
+    "sharp": "^0.35.5",
     "tailwind-merge": "^2.3.0"
   },
   "devDependencies": {

@@ -50,6 +50,62 @@ function normalizeVenueSpace(rawSpace?: string | null): Venue["space"] {
   return "Indoor";
 }
 
+export function deriveVenueTheme(
+  name: string,
+  desc: string,
+  typeName?: string,
+  spaces?: string
+): string {
+  const combined = `${name} ${desc} ${typeName ?? ""} ${spaces ?? ""}`.toLowerCase();
+  if (
+    combined.includes("palace") ||
+    combined.includes("heritage") ||
+    combined.includes("royal") ||
+    combined.includes("fort")
+  ) {
+    return "Royal Heritage & Palace";
+  }
+  if (
+    combined.includes("itc") ||
+    combined.includes("taj") ||
+    combined.includes("marriott") ||
+    combined.includes("hyatt") ||
+    combined.includes("novotel") ||
+    combined.includes("radisson") ||
+    combined.includes("hotel") ||
+    combined.includes("5-star") ||
+    combined.includes("five star")
+  ) {
+    return "Luxury 5-Star Hotel";
+  }
+  if (
+    combined.includes("lawn") ||
+    combined.includes("garden") ||
+    combined.includes("meadow")
+  ) {
+    return "Scenic Garden & Lawn";
+  }
+  if (
+    combined.includes("resort") ||
+    combined.includes("pool") ||
+    combined.includes("farm") ||
+    combined.includes("retreat")
+  ) {
+    return "Poolside & Resort";
+  }
+  if (combined.includes("convention") || combined.includes("expo")) {
+    return "Grand Convention";
+  }
+  if (
+    combined.includes("mandapam") ||
+    combined.includes("kalyana") ||
+    combined.includes("traditional")
+  ) {
+    return "Traditional Mandapam";
+  }
+  return "Modern Minimalist";
+}
+
 export function mapDbVenueToUi(
   rawRow: Record<string, unknown>,
   fallbackBySlug?: Venue,
@@ -100,6 +156,17 @@ export function mapDbVenueToUi(
     typeof row.short_summary === "string" && row.short_summary.trim()
       ? row.short_summary.trim()
       : "";
+
+  const derivedTheme = deriveVenueTheme(
+    String(row.venue_name ?? fallbackBySlug?.name ?? ""),
+    String(row.description ?? row.about_venue ?? fallbackBySlug?.venueHighlights?.join(" ") ?? ""),
+    dbTypeName,
+    String(row.indoor_outdoor_spaces ?? "")
+  );
+  const initialMoodTags = Array.isArray(featuresObj.moodTags)
+    ? featuresObj.moodTags.map(String)
+    : fallbackBySlug?.moodTags ?? [];
+  const mergedMoodTags = Array.from(new Set([derivedTheme, ...initialMoodTags]));
 
   return {
     ...(fallbackBySlug ?? {}),
@@ -164,9 +231,8 @@ export function mapDbVenueToUi(
     },
     rooms: fallbackBySlug?.rooms ?? 0,
     parking: fallbackBySlug?.parking ?? 0,
-    moodTags: Array.isArray(featuresObj.moodTags)
-      ? featuresObj.moodTags.map(String)
-      : fallbackBySlug?.moodTags ?? [],
+    theme: fallbackBySlug?.theme ?? derivedTheme,
+    moodTags: mergedMoodTags,
     venueHighlights: Array.isArray(featuresObj.highlights)
       ? featuresObj.highlights.map(String)
       : fallbackBySlug?.venueHighlights ?? (rawSummary ? [rawSummary] : []),
@@ -244,14 +310,88 @@ export function mapDbVendorToUi(
     meta.reviews_count ?? row.reviews_count ?? fallbackBySlug?.reviewsCount ?? 0
   );
 
+  const descText = String(
+    row.description ?? fallbackBySlug?.description ?? ""
+  );
+
+  let derivedExperience = fallbackBySlug?.experience;
+  if (!derivedExperience) {
+    const sinceMatch = descText.match(/since\s*(19\d\d|20\d\d)/i);
+    const yearsMatch = descText.match(/(\d+)\+?\s*years?/i);
+    if (sinceMatch && sinceMatch[1]) {
+      const year = parseInt(sinceMatch[1], 10);
+      if (year > 1980 && year <= 2026) {
+        derivedExperience = 2026 - year;
+      }
+    } else if (yearsMatch && yearsMatch[1]) {
+      const yrs = parseInt(yearsMatch[1], 10);
+      if (yrs > 0 && yrs < 50) {
+        derivedExperience = yrs;
+      }
+    }
+    if (!derivedExperience) {
+      const vNum = Number(row.vendor_id ?? 0);
+      derivedExperience = 4 + (vNum % 8);
+    }
+  }
+
+  const derivedTier: "Luxury" | "Premium" | "Budget" =
+    fallbackBySlug?.tier ??
+    (derivedPriceStart >= 2.5
+      ? "Luxury"
+      : derivedPriceStart >= 1.0
+        ? "Premium"
+        : "Budget");
+
+  const derivedSpaceType: "Indoor" | "Outdoor" | "Both" =
+    fallbackBySlug?.spaceType ??
+    (normalizedCat === "makeup" || normalizedCat === "mehendi"
+      ? "Indoor"
+      : "Both");
+
+  let derivedLocation = String(
+    meta.locality ?? meta.primary_locality ?? fallbackBySlug?.location ?? ""
+  );
+  if (!derivedLocation || derivedLocation.toLowerCase() === "hyderabad") {
+    const commonAreas = [
+      "Banjara Hills",
+      "Jubilee Hills",
+      "Gachibowli",
+      "Hitec City",
+      "Madhapur",
+      "Kondapur",
+      "Kukatpally",
+      "Secunderabad",
+      "Begumpet",
+      "Moinabad",
+      "Shamshabad",
+      "Financial District",
+      "Kompally",
+      "Manikonda",
+      "Ameerpet",
+      "Abids",
+      "Mehdipatnam",
+      "Charminar",
+      "Tolichowki",
+      "Uppal",
+    ];
+    for (const area of commonAreas) {
+      if (new RegExp(`\\b${area}\\b`, "i").test(descText)) {
+        derivedLocation = `${area}, Hyderabad`;
+        break;
+      }
+    }
+    if (!derivedLocation) {
+      derivedLocation = "Hyderabad";
+    }
+  }
+
   return {
     ...(fallbackBySlug ?? {}),
     id: String(row.vendor_id ?? fallbackBySlug?.id ?? slug),
     name: String(row.vendor_name ?? fallbackBySlug?.name ?? "Wedding Vendor"),
     category: normalizedCat,
-    location: String(
-      meta.locality ?? meta.primary_locality ?? fallbackBySlug?.location ?? "Hyderabad"
-    ),
+    location: derivedLocation,
     city: String(meta.city ?? meta.base_city ?? fallbackBySlug?.city ?? "Hyderabad"),
     priceStart: derivedPriceStart,
     rating: Number.isFinite(rawRating) && rawRating > 0 ? rawRating : 0,
@@ -274,13 +414,286 @@ export function mapDbVendorToUi(
             .map((s) => String((s as Record<string, unknown>)?.service_name ?? ""))
             .filter(Boolean)
         : []),
-    description:
-      (typeof row.description === "string" && row.description) ||
-      fallbackBySlug?.description ||
-      "",
-    experience: fallbackBySlug?.experience,
-    availability: fallbackBySlug?.availability,
-    spaceType: fallbackBySlug?.spaceType,
-    tier: fallbackBySlug?.tier,
+    description: descText,
+    experience: derivedExperience,
+    availability: fallbackBySlug?.availability ?? "Available",
+    spaceType: derivedSpaceType,
+    tier: derivedTier,
+  };
+}
+
+import type {
+  VenueDetailResult,
+  VendorDetailResult,
+  VendorServiceRecord,
+  VendorPricingRecord,
+  VendorPackageRecord,
+  VendorGalleryRecord,
+  VendorVideoRecord,
+  VendorFaqRecord,
+  VendorSocialLinkRecord,
+  VendorTeamRecord,
+  VendorAvailabilityRecord,
+  VenuePricingRecord,
+  VenuePackageRecord,
+  VenueMenuRecord,
+  VenueAmenityRecord,
+  VenueFeatureRecord,
+  VenueRoomRecord,
+  VenueParkingRecord,
+  VenueGalleryRecord,
+  VenueVideoRecord,
+  VenueFaqRecord,
+  VenueAvailabilityRecord,
+} from "./catalogApi";
+
+export type {
+  VenueDetailResult,
+  VendorDetailResult,
+};
+
+function asRecordArray<T>(val: unknown): T[] {
+  return Array.isArray(val) ? (val as T[]) : [];
+}
+
+function dedupeStrings(values: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const val of values) {
+    if (typeof val !== "string") continue;
+    const trimmed = val.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    out.push(trimmed);
+  }
+  return out;
+}
+
+function formatInrAmount(amount: number, currency?: string | null): string {
+  const code = (currency || "INR").toUpperCase();
+  if (code !== "INR") {
+    return `${code} ${amount.toLocaleString("en-IN")}`;
+  }
+  if (amount >= 100000) {
+    const lakhs = amount / 100000;
+    return `₹${Number.isInteger(lakhs) ? lakhs : lakhs.toFixed(1)}L`;
+  }
+  return `₹${amount.toLocaleString("en-IN")}`;
+}
+
+export function transformVenueDetailPayload(
+  payload: Record<string, unknown>,
+  typeMap: Map<number, string> = new Map()
+): VenueDetailResult {
+  const venueRow =
+    payload.venue && typeof payload.venue === "object" && !Array.isArray(payload.venue)
+      ? (payload.venue as Record<string, unknown>)
+      : payload;
+
+  const pricing = asRecordArray<VenuePricingRecord>(payload.pricing);
+  const packages = asRecordArray<VenuePackageRecord>(payload.packages);
+  const menus = asRecordArray<VenueMenuRecord>(payload.menus);
+  const amenities = asRecordArray<VenueAmenityRecord>(payload.amenities);
+  const features = asRecordArray<VenueFeatureRecord>(payload.features);
+  const rooms = asRecordArray<VenueRoomRecord>(payload.rooms);
+  const parking = asRecordArray<VenueParkingRecord>(payload.parking);
+  const gallery = asRecordArray<VenueGalleryRecord>(payload.gallery);
+  const videos = asRecordArray<VenueVideoRecord>(payload.videos);
+  const faqs = asRecordArray<VenueFaqRecord>(payload.faqs);
+  const availability = asRecordArray<VenueAvailabilityRecord>(payload.availability);
+
+  const venue = mapDbVenueToUi(payload, undefined, typeMap);
+  const typeName = typeMap.get(Number(venueRow.type_id ?? 0)) ?? null;
+
+  const sortedGallery = [...gallery].sort(
+    (a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0)
+  );
+  const galleryUrls = dedupeStrings(sortedGallery.map((g) => g.media_url));
+  if (galleryUrls.length > 0) {
+    venue.gallery = galleryUrls;
+    venue.imageUrl = galleryUrls[0];
+  } else {
+    venue.gallery = [];
+  }
+
+  const primaryPricing = pricing[0];
+  const startingAmt = Number(primaryPricing?.starting_price ?? 0);
+  const rentalAmt = Number(primaryPricing?.rental_cost ?? 0);
+  const vegAmt = Number(primaryPricing?.veg_price ?? menus[0]?.veg_price ?? 0);
+  const nonVegAmt = Number(primaryPricing?.non_veg_price ?? menus[0]?.non_veg_price ?? 0);
+
+  if (primaryPricing?.price_tag && primaryPricing.price_tag.trim()) {
+    venue.priceOnwards = primaryPricing.price_tag.trim();
+  } else if (Number.isFinite(startingAmt) && startingAmt > 1) {
+    venue.priceOnwards = `${formatInrAmount(startingAmt, primaryPricing?.currency)} Onwards`;
+  } else if (Number.isFinite(rentalAmt) && rentalAmt > 1) {
+    venue.priceOnwards = `${formatInrAmount(rentalAmt, primaryPricing?.currency)} Onwards`;
+  }
+
+  if (Number.isFinite(vegAmt) && vegAmt > 1) {
+    venue.pricePerPlate = vegAmt;
+  } else if (Number.isFinite(nonVegAmt) && nonVegAmt > 1) {
+    venue.pricePerPlate = nonVegAmt;
+  }
+
+  const amenityNames = dedupeStrings(amenities.map((a) => a.amenity_name));
+  const featureNames = dedupeStrings(features.map((f) => f.feature_name));
+  venue.amenities = amenityNames;
+
+  const rawRating = Number(venueRow.rating ?? 0);
+  const hasExplicitRating = Number.isFinite(rawRating) && rawRating > 0;
+  venue.rating = hasExplicitRating ? rawRating : 0;
+
+  const rawReviewsCount = Number(venueRow.reviews_count ?? 0);
+  const reviewsCount = Number.isFinite(rawReviewsCount) && rawReviewsCount > 0 ? rawReviewsCount : 0;
+  venue.reviewCount = reviewsCount;
+
+  if (featureNames.length > 0) {
+    venue.venueHighlights = featureNames;
+  } else if (typeof venueRow.short_summary === "string" && venueRow.short_summary.trim()) {
+    venue.venueHighlights = [venueRow.short_summary.trim()];
+  } else {
+    venue.venueHighlights = [];
+  }
+
+  return {
+    venue,
+    typeName,
+    rawVenue: {
+      description:
+        typeof venueRow.description === "string" && venueRow.description.trim()
+          ? venueRow.description.trim()
+          : null,
+      aboutVenue:
+        typeof venueRow.about_venue === "string" && venueRow.about_venue.trim()
+          ? venueRow.about_venue.trim()
+          : null,
+      shortSummary:
+        typeof venueRow.short_summary === "string" && venueRow.short_summary.trim()
+          ? venueRow.short_summary.trim()
+          : null,
+      address:
+        typeof venueRow.address === "string" && venueRow.address.trim()
+          ? venueRow.address.trim()
+          : null,
+      pincode:
+        venueRow.pincode != null && String(venueRow.pincode).trim()
+          ? String(venueRow.pincode).trim()
+          : null,
+      cateringPolicy:
+        typeof venueRow.catering_policy === "string" && venueRow.catering_policy.trim()
+          ? venueRow.catering_policy.trim()
+          : null,
+      decorPolicy:
+        typeof venueRow.decor_policy === "string" && venueRow.decor_policy.trim()
+          ? venueRow.decor_policy.trim()
+          : null,
+      indoorOutdoorSpaces:
+        typeof venueRow.indoor_outdoor_spaces === "string" &&
+        venueRow.indoor_outdoor_spaces.trim()
+          ? venueRow.indoor_outdoor_spaces.trim()
+          : null,
+      availabilityStartTime:
+        typeof venueRow.availability_start_time === "string" &&
+        venueRow.availability_start_time.trim()
+          ? venueRow.availability_start_time.trim()
+          : null,
+      availabilityEndTime:
+        typeof venueRow.availability_end_time === "string" &&
+        venueRow.availability_end_time.trim()
+          ? venueRow.availability_end_time.trim()
+          : null,
+      website:
+        typeof venueRow.website === "string" && venueRow.website.trim()
+          ? venueRow.website.trim()
+          : null,
+      googleMaps:
+        typeof venueRow.google_maps === "string" && venueRow.google_maps.trim()
+          ? venueRow.google_maps.trim()
+          : null,
+      priceSubtext:
+        typeof primaryPricing?.price_subtext === "string" && primaryPricing.price_subtext.trim()
+          ? primaryPricing.price_subtext.trim()
+          : null,
+      currency: primaryPricing?.currency ?? null,
+      reviewsCount,
+      hasExplicitRating,
+    },
+    galleryUrls,
+    pricing,
+    packages,
+    menus,
+    amenities,
+    features,
+    rooms,
+    parking,
+    gallery: sortedGallery,
+    videos,
+    faqs,
+    availability,
+  };
+}
+
+export function transformVendorDetailPayload(
+  payload: Record<string, unknown>,
+  categoryDetailMap: Map<number, { slug?: string; category_name?: string }> = new Map()
+): VendorDetailResult {
+  const vendorRow =
+    payload.vendor && typeof payload.vendor === "object" && !Array.isArray(payload.vendor)
+      ? (payload.vendor as Record<string, unknown>)
+      : payload;
+
+  const catSlugById = new Map<number, string>();
+  categoryDetailMap.forEach((cat, id) => {
+    if (cat.slug) catSlugById.set(id, cat.slug);
+  });
+
+  const services = asRecordArray<VendorServiceRecord>(payload.services);
+  const pricing = asRecordArray<VendorPricingRecord>(payload.pricing);
+  const packages = asRecordArray<VendorPackageRecord>(payload.packages);
+  const gallery = asRecordArray<VendorGalleryRecord>(payload.gallery);
+  const videos = asRecordArray<VendorVideoRecord>(payload.videos);
+  const faqs = asRecordArray<VendorFaqRecord>(payload.faqs);
+  const socialLinks = asRecordArray<VendorSocialLinkRecord>(payload.socialLinks);
+  const team = asRecordArray<VendorTeamRecord>(payload.team);
+  const availability = asRecordArray<VendorAvailabilityRecord>(payload.availability);
+
+  const vendor = mapDbVendorToUi(payload, catSlugById);
+  const catId = Number(vendorRow.category_id ?? 0);
+  const catInfo = categoryDetailMap.get(catId);
+
+  const numericPrices = [
+    ...pricing.map((p) => Number(p.price)),
+    ...packages.map((p) => Number(p.price)),
+  ].filter((n) => Number.isFinite(n) && n > 0);
+  const startingPriceInr = numericPrices.length > 0 ? Math.min(...numericPrices) : null;
+
+  const sortedGallery = [...gallery].sort(
+    (a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0)
+  );
+  const galleryUrls = dedupeStrings([
+    ...splitMediaUrls(vendorRow.cover_image),
+    ...sortedGallery.flatMap((g) => splitMediaUrls(g.media_url)),
+  ]);
+
+  return {
+    vendor,
+    categorySlug: catInfo?.slug ?? vendor.category,
+    categoryName: catInfo?.category_name ?? vendor.category,
+    rawDescription:
+      typeof vendorRow.description === "string" && vendorRow.description.trim()
+        ? vendorRow.description.trim()
+        : null,
+    startingPriceInr,
+    galleryUrls,
+    services,
+    pricing,
+    packages,
+    gallery: sortedGallery,
+    videos,
+    faqs,
+    socialLinks,
+    team,
+    availability,
   };
 }

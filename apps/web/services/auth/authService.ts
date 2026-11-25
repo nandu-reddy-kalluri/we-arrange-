@@ -141,7 +141,14 @@ export async function registerCustomerAccount(
   }
 ) {
   const supabase = deps?.supabase ?? (await createSupabaseServerClient());
-  const adminClient = deps?.adminClient ?? createServiceRoleClient();
+  let adminClient = deps?.adminClient;
+  if (!adminClient) {
+    try {
+      adminClient = createServiceRoleClient();
+    } catch {
+      adminClient = supabase;
+    }
+  }
   const normalizedEmail = input.email.toLowerCase().trim();
 
   const data = await signUpWithDuplicateCheck(supabase, adminClient, {
@@ -180,7 +187,14 @@ export async function registerVendorAccount(
   }
 ) {
   const supabase = deps?.supabase ?? (await createSupabaseServerClient());
-  const adminClient = deps?.adminClient ?? createServiceRoleClient();
+  let adminClient = deps?.adminClient;
+  if (!adminClient) {
+    try {
+      adminClient = createServiceRoleClient();
+    } catch {
+      adminClient = supabase;
+    }
+  }
   const normalizedEmail = input.email.toLowerCase().trim();
   const normalizedCatSlug =
     VENDOR_CATEGORY_ALIAS_MAP[input.categorySlug.toLowerCase().trim()] ??
@@ -279,7 +293,6 @@ export async function loginWithPassword(
   }
 ): Promise<AuthenticatedContext> {
   const supabase = deps?.supabase ?? (await createSupabaseServerClient());
-  const adminClient = deps?.adminClient ?? createServiceRoleClient();
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email: email.toLowerCase().trim(),
@@ -288,6 +301,15 @@ export async function loginWithPassword(
 
   if (error || !data.user) {
     throw new AppError("UNAUTHENTICATED", 401, "Invalid email or password.");
+  }
+
+  let adminClient = deps?.adminClient;
+  if (!adminClient) {
+    try {
+      adminClient = createServiceRoleClient();
+    } catch {
+      adminClient = supabase;
+    }
   }
 
   let ctx: AuthenticatedContext;

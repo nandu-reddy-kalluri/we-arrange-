@@ -242,13 +242,12 @@ const SearchableCitySelect = React.memo(function SearchableCitySelect({
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`w-full flex items-center justify-between px-3 py-2 text-left rounded-xl border transition-all text-xs outline-none ${
-          isOpen
+        className={`w-full flex items-center justify-between px-3 py-2 text-left rounded-xl border transition-all text-xs outline-none ${isOpen
             ? "border-[#C5A880] ring-1 ring-[#C5A880]/30 bg-white"
             : value
-            ? "border-[#C5A880]/40 bg-[#FAF9F6] text-[#8B263E] font-medium"
-            : "border-gray-200 bg-white text-neutral-charcoal hover:border-gray-300"
-        }`}
+              ? "border-[#C5A880]/40 bg-[#FAF9F6] text-[#8B263E] font-medium"
+              : "border-gray-200 bg-white text-neutral-charcoal hover:border-gray-300"
+          }`}
       >
         <div className="flex items-center gap-2 truncate">
           <MapPin className={`w-3.5 h-3.5 shrink-0 ${value ? "text-[#8B263E]" : "text-gray-400"}`} />
@@ -297,9 +296,8 @@ const SearchableCitySelect = React.memo(function SearchableCitySelect({
               <button
                 type="button"
                 onClick={() => handleSelect("")}
-                className={`w-full text-left px-3 py-2 text-[11px] hover:bg-[#FAF9F6] transition-colors flex items-center justify-between cursor-pointer ${
-                  value === "" ? "font-bold text-[#8B263E] bg-[#FAF9F6]" : "text-neutral-charcoal"
-                }`}
+                className={`w-full text-left px-3 py-2 text-[11px] hover:bg-[#FAF9F6] transition-colors flex items-center justify-between cursor-pointer ${value === "" ? "font-bold text-[#8B263E] bg-[#FAF9F6]" : "text-neutral-charcoal"
+                  }`}
               >
                 <span>All Cities</span>
                 {value === "" && <Check className="w-3 h-3 text-[#8B263E]" />}
@@ -315,9 +313,8 @@ const SearchableCitySelect = React.memo(function SearchableCitySelect({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.02, duration: 0.12 }}
                     onClick={() => handleSelect(opt)}
-                    className={`w-full text-left px-3 py-2 text-[11px] hover:bg-[#FAF9F6] transition-colors flex items-center justify-between cursor-pointer ${
-                      value === opt ? "font-bold text-[#8B263E] bg-[#FAF9F6]" : "text-neutral-charcoal"
-                    }`}
+                    className={`w-full text-left px-3 py-2 text-[11px] hover:bg-[#FAF9F6] transition-colors flex items-center justify-between cursor-pointer ${value === opt ? "font-bold text-[#8B263E] bg-[#FAF9F6]" : "text-neutral-charcoal"
+                      }`}
                   >
                     <div className="flex items-center gap-1.5">
                       <MapPin className={`w-3 h-3 ${isRecent ? "text-gray-300" : "text-[#C5A880]"}`} />
@@ -389,11 +386,10 @@ const StarRatingSelector = React.memo(function StarRatingSelector({
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.93 }}
               onClick={() => onChange(isSelected ? "" : rate)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-[10px] font-bold transition-all duration-220 cursor-pointer ${
-                isSelected
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border text-[10px] font-bold transition-all duration-220 cursor-pointer ${isSelected
                   ? "bg-gradient-to-r from-[#C5A880] to-[#E5C8A0] text-white border-transparent shadow-[0_4px_12px_rgba(197,168,128,0.35)]"
                   : "bg-white text-neutral-charcoal border-gray-200 hover:border-[#C5A880] hover:bg-[#FAF9F6]"
-              }`}
+                }`}
             >
               <motion.div
                 animate={
@@ -404,9 +400,8 @@ const StarRatingSelector = React.memo(function StarRatingSelector({
                 transition={{ type: "spring", stiffness: 300, damping: 10 }}
               >
                 <Star
-                  className={`w-3.5 h-3.5 ${
-                    isSelected ? "fill-white text-white" : "text-[#C5A880] fill-[#C5A880]"
-                  }`}
+                  className={`w-3.5 h-3.5 ${isSelected ? "fill-white text-white" : "text-[#C5A880] fill-[#C5A880]"
+                    }`}
                 />
               </motion.div>
               <span>{label}</span>
@@ -590,11 +585,10 @@ const ChipButton = React.memo(function ChipButton({
       whileHover={{ y: -2, scale: 1.03 }}
       whileTap="tap"
       onClick={onClick}
-      className={`px-2.5 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-wider transition-all duration-220 cursor-pointer ${
-        isSelected
+      className={`px-2.5 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-wider transition-all duration-220 cursor-pointer ${isSelected
           ? "bg-gradient-to-r from-[#C5A880] to-[#E5C8A0] text-white border-transparent shadow-[0_4px_10px_rgba(197,168,128,0.3)]"
           : "bg-white text-neutral-charcoal border-gray-200 hover:border-[#C5A880] hover:bg-[#FAF9F6]"
-      } ${className}`}
+        } ${className}`}
     >
       {label}
     </motion.button>
@@ -614,11 +608,11 @@ const ChipButton = React.memo(function ChipButton({
 function getCategoryEmoji(slug: string): string {
   switch (slug) {
     case "photography": return "📷";
-    case "decor":       return "🏰";
-    case "makeup":      return "💄";
-    case "mehendi":     return "🌿";
-    case "catering":    return "🍽️";
-    default:            return "✨";
+    case "decor": return "🏰";
+    case "makeup": return "💄";
+    case "mehendi": return "🌿";
+    case "catering": return "🍽️";
+    default: return "✨";
   }
 }
 
@@ -709,11 +703,10 @@ const SidebarContent = React.memo(function SidebarContent({
             whileHover={{ y: -1, scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onDraftChange("category", "")}
-            className={`flex-shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-xl border text-[9px] font-bold transition-all duration-220 cursor-pointer ${
-              draft.category === ""
+            className={`flex-shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-xl border text-[9px] font-bold transition-all duration-220 cursor-pointer ${draft.category === ""
                 ? "bg-[#C5A880] text-white border-transparent shadow-[0_4px_10px_rgba(197,168,128,0.25)]"
                 : "bg-white text-neutral-charcoal border-gray-200 hover:border-[#C5A880] hover:bg-[#FAF9F6]"
-            }`}
+              }`}
           >
             📂 All
           </motion.button>
@@ -726,11 +719,10 @@ const SidebarContent = React.memo(function SidebarContent({
                 whileHover={{ y: -1, scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onDraftChange("category", isSel ? "" : cat.slug)}
-                className={`flex-shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-xl border text-[9px] font-bold transition-all duration-220 flex items-center gap-1 cursor-pointer ${
-                  isSel
+                className={`flex-shrink-0 whitespace-nowrap px-2.5 py-1.5 rounded-xl border text-[9px] font-bold transition-all duration-220 flex items-center gap-1 cursor-pointer ${isSel
                     ? "bg-[#C5A880] text-white border-transparent shadow-[0_4px_10px_rgba(197,168,128,0.25)]"
                     : "bg-white text-neutral-charcoal border-gray-200 hover:border-[#C5A880] hover:bg-[#FAF9F6]"
-                }`}
+                  }`}
               >
                 <span>{getCategoryEmoji(cat.slug)}</span>
                 <span>{cat.name}</span>
@@ -775,11 +767,10 @@ const SidebarContent = React.memo(function SidebarContent({
                     : { boxShadow: "none" }
                 }
                 onClick={() => onDraftChange("budgetTier", isSel ? "" : tier)}
-                className={`flex-shrink-0 whitespace-nowrap px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all duration-220 cursor-pointer ${
-                  isSel
+                className={`flex-shrink-0 whitespace-nowrap px-4 py-2 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all duration-220 cursor-pointer ${isSel
                     ? "bg-gradient-to-r from-[#C5A880] to-[#E5C8A0] text-white border-transparent"
                     : "bg-white text-neutral-charcoal border-gray-200 hover:border-[#C5A880] hover:bg-[#FAF9F6]"
-                }`}
+                  }`}
               >
                 {tier}
               </motion.button>
@@ -903,12 +894,16 @@ export const VendorFilters = React.memo(function VendorFilters({
     setDraft(filters);
   }, [filters]);
 
-  // Stable draft updater — never recreated
+  // Stable draft updater — live-applies to parent immediately for responsive filtering
   const onDraftChange = React.useCallback(
     <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
-      setDraft((prev) => ({ ...prev, [key]: value }));
+      setDraft((prev) => {
+        const next = { ...prev, [key]: value };
+        setFilters(next);
+        return next;
+      });
     },
-    []
+    [setFilters]
   );
 
   // Apply → commit draft to parent → trigger vendor grid update

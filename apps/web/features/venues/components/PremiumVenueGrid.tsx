@@ -4,7 +4,6 @@ import React from "react";
 import { Venue } from "@/mock-data/venues";
 import { typography, spacing } from "@/styles";
 import VenueCard from "@/components/cards/VenueCard";
-import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, RotateCcw, ChevronLeft, ChevronRight, AlertCircle, Search } from "lucide-react";
 
 interface PremiumVenueGridProps {
@@ -18,6 +17,7 @@ interface PremiumVenueGridProps {
   page?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  onPrefetchNext?: () => void;
   sortBy?: "relevance" | "rating" | "reviews" | "capacity" | "newest";
   onSortChange?: (sortBy: "relevance" | "rating" | "reviews" | "capacity" | "newest") => void;
   searchQuery?: string;
@@ -35,6 +35,7 @@ export function PremiumVenueGrid({
   page = 1,
   totalPages = 1,
   onPageChange,
+  onPrefetchNext,
   sortBy = "relevance",
   onSortChange,
   searchQuery = "",
@@ -159,24 +160,19 @@ export function PremiumVenueGrid({
         </div>
       ) : (
         /* Grid: 4 Desktop, 2 Tablet, 1 Mobile */
-        <motion.div
-          layout
+        <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 lg:gap-x-8 gap-y-10 sm:gap-y-12"
         >
-          <AnimatePresence>
-            {venues.map((venue, idx) => (
-              <motion.div
-                key={venue.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.35, delay: Math.min(idx * 0.04, 0.3) }}
-              >
-                <VenueCard venue={venue} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+          {venues.map((venue, idx) => (
+            <div
+              key={venue.id}
+              className="cv-auto animate-fade-in-up"
+              style={{ animationDelay: `${Math.min(idx * 25, 200)}ms` }}
+            >
+              <VenueCard venue={venue} priority={idx < 4} />
+            </div>
+          ))}
+        </div>
       )}
 
       {!isLoading && !error && totalPages > 1 && onPageChange && (
@@ -197,6 +193,8 @@ export function PremiumVenueGrid({
             type="button"
             disabled={page >= totalPages}
             onClick={() => onPageChange(page + 1)}
+            onMouseEnter={onPrefetchNext}
+            onFocus={onPrefetchNext}
             className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-bold bg-white border border-[#C5A880]/40 text-neutral-700 disabled:opacity-40 hover:bg-[#FAF5ED]"
           >
             <span>Next</span>
